@@ -1,0 +1,18 @@
+{
+  "name": "showsuite",
+  "version": "1.0.0",
+  "description": "Theatre Management CRM - Production Management System",
+  "scripts": {
+    "build": "npm run clean && npm run compile && npm run copy-assets",
+    "clean": "rm -rf dist",
+    "compile": "babel script.js --out-file dist/script.js && babel src --out-dir dist/src --copy-files --ignore 'src/components/_disabled/**'",
+    "copy-assets": "cp index.production.html dist/index.html && cp style.css dist/ && [ -f papaparse_min.js ] && cp papaparse_min.js dist/ || echo 'papaparse not found'",
+    "serve": "npx http-server dist -p 8080 -o"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.24.1",
+    "@babel/core": "^7.24.4",
+    "@babel/preset-react": "^7.24.1",
+    "http-server": "^14.1.1"
+  }
+}

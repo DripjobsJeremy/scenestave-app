@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SceneStave - Theatre Management CRM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .status-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
+    .status-success { background-color: #10b981; }
+    .status-pending { background-color: #f59e0b; }
+    .status-error { background-color: #ef4444; }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div id="root"></div>
+  <div id="app"></div>
+  
+  <!-- Load Babel Standalone FIRST (required for JSX transpilation) -->
+  <script src="https://unpkg.com/@babel/standalone@7.24.4/babel.min.js"></script>
+  
+  <!-- React Dependencies (loads after Babel) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/react-router-dom@5.3.4/umd/react-router-dom.min.js"></script>
+  
+  <!-- External Libraries -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <!-- PapaParse will be copied from old project -->
+  <script src="papaparse.min.js"></script>
+  
+  <!-- Services (Foundation Layer) -->
+  <script src="src/services/authService.js"></script>
+  <script src="src/services/preferencesService.js"></script>
+  <script src="src/services/donorLevelsService.js"></script>
+  
+  <!-- Services (Data Layer) -->
+  <script src="src/services/contactsService.js"></script>
+  <script src="src/services/actorsService.js"></script>
+  <script src="src/services/actorAuthService.js"></script>
+  <script src="src/services/donationsService.js"></script>
+  <script src="src/services/campaignsService.js"></script>
+  
+  <!-- Organization Service -->
+  <script src="src/services/organizationService.js"></script>
+  <script src="src/services/usersService.js"></script>
+  <script src="src/services/donorAuthService.js"></script>
+  <script src="src/services/budgetService.js"></script>
+
+  <!-- Services (Business Logic Layer) -->
+  <script src="src/services/donorCalculationService.js"></script>
+  <script src="src/services/importLogsService.js"></script>
+  <script src="src/services/mappingPresetsService.js"></script>
+  <script src="src/services/acknowledgmentService.js"></script>
+  <script src="src/services/financialExportService.js"></script>
+  <script src="src/services/productionsService.js"></script>
+  <script src="src/services/venuesService.js"></script>
+
+  <!-- Volunteer Services -->
+  <script src="src/data/volunteerModels.js"></script>
+  <script src="src/services/volunteerStorageService.js"></script>
+  <script src="src/services/volunteerCalculationService.js"></script>
+  <script src="src/services/volunteerCalendarService.js"></script>
+  
+  <!-- Utilities -->
+  <script src="src/utils/validations.js"></script>
+  <script src="src/utils/donorFilters.js"></script>
+  <script src="src/utils/csvMapper.js"></script>
+  <script src="src/utils/csvTemplateGenerator.js"></script>
+  <script src="src/utils/errorReportGenerator.js"></script>
+  <script src="js/utils/routerGlobals.js"></script>
+  <script src="src/utils/donorExport.js"></script>
+  <script src="src/utils/dataInitializer.js"></script>
+  <script src="src/utils/volunteerDataInitializer.js"></script>
+  
+  <!-- Shared Components -->
+  <!-- <script type="text/babel" src="src/components/ToastNotification.jsx"></script> -->
+  <script type="text/babel" src="src/components/SkeletonLoaders.jsx"></script>
+  <script type="text/babel" src="src/components/EmptyStates.jsx"></script>
+  <script type="text/babel" src="src/components/KeyboardShortcuts.jsx"></script>
+  <script type="text/babel" src="src/components/ContactCard.jsx"></script>
+  <!-- Production Components -->
+  <script type="text/babel" src="src/components/production/CharacterCastList.jsx"></script>
+  <!-- Actor Components -->
+  <script type="text/babel" src="src/components/ActorRoster.jsx"></script>
+  <script type="text/babel" src="src/components/ActorProfileEditor.jsx"></script>
+  <script type="text/babel" src="src/components/ActorAdminRouter.jsx"></script>
+  <script type="text/babel" src="src/components/ActorImportCSV.jsx"></script>
+  <!-- Actor Portal Components -->
+  <script type="text/babel" src="src/components/actor-portal/ActorLogin.jsx"></script>
+  <script type="text/babel" src="src/components/actor-portal/ActorSelfDashboard.jsx"></script>
+  <script type="text/babel" src="src/components/actor-portal/ActorPersonalCalendar.jsx"></script>
+  <script type="text/babel" src="src/components/actor-portal/ActorSelfProfileEditor.jsx"></script>
+  <script type="text/babel" src="src/components/VolunteerAutocomplete.jsx"></script>
+  <script type="text/babel" src="src/components/VolunteerLoginModal.jsx"></script>
+  <!-- Donor Portal Components -->
+  <script type="text/babel" src="src/components/donor-portal/DonorLogin.jsx"></script>
+  <script type="text/babel" src="src/components/donor-portal/DonorDashboard.jsx"></script>
+  <script type="text/babel" src="src/components/donor-portal/DonorProfileEditor.jsx"></script>
+  <script type="text/babel" src="src/components/donor-portal/DonorDonationHistory.jsx"></script>
+  <script type="text/babel" src="src/components/donor-portal/DonorEvents.jsx"></script>
+  <script type="text/babel" src="src/components/donor-portal/DonorDocuments.jsx"></script>
+  <script type="text/babel" src="src/components/donor-portal/DonorPortal.jsx"></script>
+
+  <!-- Budget Components -->
+  <script type="text/babel" src="src/components/budget/BudgetOverview.jsx"></script>
+  <script type="text/babel" src="src/components/budget/DepartmentsBudget.jsx"></script>
+  <script type="text/babel" src="src/components/budget/RevenueBudget.jsx"></script>
+  <script type="text/babel" src="src/components/budget/AddBudgetItemModal.jsx"></script>
+  <script type="text/babel" src="src/components/budget/BudgetDashboardWidget.jsx"></script>
+  <script type="text/babel" src="src/components/budget/ProductionBudgetsFinancialView.jsx"></script>
+  <script type="text/babel" src="src/components/budget/ProductionBudgetManager.jsx"></script>
+  <script type="text/babel" src="src/components/budget/DonationAllocationManager.jsx"></script>
+  <script type="text/babel" src="src/components/budget/RestrictedFundsWidget.jsx"></script>
+
+  <!-- Form Components -->
+  <!-- <script type="text/babel" src="src/components/DonationEntryForm.jsx"></script> -->
+  <script type="text/babel" src="src/components/DonationHistoryItem.jsx"></script>
+  <script type="text/babel" src="src/components/DonationModal.jsx"></script>
+  <script type="text/babel" src="src/components/ImportDonorsModal.jsx"></script>
+  <script type="text/babel" src="src/components/MappingPresetsManager.jsx"></script>
+  <script type="text/babel" src="src/components/ImportHistory.jsx"></script>
+  
+  <!-- Financial Components -->
+  <script type="text/babel" src="src/components/financial/FinancialFilters.jsx"></script>
+  <script type="text/babel" src="src/components/financial/FinancialCharts.jsx"></script>
+  <script type="text/babel" src="src/components/financial/FinancialOverview.jsx"></script>
+  <script type="text/babel" src="src/components/financial/DonationsView.jsx"></script>
+  <script type="text/babel" src="src/components/financial/DonorsView.jsx"></script>
+  <script type="text/babel" src="src/components/financial/CampaignsView.jsx"></script>
+  <script type="text/babel" src="src/components/financial/ReportsView.jsx"></script>
+  
+  <!-- Production Components -->
+  <script type="text/babel" src="src/components/production/CreateProductionModal.jsx"></script>
+  <script type="text/babel" src="src/components/production/ProductionsView.jsx"></script>
+  <script type="text/babel" src="src/components/common/UserRoleSelector.jsx"></script>
+  <script type="text/babel" src="src/components/production/departments/LightingView.jsx"></script>
+  <script type="text/babel" src="src/components/production/departments/SoundDepartmentView.jsx"></script>
+  <script type="text/babel" src="src/components/production/departments/StageManagerView.jsx"></script>
+  <script type="text/babel" src="src/components/production/departments/PropsView.jsx"></script>
+  <script type="text/babel" src="src/components/production/departments/WardrobeView.jsx"></script>
+  <script type="text/babel" src="src/components/production/departments/SetDesignView.jsx"></script>
+  <script type="text/babel" src="src/components/production/CalendarView.jsx"></script>
+  <script type="text/babel" src="src/components/production/SceneBuilder.jsx"></script>
+  
+  <!-- Volunteer Components -->
+  <!-- <script type="text/babel" src="src/components/volunteer/VolunteerImpactTracker.jsx"></script> -->
+  <!-- <script type="text/babel" src="src/components/volunteer/VolunteerCheckIn.jsx"></script> -->
+  <!-- <script type="text/babel" src="src/components/volunteer/VolunteerPersonalCalendar.jsx"></script> -->
+  <script type="text/babel" src="src/components/volunteer/VolunteerApplicationForm.jsx"></script>
+  <script type="text/babel" src="src/components/volunteer/BrowseOpportunities.jsx"></script>
+  <!-- <script type="text/babel" src="src/components/volunteer/OpportunityDetailPage.jsx"></script> -->
+  <script type="text/babel" src="src/components/volunteer/VolunteerPortalHome.jsx"></script>
+  <script type="text/babel" src="src/components/volunteer/VolunteerLogin.jsx"></script>
+  <script type="text/babel" src="src/components/volunteer/VolunteerSelfDashboard.jsx"></script>
+  <script type="text/babel" src="src/components/volunteer/VolunteerDashboard.jsx"></script>
+  <script type="text/babel" src="src/components/volunteer/VolunteerOpportunitiesManager.jsx"></script>
+  <script type="text/babel" src="src/components/volunteer/VolunteerShiftScheduler.jsx"></script>
+  <script type="text/babel" src="src/components/volunteer/VolunteerAssignmentManager.jsx"></script>
+  <script type="text/babel" src="src/components/volunteer/VolunteerProfileEditor.jsx"></script>
+  <script type="text/babel" src="src/components/volunteer/VolunteerRosterView.jsx"></script>
+  <script type="text/babel" src="src/components/volunteer/VolunteerApplicationReview.jsx"></script>
+  <script type="text/babel" src="src/components/volunteer/VolunteerCommunication.jsx"></script>
+  <script type="text/babel" src="src/components/volunteer/VolunteerReports.jsx"></script>
+  
+  <!-- Settings Components -->
+  <script type="text/babel" src="src/components/settings/OrganizationSettings.jsx"></script>
+  <script type="text/babel" src="src/components/settings/SettingsOverview.jsx"></script>
+  <script type="text/babel" src="src/components/settings/DonorLevelsSettings.jsx"></script>
+  <script type="text/babel" src="src/components/settings/CampaignsSettings.jsx"></script>
+  <script type="text/babel" src="src/components/settings/AcknowledgmentSettings.jsx"></script>
+  <script type="text/babel" src="src/components/settings/DataManagementSettings.jsx"></script>
+  <script type="text/babel" src="src/components/settings/AboutSettings.jsx"></script>
+  <script type="text/babel" src="src/components/settings/UserPreferencesSettings.jsx"></script>
+  <script type="text/babel" src="src/components/settings/VenuesSettings.jsx"></script>
+  <script type="text/babel" src="src/components/settings/UsersSettings.jsx"></script>
+
+  <!-- Page Components -->
+  <script type="text/babel" src="src/components/Settings.jsx"></script>
+  <script type="text/babel" src="src/components/FinancialDashboard.jsx"></script>
+  
+  <!-- Modals -->
+  <script type="text/babel" src="src/components/AddDonationModal.jsx"></script>
+
+  <!-- Dashboard -->
+  <script type="text/babel" src="src/components/SuperAdminDashboard.jsx"></script>
+
+  <!-- App (loads last) -->
+  <script type="text/babel" src="src/app/App.jsx"></script>
+  
+  <!-- Toast notification utility -->
+  <script>
+    window.showToast = (message, type) => {
+      const colors = { success: '#16a34a', error: '#dc2626', warning: '#d97706', info: '#2563eb' };
+      const toast = document.createElement('div');
+      toast.textContent = message;
+      Object.assign(toast.style, {
+        position: 'fixed', top: '16px', right: '16px', zIndex: '9999',
+        padding: '12px 20px', borderRadius: '8px', color: '#fff', fontFamily: 'sans-serif',
+        fontSize: '14px', fontWeight: '500', boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+        backgroundColor: colors[type] || colors.info,
+        opacity: '0', transition: 'opacity 0.2s ease'
+      });
+      document.body.appendChild(toast);
+      requestAnimationFrame(() => { toast.style.opacity = '1'; });
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 250);
+      }, 3000);
+    };
+  </script>
+
+  <!-- Script loading error handler -->
+  <script>
+    window.addEventListener('error', function(e) {
+      if (e.filename && e.filename.includes('.js')) {
+        console.error('Script loading error:', {
+          file: e.filename,
+          message: e.message,
+          line: e.lineno,
+          column: e.colno
+        });
+      }
+    });
+
+    // Check if Babel is loaded
+    if (typeof Babel === 'undefined') {
+      console.error('CRITICAL: Babel standalone failed to load. JSX transpilation will not work.');
+    }
+
+    // Initialize sample data on first load
+    if (typeof window.initializeSampleData === 'function') {
+      window.initializeSampleData();
+    }
+  </script>
+  
+  <script>
+    // Initialize volunteer sample data
+    if (typeof window.initializeVolunteerSampleData === 'function') {
+      window.initializeVolunteerSampleData();
+    }
+  </script>
+</body>
+</html>

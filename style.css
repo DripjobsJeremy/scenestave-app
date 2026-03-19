@@ -1,0 +1,104 @@
+/* SceneStave — global styles */
+
+/* ── Brand CSS custom properties ────────────────────────────────────────────
+   Defaults match the initial organization branding values.
+   window.organizationService.applyBrandingToDOM() overrides these at runtime.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --brand-primary:    #7C3AED;
+  --brand-secondary:  #4F46E5;
+  --brand-accent:     #10B981;
+  --brand-background: #F9FAFB;
+  --brand-text:       #111827;
+}
+
+/* ── Brand utility classes ──────────────────────────────────────────────── */
+.bg-brand-primary      { background-color: var(--brand-primary)    !important; }
+.bg-brand-secondary    { background-color: var(--brand-secondary)  !important; }
+.bg-brand-accent       { background-color: var(--brand-accent)     !important; }
+.bg-brand-background   { background-color: var(--brand-background) !important; }
+.text-brand-primary    { color: var(--brand-primary)    !important; }
+.text-brand-secondary  { color: var(--brand-secondary)  !important; }
+.text-brand-text       { color: var(--brand-text)       !important; }
+.border-brand-primary  { border-color: var(--brand-primary) !important; }
+
+/* ── Sidebar gradient — driven by brand colors ──────────────────────────── */
+.sidebar-gradient {
+  background: linear-gradient(to bottom, var(--brand-primary), var(--brand-secondary)) !important;
+}
+
+/* ── Purple → Brand color overrides ────────────────────────────────────────
+   Maps every Tailwind purple utility class to CSS custom properties so the
+   entire app responds to the organization's brand palette automatically.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Background colors */
+.bg-purple-50  { background-color: color-mix(in srgb, var(--brand-primary) 10%, white) !important; }
+.bg-purple-100 { background-color: color-mix(in srgb, var(--brand-primary) 20%, white) !important; }
+.bg-purple-200 { background-color: color-mix(in srgb, var(--brand-primary) 35%, white) !important; }
+.bg-purple-500 { background-color: var(--brand-primary) !important; }
+.bg-purple-600 { background-color: var(--brand-primary) !important; }
+.bg-purple-700 { background-color: color-mix(in srgb, var(--brand-primary) 85%, black) !important; }
+.bg-purple-800 { background-color: color-mix(in srgb, var(--brand-primary) 70%, black) !important; }
+.bg-purple-900 { background-color: color-mix(in srgb, var(--brand-primary) 55%, black) !important; }
+
+/* Text colors */
+.text-purple-100 { color: color-mix(in srgb, var(--brand-primary) 20%, white) !important; }
+.text-purple-200 { color: color-mix(in srgb, var(--brand-primary) 35%, white) !important; }
+.text-purple-300 { color: color-mix(in srgb, var(--brand-primary) 55%, white) !important; }
+.text-purple-600 { color: var(--brand-primary) !important; }
+.text-purple-700 { color: color-mix(in srgb, var(--brand-primary) 85%, black) !important; }
+.text-purple-800 { color: color-mix(in srgb, var(--brand-primary) 70%, black) !important; }
+.text-purple-900 { color: color-mix(in srgb, var(--brand-primary) 55%, black) !important; }
+
+/* Border colors */
+.border-purple-200 { border-color: color-mix(in srgb, var(--brand-primary) 30%, white) !important; }
+.border-purple-300 { border-color: color-mix(in srgb, var(--brand-primary) 45%, white) !important; }
+.border-purple-500 { border-color: var(--brand-primary) !important; }
+.border-purple-600 { border-color: var(--brand-primary) !important; }
+.border-purple-700 { border-color: color-mix(in srgb, var(--brand-primary) 85%, black) !important; }
+
+/* Hover states */
+.hover\:bg-purple-50:hover  { background-color: color-mix(in srgb, var(--brand-primary) 10%, white) !important; }
+.hover\:bg-purple-100:hover { background-color: color-mix(in srgb, var(--brand-primary) 20%, white) !important; }
+.hover\:bg-purple-200:hover { background-color: color-mix(in srgb, var(--brand-primary) 30%, white) !important; }
+.hover\:bg-purple-600:hover { background-color: var(--brand-primary) !important; }
+.hover\:bg-purple-700:hover { background-color: color-mix(in srgb, var(--brand-primary) 85%, black) !important; }
+.hover\:text-purple-700:hover { color: color-mix(in srgb, var(--brand-primary) 85%, black) !important; }
+.hover\:border-purple-400:hover { border-color: color-mix(in srgb, var(--brand-primary) 60%, white) !important; }
+.hover\:border-purple-500:hover { border-color: var(--brand-primary) !important; }
+
+/* Focus / ring states */
+.focus\:ring-purple-400:focus,
+.focus\:ring-purple-500:focus { --tw-ring-color: var(--brand-primary) !important; }
+.focus\:border-purple-500:focus { border-color: var(--brand-primary) !important; }
+
+/* Gradient stops — from / via / to */
+.from-purple-500,
+.from-purple-600,
+.from-purple-900 {
+  --tw-gradient-from: var(--brand-primary);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(0 0 0 / 0));
+}
+.to-purple-600,
+.to-purple-700,
+.to-purple-900 {
+  --tw-gradient-to: color-mix(in srgb, var(--brand-primary) 80%, black);
+}
+.via-purple-600,
+.via-purple-800 {
+  --tw-gradient-stops: var(--tw-gradient-from), var(--brand-primary), var(--tw-gradient-to, rgb(0 0 0 / 0));
+}
+
+/* ── Brand badge — "Custom Theme Active" pill in Branding settings ───────── */
+.badge-brand-custom {
+  background-color: color-mix(in srgb, var(--brand-primary) 15%, white);
+  color: var(--brand-primary);
+}
+
+/* Violet overrides — volunteer portal uses violet-600 as primary gradient stop */
+.from-violet-600 {
+  --tw-gradient-from: var(--brand-primary);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(0 0 0 / 0));
+}
+.bg-violet-50 { background-color: color-mix(in srgb, var(--brand-primary) 8%, white) !important; }

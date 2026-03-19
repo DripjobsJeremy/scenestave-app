@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SceneStave - Theatre Management CRM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .status-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
+    .status-success { background-color: #10b981; }
+    .status-pending { background-color: #f59e0b; }
+    .status-error { background-color: #ef4444; }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div id="root"></div>
+  <div id="app"></div>
+  
+  <!-- React Dependencies -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/react-router-dom@5.3.4/umd/react-router-dom.min.js"></script>
+  
+  <!-- External Libraries -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <!-- PapaParse -->
+  <script src="papaparse_min.js"></script>
+  
+  <!-- Services (Foundation Layer) -->
+  <script src="src/services/authService.js"></script>
+  <script src="src/services/preferencesService.js"></script>
+  <script src="src/services/donorLevelsService.js"></script>
+  
+  <!-- Services (Data Layer) -->
+  <script src="src/services/contactsService.js"></script>
+  <script src="src/services/actorsService.js"></script>
+  <script src="src/services/actorAuthService.js"></script>
+  <script src="src/services/donationsService.js"></script>
+  <script src="src/services/campaignsService.js"></script>
+  
+  <!-- Services (Business Logic Layer) -->
+  <script src="src/services/donorCalculationService.js"></script>
+  <script src="src/services/importLogsService.js"></script>
+  <script src="src/services/mappingPresetsService.js"></script>
+  <script src="src/services/acknowledgmentService.js"></script>
+  <script src="src/services/financialExportService.js"></script>
+  <script src="src/services/productionsService.js"></script>
+  
+  <!-- Volunteer Services -->
+  <script src="src/data/volunteerModels.js"></script>
+  <script src="src/services/volunteerStorageService.js"></script>
+  <script src="src/services/volunteerCalculationService.js"></script>
+  <script src="src/services/volunteerCalendarService.js"></script>
+  
+  <!-- Utilities -->
+  <script src="src/utils/validations.js"></script>
+  <script src="src/utils/donorFilters.js"></script>
+  <script src="src/utils/csvMapper.js"></script>
+  <script src="src/utils/csvTemplateGenerator.js"></script>
+  <script src="src/utils/errorReportGenerator.js"></script>
+  <script src="js/utils/routerGlobals.js"></script>
+  <script src="src/utils/donorExport.js"></script>
+  <script src="src/utils/dataInitializer.js"></script>
+  <script src="src/utils/volunteerDataInitializer.js"></script>
+  
+  <!-- Shared Components (PRE-COMPILED - no Babel needed) -->
+  <script src="src/components/SkeletonLoaders.jsx"></script>
+  <script src="src/components/EmptyStates.jsx"></script>
+  <script src="src/components/KeyboardShortcuts.jsx"></script>
+  <script src="src/components/ContactCard.jsx"></script>
+  <script src="src/components/VolunteerAutocomplete.jsx"></script>
+  <script src="src/components/VolunteerLoginModal.jsx"></script>
+  
+  <!-- Form Components -->
+  <script src="src/components/DonationHistoryItem.jsx"></script>
+  <script src="src/components/DonationModal.jsx"></script>
+  <script src="src/components/ImportDonorsModal.jsx"></script>
+  <script src="src/components/MappingPresetsManager.jsx"></script>
+  <script src="src/components/ImportHistory.jsx"></script>
+  
+  <!-- Financial Components -->
+  <script src="src/components/financial/FinancialFilters.jsx"></script>
+  <script src="src/components/financial/FinancialCharts.jsx"></script>
+  <script src="src/components/financial/FinancialOverview.jsx"></script>
+  <script src="src/components/financial/DonationsView.jsx"></script>
+  <script src="src/components/financial/DonorsView.jsx"></script>
+  <script src="src/components/financial/CampaignsView.jsx"></script>
+  <script src="src/components/financial/ReportsView.jsx"></script>
+  
+  <!-- Production Components -->
+  <script src="src/components/production/CreateProductionModal.jsx"></script>
+  <script src="src/components/production/ProductionsView.jsx"></script>
+  <script src="src/components/common/UserRoleSelector.jsx"></script>
+  <script src="src/components/production/CharacterCastList.jsx"></script>
+  <script src="src/components/ActorRoster.jsx"></script>
+  <script src="src/components/ActorProfileEditor.jsx"></script>
+  <script src="src/components/ActorAdminRouter.jsx"></script>
+  <script src="src/components/ActorImportCSV.jsx"></script>
+  <!-- Actor Portal Components -->
+  <script src="src/components/actor-portal/ActorLogin.jsx"></script>
+  <script src="src/components/actor-portal/ActorSelfDashboard.jsx"></script>
+  <script src="src/components/actor-portal/ActorPersonalCalendar.jsx"></script>
+  <script src="src/components/actor-portal/ActorSelfProfileEditor.jsx"></script>
+  <script src="src/components/production/departments/LightingView.jsx"></script>
+  <script src="src/components/production/departments/SoundDepartmentView.jsx"></script>
+  <script src="src/components/production/departments/StageManagerView.jsx"></script>
+  <script src="src/components/production/departments/PropsView.jsx"></script>
+  <script src="src/components/production/departments/WardrobeView.jsx"></script>
+  <script src="src/components/production/departments/SetDesignView.jsx"></script>
+  <script src="src/components/production/CalendarView.jsx"></script>
+  <script src="src/components/production/SceneBuilder.jsx"></script>
+  
+  <!-- Volunteer Components -->
+  <script src="src/components/volunteer/VolunteerApplicationForm.jsx"></script>
+  <script src="src/components/volunteer/BrowseOpportunities.jsx"></script>
+  <script src="src/components/volunteer/VolunteerPortalHome.jsx"></script>
+  <script src="src/components/volunteer/VolunteerLogin.jsx"></script>
+  <script src="src/components/volunteer/VolunteerSelfDashboard.jsx"></script>
+  <script src="src/components/volunteer/VolunteerDashboard.jsx"></script>
+  <script src="src/components/volunteer/VolunteerOpportunitiesManager.jsx"></script>
+  <script src="src/components/volunteer/VolunteerShiftScheduler.jsx"></script>
+  <script src="src/components/volunteer/VolunteerAssignmentManager.jsx"></script>
+  <script src="src/components/volunteer/VolunteerProfileEditor.jsx"></script>
+  <script src="src/components/volunteer/VolunteerRosterView.jsx"></script>
+  <script src="src/components/volunteer/VolunteerApplicationReview.jsx"></script>
+  <script src="src/components/volunteer/VolunteerCommunication.jsx"></script>
+  <script src="src/components/volunteer/VolunteerReports.jsx"></script>
+  
+  <!-- Settings Components -->
+  <script src="src/components/settings/SettingsOverview.jsx"></script>
+  <script src="src/components/settings/DonorLevelsSettings.jsx"></script>
+  <script src="src/components/settings/CampaignsSettings.jsx"></script>
+  <script src="src/components/settings/AcknowledgmentSettings.jsx"></script>
+  <script src="src/components/settings/DataManagementSettings.jsx"></script>
+  <script src="src/components/settings/AboutSettings.jsx"></script>
+  <script src="src/components/settings/UserPreferencesSettings.jsx"></script>
+  
+  <!-- Page Components -->
+  <script src="src/components/Settings.jsx"></script>
+  <script src="src/components/FinancialDashboard.jsx"></script>
+  
+  <!-- App (loads last) -->
+  <script src="src/app/App.jsx"></script>
+  
+  <script src="script.js"></script>
+  
+  <!-- Initialize data -->
+  <script>
+    // Initialize sample data on first load
+    if (typeof window.initializeSampleData === 'function') {
+      window.initializeSampleData();
+    }
+    
+    // Initialize volunteer sample data
+    if (typeof window.initializeVolunteerSampleData === 'function') {
+      window.initializeVolunteerSampleData();
+    }
+  </script>
+</body>
+</html>

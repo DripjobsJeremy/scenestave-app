@@ -1,0 +1,23 @@
+[build]
+  # Build and publish from dist directory
+  publish = "dist"
+  
+  # Pre-compile JSX to JavaScript
+  command = "cd showsuite-clean && npm install && npm run build && mv dist ../dist"
+
+[[redirects]]
+  # Support React Router HashRouter
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  # Cache static assets
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
