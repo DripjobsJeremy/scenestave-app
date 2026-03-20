@@ -8,6 +8,7 @@ function SceneBuilder({ productionId: propId }) {
   const [draggedActIndex, setDraggedActIndex] = useState(null);
   const [openCharacterSelector, setOpenCharacterSelector] = useState(null); // format: "actIndex-sceneIndex"
   const [collapsedScenes, setCollapsedScenes] = useState({}); // format: { "actIndex-sceneIndex": true }
+  const [collapsedActs, setCollapsedActs] = useState({}); // format: { actIndex: true }
   const [activeTab, setActiveTab] = useState(() => {
     const saved = localStorage.getItem('showsuite_active_department_tab');
     return saved || 'scenes';
@@ -155,6 +156,21 @@ function SceneBuilder({ productionId: propId }) {
 
   const isSceneCollapsed = (actIndex, sceneIndex) => {
     return collapsedScenes[`${actIndex}-${sceneIndex}`] || false;
+  };
+
+  const toggleActCollapse = (actIndex) => {
+    setCollapsedActs(prev => ({ ...prev, [actIndex]: !prev[actIndex] }));
+  };
+
+  const isActCollapsed = (actIndex) => collapsedActs[actIndex] || false;
+
+  const allActsCollapsed = (production.acts || []).length > 0 &&
+    (production.acts || []).every((_, i) => isActCollapsed(i));
+
+  const toggleAllActs = () => {
+    const newState = {};
+    (production.acts || []).forEach((_, i) => { newState[i] = !allActsCollapsed; });
+    setCollapsedActs(newState);
   };
 
   const handleDuplicateScene = (actIndex, sceneIndex) => {
@@ -318,19 +334,29 @@ function SceneBuilder({ productionId: propId }) {
         },
         React.createElement(
           'div',
-          { className: 'flex items-center justify-between mb-3' },
+          {
+            className: 'flex items-center justify-between mb-3 cursor-pointer select-none',
+            onClick: () => toggleActCollapse(actIndex)
+          },
           React.createElement(
             'div',
             { className: 'flex items-center' },
-            React.createElement('span', { 
-              className: 'cursor-grab text-gray-400 mr-2', 
-              title: 'Drag to reorder' 
+            React.createElement('span', {
+              className: 'cursor-grab text-gray-400 mr-2',
+              title: 'Drag to reorder',
+              onClick: (e) => e.stopPropagation()
             }, '⋮⋮'),
+            React.createElement(
+              'span',
+              { className: 'text-gray-400 mr-2 transition-transform text-sm ' + (isActCollapsed(actIndex) ? '' : 'rotate-90') },
+              '▶'
+            ),
             React.createElement(
               'select',
               {
                 value: act.name || '',
                 onChange: (e) => handleUpdateActName(actIndex, e.target.value),
+                onClick: (e) => e.stopPropagation(),
                 className: 'px-3 py-2 border border-gray-300 rounded-lg w-48 font-semibold bg-white focus:ring-2 focus:ring-violet-500 focus:border-violet-500'
               },
               React.createElement('option', { value: '' }, '-- Select Act --'),
@@ -352,7 +378,7 @@ function SceneBuilder({ productionId: propId }) {
               'button',
               {
                 className: 'px-3 py-2 bg-violet-600 text-white rounded hover:bg-violet-700 text-sm',
-                onClick: () => handleAddScene(actIndex)
+                onClick: (e) => { e.stopPropagation(); handleAddScene(actIndex); }
               },
               '+ Add Scene'
             ),
@@ -360,13 +386,13 @@ function SceneBuilder({ productionId: propId }) {
               'button',
               {
                 className: 'px-3 py-2 bg-red-50 text-red-700 border border-red-200 rounded hover:bg-red-100 text-sm',
-                onClick: () => handleDeleteAct(actIndex)
+                onClick: (e) => { e.stopPropagation(); handleDeleteAct(actIndex); }
               },
               'Delete Act'
             )
           )
         ),
-        React.createElement(
+        !isActCollapsed(actIndex) && React.createElement(
           'div',
           { className: 'space-y-3 ml-4' },
           (act.scenes || []).map((scene, sceneIndex) =>
@@ -620,58 +646,76 @@ function SceneBuilder({ productionId: propId }) {
                 React.createElement(
                   'div',
                   { className: 'grid grid-cols-1 md:grid-cols-3 gap-3 mb-2' },
-                  React.createElement('input', {
-                    type: 'text',
-                    value: scene.location || '',
-                    onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'location', e.target.value),
-                    className: 'px-3 py-2 border border-gray-300 rounded w-full text-sm',
-                    placeholder: '📍 Location'
-                  }),
-                  React.createElement('input', {
-                    type: 'text',
-                    value: scene.time || '',
-                    onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'time', e.target.value),
-                    className: 'px-3 py-2 border border-gray-300 rounded w-full text-sm',
-                    placeholder: '🕐 Time'
-                  }),
-                  React.createElement('input', {
-                    type: 'text',
-                    value: scene.description || '',
-                    onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'description', e.target.value),
-                    className: 'px-3 py-2 border border-gray-300 rounded w-full text-sm',
-                    placeholder: '📝 Description'
-                  })
+                  React.createElement('div', { className: 'relative' },
+                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '📍'),
+                    React.createElement('input', {
+                      type: 'text',
+                      value: scene.location || '',
+                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'location', e.target.value),
+                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
+                      placeholder: 'Location'
+                    })
+                  ),
+                  React.createElement('div', { className: 'relative' },
+                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '🕐'),
+                    React.createElement('input', {
+                      type: 'text',
+                      value: scene.time || '',
+                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'time', e.target.value),
+                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
+                      placeholder: 'Time of day'
+                    })
+                  ),
+                  React.createElement('div', { className: 'relative' },
+                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '📝'),
+                    React.createElement('input', {
+                      type: 'text',
+                      value: scene.description || '',
+                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'description', e.target.value),
+                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
+                      placeholder: 'Description'
+                    })
+                  )
                 ),
                 // Lighting section
                 React.createElement(
                   'div',
                   { className: 'grid grid-cols-1 md:grid-cols-2 gap-3 mb-2' },
-                  React.createElement('input', {
-                    type: 'text',
-                    value: scene.lightingMood || '',
-                    onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'lightingMood', e.target.value),
-                    className: 'px-3 py-2 border border-gray-300 rounded w-full text-sm',
-                    placeholder: '💡 Lighting Mood (e.g., warm, dramatic, dim)'
-                  }),
-                  React.createElement('input', {
-                    type: 'text',
-                    value: scene.lightingColor || '',
-                    onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'lightingColor', e.target.value),
-                    className: 'px-3 py-2 border border-gray-300 rounded w-full text-sm',
-                    placeholder: '🎨 Lighting Color (e.g., amber, blue wash)'
-                  })
+                  React.createElement('div', { className: 'relative' },
+                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '💡'),
+                    React.createElement('input', {
+                      type: 'text',
+                      value: scene.lightingMood || '',
+                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'lightingMood', e.target.value),
+                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
+                      placeholder: 'Lighting mood (e.g., warm, dramatic)'
+                    })
+                  ),
+                  React.createElement('div', { className: 'relative' },
+                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '🎨'),
+                    React.createElement('input', {
+                      type: 'text',
+                      value: scene.lightingColor || '',
+                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'lightingColor', e.target.value),
+                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
+                      placeholder: 'Lighting color (e.g., amber, blue wash)'
+                    })
+                  )
                 ),
                 // Sound section
                 React.createElement(
                   'div',
                   { className: 'grid grid-cols-1 md:grid-cols-4 gap-3 mb-2' },
-                  React.createElement('input', {
-                    type: 'text',
-                    value: scene.songTitle || '',
-                    onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'songTitle', e.target.value),
-                    className: 'px-3 py-2 border border-gray-300 rounded w-full text-sm',
-                    placeholder: '🎵 Song Title'
-                  }),
+                  React.createElement('div', { className: 'relative' },
+                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '🎵'),
+                    React.createElement('input', {
+                      type: 'text',
+                      value: scene.songTitle || '',
+                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'songTitle', e.target.value),
+                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
+                      placeholder: 'Song title'
+                    })
+                  ),
                   // Artist field OR Character selection depending on sound type
                   (() => {
                     if (scene.soundType === 'Musical Number') {
@@ -716,21 +760,27 @@ function SceneBuilder({ productionId: propId }) {
                         )
                       );
                     }
-                    return React.createElement('input', {
-                      type: 'text',
-                      value: scene.artist || '',
-                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'artist', e.target.value),
-                      className: 'px-3 py-2 border border-gray-300 rounded w-full text-sm',
-                      placeholder: '🎤 Artist'
-                    });
+                    return React.createElement('div', { className: 'relative' },
+                      React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '🎤'),
+                      React.createElement('input', {
+                        type: 'text',
+                        value: scene.artist || '',
+                        onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'artist', e.target.value),
+                        className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
+                        placeholder: 'Artist'
+                      })
+                    );
                   })(),
-                  React.createElement('input', {
-                    type: 'text',
-                    value: scene.duration || '',
-                    onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'duration', e.target.value),
-                    className: 'px-3 py-2 border border-gray-300 rounded w-full text-sm',
-                    placeholder: '⏱️ Duration'
-                  }),
+                  React.createElement('div', { className: 'relative' },
+                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '⏱️'),
+                    React.createElement('input', {
+                      type: 'text',
+                      value: scene.duration || '',
+                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'duration', e.target.value),
+                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
+                      placeholder: 'Duration'
+                    })
+                  ),
                   React.createElement(
                     'select',
                     {
@@ -775,6 +825,20 @@ function SceneBuilder({ productionId: propId }) {
     )
   );
 
+  // Collapse All / Expand All toolbar
+  const scenesToolbar = (production.acts || []).length > 0 ? React.createElement(
+    'div',
+    { className: 'flex justify-end mb-3' },
+    React.createElement(
+      'button',
+      {
+        className: 'px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-50',
+        onClick: toggleAllActs
+      },
+      allActsCollapsed ? 'Expand All' : 'Collapse All'
+    )
+  ) : null;
+
   // Add Act button
   const addActButton = React.createElement(
     'div',
@@ -817,6 +881,7 @@ function SceneBuilder({ productionId: propId }) {
       null,
       characterSection,
       React.createElement('hr', { className: 'my-6 border-gray-200' }),
+      scenesToolbar,
       emptyState || actsList,
       !emptyState && addActButton
     ),
