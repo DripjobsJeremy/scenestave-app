@@ -3,7 +3,7 @@
  * Super Admin section for managing organization profile, contact info, branding, and account.
  */
 
-function OrganizationSettings() {
+function OrganizationSettings(props) {
   const { useState, useEffect } = React;
 
   const [organization, setOrganization] = useState(null);
@@ -32,6 +32,7 @@ function OrganizationSettings() {
     }
     const updated = window.organizationService?.updateOrganization(updates);
     if (updated) setOrganization(updated);
+    if (props.onUpdate) props.onUpdate();
   };
 
   // Phone management
@@ -87,6 +88,7 @@ function OrganizationSettings() {
         logoUrl: event.target.result
       });
       loadOrganization();
+      if (props.onUpdate) props.onUpdate();
       if (window.showToast) window.showToast('✅ Logo updated', 'success');
     };
     reader.readAsDataURL(file);
@@ -97,6 +99,7 @@ function OrganizationSettings() {
     const branding = { ...(organization?.branding || {}), [colorField]: value };
     window.organizationService?.updateBranding(branding);
     loadOrganization();
+    if (props.onUpdate) props.onUpdate();
   };
 
   if (!organization) {

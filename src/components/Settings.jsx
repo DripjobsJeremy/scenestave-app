@@ -182,7 +182,7 @@
   /**
    * Main Settings Component
    */
-  const Settings = () => {
+  const Settings = (props) => {
     const [activeSection, setActiveSection] = useState('overview');
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -434,7 +434,7 @@
               onNavigate: (section) => handleSectionChange(section)
             }),
           activeSection === 'organization' && OrganizationSettingsComponent &&
-            React.createElement(OrganizationSettingsComponent),
+            React.createElement(OrganizationSettingsComponent, { onUpdate: props.onOrgUpdate }),
           activeSection === 'donor-levels' && DonorLevelsSettingsComponent &&
             React.createElement(DonorLevelsSettingsComponent, {
               onHasChanges: (hasChanges) => setHasUnsavedChanges(hasChanges)

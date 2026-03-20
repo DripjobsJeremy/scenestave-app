@@ -259,9 +259,14 @@ function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Organization info — loaded once on mount for sidebar display
-  const [orgInfo] = useState(() =>
+  const [orgInfo, setOrgInfo] = useState(() =>
     window.organizationService?.loadOrganization() || { name: 'SceneStave', branding: {} }
   );
+
+  const handleOrgUpdate = () => {
+    const updated = window.organizationService?.loadOrganization();
+    if (updated) setOrgInfo(updated);
+  };
 
   const handleRoleChange = (newRole) => {
     console.log('🔄 Role changing from', userRole, 'to', newRole);
@@ -588,7 +593,7 @@ function App() {
                   <p className="text-xs text-amber-700 mt-2">Switch roles to preview different navigation menus. Selection persists on reload.</p>
                 </div>
 
-                {window.Settings && <window.Settings />}
+                {window.Settings && <window.Settings onOrgUpdate={handleOrgUpdate} />}
               </div>
             </Route>
 
