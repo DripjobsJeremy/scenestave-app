@@ -253,6 +253,17 @@ function WardrobeView({ production, onUpdateScene }) {
 
   const budgetTotals = calculateBudgetTotals();
 
+  const getBudgetData = () => {
+    const budget = window.budgetService?.getProductionBudget?.(production?.id);
+    const dept = budget?.departments?.wardrobe || {};
+    return {
+      allocated: parseFloat(dept.allocated) || 0,
+      spent: parseFloat(dept.spent) || 0,
+      itemCount: dept.items?.length || 0
+    };
+  };
+  const wardrobeBudget = getBudgetData();
+
   // Flatten all scenes from all acts for display
   const getAllScenes = () => {
     const scenes = [];
@@ -979,9 +990,28 @@ function WardrobeView({ production, onUpdateScene }) {
           React.createElement(
             'div',
             { className: 'text-3xl font-bold text-rose-700' },
-            `$${budgetTotals.totalCost.toFixed(2)}`
+            `$${wardrobeBudget.spent.toFixed(2)}`
           ),
-          React.createElement('div', { className: 'text-xs text-gray-500' }, 'Total Costume Cost')
+          React.createElement('div', { className: 'text-xs text-gray-500' },
+            wardrobeBudget.allocated > 0 ? 'of $' + wardrobeBudget.allocated.toFixed(2) + ' allocated' : 'Total Costume Cost'
+          )
+        )
+      ),
+      wardrobeBudget.allocated > 0 && React.createElement(
+        'div',
+        { className: 'mt-3' },
+        React.createElement(
+          'div',
+          { className: 'w-full bg-rose-200 rounded-full h-2' },
+          React.createElement('div', {
+            className: 'h-2 rounded-full ' + (wardrobeBudget.spent > wardrobeBudget.allocated ? 'bg-red-500' : 'bg-rose-500'),
+            style: { width: Math.min(100, (wardrobeBudget.spent / wardrobeBudget.allocated) * 100) + '%' }
+          })
+        ),
+        React.createElement('div', { className: 'text-xs text-rose-700 mt-1' },
+          wardrobeBudget.spent > wardrobeBudget.allocated
+            ? 'Over budget'
+            : '$' + (wardrobeBudget.allocated - wardrobeBudget.spent).toFixed(2) + ' remaining'
         )
       )
     ),

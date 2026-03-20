@@ -253,6 +253,17 @@ function PropsView({ production, onUpdateScene }) {
 
   const budgetTotals = calculateBudgetTotals();
 
+  const getBudgetData = () => {
+    const budget = window.budgetService?.getProductionBudget?.(production?.id);
+    const dept = budget?.departments?.props || {};
+    return {
+      allocated: parseFloat(dept.allocated) || 0,
+      spent: parseFloat(dept.spent) || 0,
+      itemCount: dept.items?.length || 0
+    };
+  };
+  const propsBudget = getBudgetData();
+
   // Flatten all scenes from all acts for display
   const getAllScenes = () => {
     const scenes = [];
@@ -979,9 +990,28 @@ function PropsView({ production, onUpdateScene }) {
           React.createElement(
             'div',
             { className: 'text-3xl font-bold text-green-700' },
-            `$${budgetTotals.totalCost.toFixed(2)}`
+            `$${propsBudget.spent.toFixed(2)}`
           ),
-          React.createElement('div', { className: 'text-xs text-gray-500' }, 'Total Props Cost')
+          React.createElement('div', { className: 'text-xs text-gray-500' },
+            propsBudget.allocated > 0 ? 'of $' + propsBudget.allocated.toFixed(2) + ' allocated' : 'Total Props Cost'
+          )
+        )
+      ),
+      propsBudget.allocated > 0 && React.createElement(
+        'div',
+        { className: 'mt-3' },
+        React.createElement(
+          'div',
+          { className: 'w-full bg-green-200 rounded-full h-2' },
+          React.createElement('div', {
+            className: 'h-2 rounded-full ' + (propsBudget.spent > propsBudget.allocated ? 'bg-red-500' : 'bg-green-500'),
+            style: { width: Math.min(100, (propsBudget.spent / propsBudget.allocated) * 100) + '%' }
+          })
+        ),
+        React.createElement('div', { className: 'text-xs text-green-700 mt-1' },
+          propsBudget.spent > propsBudget.allocated
+            ? 'Over budget'
+            : '$' + (propsBudget.allocated - propsBudget.spent).toFixed(2) + ' remaining'
         )
       )
     ),

@@ -333,6 +333,17 @@ function SetDesignView({ production, onSave }) {
   };
   
   const budgetTotals = calculateBudgetTotals();
+
+  const getBudgetData = () => {
+    const budget = window.budgetService?.getProductionBudget?.(production?.id);
+    const dept = budget?.departments?.set || {};
+    return {
+      allocated: parseFloat(dept.allocated) || 0,
+      spent: parseFloat(dept.spent) || 0,
+      itemCount: dept.items?.length || 0
+    };
+  };
+  const setDesignBudget = getBudgetData();
   
   React.useEffect(() => {
     localStorage.setItem(`tools_inventory_${production.id}`, JSON.stringify(toolsInventory));
@@ -965,9 +976,28 @@ function SetDesignView({ production, onSave }) {
               'div',
               { className: 'text-right' },
               React.createElement('div', { className: 'text-3xl font-bold text-blue-700' },
-                '$' + budgetTotals.totalSetCost.toFixed(2)
+                '$' + setDesignBudget.spent.toFixed(2)
               ),
-              React.createElement('div', { className: 'text-xs text-gray-500' }, 'Total Set Cost')
+              React.createElement('div', { className: 'text-xs text-gray-500' },
+                setDesignBudget.allocated > 0 ? 'of $' + setDesignBudget.allocated.toFixed(2) + ' allocated' : 'Total Set Cost'
+              )
+            )
+          ),
+          setDesignBudget.allocated > 0 && React.createElement(
+            'div',
+            { className: 'mt-3' },
+            React.createElement(
+              'div',
+              { className: 'w-full bg-blue-200 rounded-full h-2' },
+              React.createElement('div', {
+                className: 'h-2 rounded-full ' + (setDesignBudget.spent > setDesignBudget.allocated ? 'bg-red-500' : 'bg-blue-500'),
+                style: { width: Math.min(100, (setDesignBudget.spent / setDesignBudget.allocated) * 100) + '%' }
+              })
+            ),
+            React.createElement('div', { className: 'text-xs text-blue-700 mt-1' },
+              setDesignBudget.spent > setDesignBudget.allocated
+                ? 'Over budget'
+                : '$' + (setDesignBudget.allocated - setDesignBudget.spent).toFixed(2) + ' remaining'
             )
           )
         ),
