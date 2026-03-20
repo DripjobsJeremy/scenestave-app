@@ -212,9 +212,69 @@ function LightingView({ production, onUpdateScene }) {
     )
   );
 
+  const calculateLightingBudget = () => {
+    let totalCost = 0;
+    let itemCount = 0;
+    if (production?.acts) {
+      production.acts.forEach(act => {
+        act.scenes?.forEach(scene => {
+          scene.lighting?.fixtures?.forEach(fixture => {
+            if (fixture.cost) { totalCost += parseFloat(fixture.cost) || 0; itemCount++; }
+          });
+        });
+      });
+    }
+    return { totalCost, itemCount };
+  };
+  const lightingBudget = calculateLightingBudget();
+  const lightingAllocated = parseFloat(production?.lightingBudget) || 0;
+
+  const budgetPanel = React.createElement(
+    'div',
+    { className: 'bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4' },
+    React.createElement(
+      'div',
+      { className: 'flex items-center justify-between' },
+      React.createElement(
+        'div',
+        null,
+        React.createElement('h3', { className: 'font-semibold text-amber-900' }, '💡 Lighting Budget'),
+        React.createElement('p', { className: 'text-sm text-amber-700' },
+          lightingBudget.itemCount + ' fixture' + (lightingBudget.itemCount !== 1 ? 's' : '') + ' with cost data'
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'text-right' },
+        React.createElement('div', { className: 'text-2xl font-bold text-amber-900' }, '$' + lightingBudget.totalCost.toFixed(2)),
+        React.createElement('div', { className: 'text-sm text-amber-700' },
+          lightingAllocated > 0 ? 'of $' + lightingAllocated.toFixed(2) + ' allocated' : 'No budget allocated'
+        )
+      )
+    ),
+    lightingAllocated > 0 && React.createElement(
+      'div',
+      { className: 'mt-3' },
+      React.createElement(
+        'div',
+        { className: 'w-full bg-amber-200 rounded-full h-2' },
+        React.createElement('div', {
+          className: 'h-2 rounded-full ' + (lightingBudget.totalCost > lightingAllocated ? 'bg-red-500' : 'bg-amber-500'),
+          style: { width: Math.min(100, (lightingBudget.totalCost / lightingAllocated) * 100) + '%' }
+        })
+      ),
+      React.createElement('div', { className: 'text-xs text-amber-700 mt-1' },
+        lightingBudget.totalCost > lightingAllocated
+          ? 'Over budget'
+          : '$' + (lightingAllocated - lightingBudget.totalCost).toFixed(2) + ' remaining'
+      )
+    )
+  );
+
   return React.createElement(
     'div',
     null,
+    budgetPanel,
     header,
     actsList
   );

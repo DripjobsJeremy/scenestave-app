@@ -204,7 +204,66 @@ function SoundDepartmentView({ production, onUpdateScene }) {
     )
   );
 
-  return React.createElement('div', null, header, actsList);
+  const calculateSoundBudget = () => {
+    let totalCost = 0;
+    let itemCount = 0;
+    if (production?.acts) {
+      production.acts.forEach(act => {
+        act.scenes?.forEach(scene => {
+          scene.sound?.items?.forEach(item => {
+            if (item.cost) { totalCost += parseFloat(item.cost) || 0; itemCount++; }
+          });
+        });
+      });
+    }
+    return { totalCost, itemCount };
+  };
+  const soundBudget = calculateSoundBudget();
+  const soundAllocated = parseFloat(production?.soundBudget) || 0;
+
+  const budgetPanel = React.createElement(
+    'div',
+    { className: 'bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4' },
+    React.createElement(
+      'div',
+      { className: 'flex items-center justify-between' },
+      React.createElement(
+        'div',
+        null,
+        React.createElement('h3', { className: 'font-semibold text-blue-900' }, '🎵 Sound Budget'),
+        React.createElement('p', { className: 'text-sm text-blue-700' },
+          soundBudget.itemCount + ' item' + (soundBudget.itemCount !== 1 ? 's' : '') + ' with cost data'
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'text-right' },
+        React.createElement('div', { className: 'text-2xl font-bold text-blue-900' }, '$' + soundBudget.totalCost.toFixed(2)),
+        React.createElement('div', { className: 'text-sm text-blue-700' },
+          soundAllocated > 0 ? 'of $' + soundAllocated.toFixed(2) + ' allocated' : 'No budget allocated'
+        )
+      )
+    ),
+    soundAllocated > 0 && React.createElement(
+      'div',
+      { className: 'mt-3' },
+      React.createElement(
+        'div',
+        { className: 'w-full bg-blue-200 rounded-full h-2' },
+        React.createElement('div', {
+          className: 'h-2 rounded-full ' + (soundBudget.totalCost > soundAllocated ? 'bg-red-500' : 'bg-blue-500'),
+          style: { width: Math.min(100, (soundBudget.totalCost / soundAllocated) * 100) + '%' }
+        })
+      ),
+      React.createElement('div', { className: 'text-xs text-blue-700 mt-1' },
+        soundBudget.totalCost > soundAllocated
+          ? 'Over budget'
+          : '$' + (soundAllocated - soundBudget.totalCost).toFixed(2) + ' remaining'
+      )
+    )
+  );
+
+  return React.createElement('div', null, budgetPanel, header, actsList);
 }
 
 window.SoundDepartmentView = SoundDepartmentView;
