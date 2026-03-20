@@ -204,22 +204,16 @@ function SoundDepartmentView({ production, onUpdateScene }) {
     )
   );
 
-  const calculateSoundBudget = () => {
-    let totalCost = 0;
-    let itemCount = 0;
-    if (production?.acts) {
-      production.acts.forEach(act => {
-        act.scenes?.forEach(scene => {
-          scene.sound?.items?.forEach(item => {
-            if (item.cost) { totalCost += parseFloat(item.cost) || 0; itemCount++; }
-          });
-        });
-      });
-    }
-    return { totalCost, itemCount };
+  const getBudgetData = () => {
+    const budget = window.budgetService?.getProductionBudget?.(production?.id);
+    const dept = budget?.departments?.sound || {};
+    return {
+      allocated: parseFloat(dept.allocated) || 0,
+      spent: parseFloat(dept.spent) || 0,
+      itemCount: dept.items?.length || 0
+    };
   };
-  const soundBudget = calculateSoundBudget();
-  const soundAllocated = parseFloat(production?.soundBudget) || 0;
+  const soundBudget = getBudgetData();
 
   const budgetPanel = React.createElement(
     'div',
@@ -238,27 +232,27 @@ function SoundDepartmentView({ production, onUpdateScene }) {
       React.createElement(
         'div',
         { className: 'text-right' },
-        React.createElement('div', { className: 'text-2xl font-bold text-blue-900' }, '$' + soundBudget.totalCost.toFixed(2)),
+        React.createElement('div', { className: 'text-2xl font-bold text-blue-900' }, '$' + soundBudget.spent.toFixed(2)),
         React.createElement('div', { className: 'text-sm text-blue-700' },
-          soundAllocated > 0 ? 'of $' + soundAllocated.toFixed(2) + ' allocated' : 'No budget allocated'
+          soundBudget.allocated > 0 ? 'of $' + soundBudget.allocated.toFixed(2) + ' allocated' : 'No budget allocated'
         )
       )
     ),
-    soundAllocated > 0 && React.createElement(
+    soundBudget.allocated > 0 && React.createElement(
       'div',
       { className: 'mt-3' },
       React.createElement(
         'div',
         { className: 'w-full bg-blue-200 rounded-full h-2' },
         React.createElement('div', {
-          className: 'h-2 rounded-full ' + (soundBudget.totalCost > soundAllocated ? 'bg-red-500' : 'bg-blue-500'),
-          style: { width: Math.min(100, (soundBudget.totalCost / soundAllocated) * 100) + '%' }
+          className: 'h-2 rounded-full ' + (soundBudget.spent > soundBudget.allocated ? 'bg-red-500' : 'bg-blue-500'),
+          style: { width: Math.min(100, (soundBudget.spent / soundBudget.allocated) * 100) + '%' }
         })
       ),
       React.createElement('div', { className: 'text-xs text-blue-700 mt-1' },
-        soundBudget.totalCost > soundAllocated
+        soundBudget.spent > soundBudget.allocated
           ? 'Over budget'
-          : '$' + (soundAllocated - soundBudget.totalCost).toFixed(2) + ' remaining'
+          : '$' + (soundBudget.allocated - soundBudget.spent).toFixed(2) + ' remaining'
       )
     )
   );
