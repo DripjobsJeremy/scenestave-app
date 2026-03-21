@@ -601,10 +601,13 @@ function PropsView({ production, onUpdateScene }) {
     };
     
     const updatedActs = [...production.acts];
-    if (!updatedActs[actIndex].scenes[sceneIndex].props) {
-      updatedActs[actIndex].scenes[sceneIndex].props = [];
+    if (!updatedActs[actIndex].scenes[sceneIndex].props || !Array.isArray(updatedActs[actIndex].scenes[sceneIndex].props)) {
+      updatedActs[actIndex].scenes[sceneIndex].props = { items: [], notes: '' };
     }
-    updatedActs[actIndex].scenes[sceneIndex].props.push(newProp);
+    if (!Array.isArray(updatedActs[actIndex].scenes[sceneIndex].props.items)) {
+      updatedActs[actIndex].scenes[sceneIndex].props.items = [];
+    }
+    updatedActs[actIndex].scenes[sceneIndex].props.items.push(newProp);
     
     window.productionsService?.updateProduction?.(production.id, { acts: updatedActs });
     onSave({ ...production, acts: updatedActs });

@@ -601,10 +601,13 @@ function WardrobeView({ production, onUpdateScene }) {
     };
     
     const updatedActs = [...production.acts];
-    if (!updatedActs[actIndex].scenes[sceneIndex].wardrobe) {
-      updatedActs[actIndex].scenes[sceneIndex].wardrobe = [];
+    if (!updatedActs[actIndex].scenes[sceneIndex].wardrobe || !Array.isArray(updatedActs[actIndex].scenes[sceneIndex].wardrobe)) {
+      updatedActs[actIndex].scenes[sceneIndex].wardrobe = { items: [], notes: '' };
     }
-    updatedActs[actIndex].scenes[sceneIndex].wardrobe.push(newCostume);
+    if (!Array.isArray(updatedActs[actIndex].scenes[sceneIndex].wardrobe.items)) {
+      updatedActs[actIndex].scenes[sceneIndex].wardrobe.items = [];
+    }
+    updatedActs[actIndex].scenes[sceneIndex].wardrobe.items.push(newCostume);
     
     window.productionsService?.updateProduction?.(production.id, { acts: updatedActs });
     onSave({ ...production, acts: updatedActs });
