@@ -70,7 +70,7 @@ if (!document.getElementById('wardrobeview-print-styles')) {
 
 const { useState, useRef } = React;
 
-function WardrobeView({ production, onUpdateScene }) {
+function WardrobeView({ production, onSave, onUpdateScene }) {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importStatus, setImportStatus] = useState(null);

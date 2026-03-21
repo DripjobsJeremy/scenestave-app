@@ -70,7 +70,7 @@ if (!document.getElementById('propsview-print-styles')) {
 
 const { useState, useRef } = React;
 
-function PropsView({ production, onUpdateScene }) {
+function PropsView({ production, onSave, onUpdateScene }) {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importStatus, setImportStatus] = useState(null);
@@ -592,7 +592,6 @@ function PropsView({ production, onUpdateScene }) {
   };
 
   const handleAddProp = (actIndex, sceneIndex) => {
-    console.log('handleAddProp called', { actIndex, sceneIndex, production, acts: production.acts, scenes: production.scenes });
     const newProp = {
       id: Date.now(),
       name: '',
