@@ -615,18 +615,13 @@ function PropsView({ production, onSave, onUpdateScene }) {
 
   // Immediate update for React state (doesn't save to DB)
   const handleUpdatePropImmediate = (actIndex, sceneIndex, propId, field, value) => {
-    console.log('handleUpdatePropImmediate:', { actIndex, sceneIndex, propId, field, value });
-    
     const updatedActs = [...production.acts];
-    const props = updatedActs[actIndex].scenes[sceneIndex].props || [];
-    const propIndex = props.findIndex(p => p.id === propId);
-    
+    const propsObj = updatedActs[actIndex].scenes[sceneIndex].props || { items: [], notes: '' };
+    const items = Array.isArray(propsObj.items) ? [...propsObj.items] : [];
+    const propIndex = items.findIndex(p => p.id === propId);
     if (propIndex >= 0) {
-      props[propIndex] = { ...props[propIndex], [field]: value };
-      updatedActs[actIndex].scenes[sceneIndex].props = props;
-      
-      // Update production object in parent component's state without DB save
-      // This allows React to re-render with the new value while typing
+      items[propIndex] = { ...items[propIndex], [field]: value };
+      updatedActs[actIndex].scenes[sceneIndex].props = { ...propsObj, items };
       if (typeof onUpdateScene === 'function') {
         onUpdateScene(actIndex, { ...production.acts[actIndex], scenes: updatedActs[actIndex].scenes });
       }
@@ -635,41 +630,31 @@ function PropsView({ production, onSave, onUpdateScene }) {
 
   // Full update that saves to productionsService (for blur/final save)
   const handleUpdatePropAndSave = (actIndex, sceneIndex, propId, field, value) => {
-    console.log('handleUpdatePropAndSave:', { actIndex, sceneIndex, propId, field, value });
-    
     const updatedActs = [...production.acts];
-    const props = updatedActs[actIndex].scenes[sceneIndex].props || [];
-    const propIndex = props.findIndex(p => p.id === propId);
-    
+    const propsObj = updatedActs[actIndex].scenes[sceneIndex].props || { items: [], notes: '' };
+    const items = Array.isArray(propsObj.items) ? [...propsObj.items] : [];
+    const propIndex = items.findIndex(p => p.id === propId);
     if (propIndex >= 0) {
-      props[propIndex] = { ...props[propIndex], [field]: value };
-      updatedActs[actIndex].scenes[sceneIndex].props = props;
-      
-      // Save to productionsService (persists to backend)
+      items[propIndex] = { ...items[propIndex], [field]: value };
+      updatedActs[actIndex].scenes[sceneIndex].props = { ...propsObj, items };
       if (window.productionsService?.updateProduction) {
         window.productionsService.updateProduction(production.id, { acts: updatedActs });
-        console.log('Production saved to productionsService');
-      } else {
-        console.error('productionsService not available!');
       }
-      
-      // Also update parent component's state
-      if (typeof onUpdateScene === 'function') {
-        onUpdateScene(actIndex, { ...production.acts[actIndex], scenes: updatedActs[actIndex].scenes });
-      }
-    } else {
-      console.error('Prop not found:', propId);
+      onSave({ ...production, acts: updatedActs });
     }
   };
 
   const handleDeleteProp = (actIndex, sceneIndex, propId) => {
     if (!confirm('Delete this prop?')) return;
-    
+
     const updatedActs = [...production.acts];
-    const props = updatedActs[actIndex].scenes[sceneIndex].props || [];
-    updatedActs[actIndex].scenes[sceneIndex].props = props.filter(p => p.id !== propId);
-    
-    window.productionsService?.updateProduction?.(production.id, { acts: updatedActs });
+    const propsObj = updatedActs[actIndex].scenes[sceneIndex].props || { items: [], notes: '' };
+    const items = Array.isArray(propsObj.items) ? propsObj.items.filter(p => p.id !== propId) : [];
+    updatedActs[actIndex].scenes[sceneIndex].props = { ...propsObj, items };
+    if (window.productionsService?.updateProduction) {
+      window.productionsService.updateProduction(production.id, { acts: updatedActs });
+    }
+    onSave({ ...production, acts: updatedActs });
   };
 
   // Checklist functions
