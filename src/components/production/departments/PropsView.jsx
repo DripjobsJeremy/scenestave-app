@@ -607,6 +607,7 @@ function PropsView({ production, onUpdateScene }) {
     updatedActs[actIndex].scenes[sceneIndex].props.push(newProp);
     
     window.productionsService?.updateProduction?.(production.id, { acts: updatedActs });
+    onSave({ ...production, acts: updatedActs });
   };
 
   // Immediate update for React state (doesn't save to DB)

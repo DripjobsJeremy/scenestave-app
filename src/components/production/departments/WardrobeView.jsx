@@ -607,6 +607,7 @@ function WardrobeView({ production, onUpdateScene }) {
     updatedActs[actIndex].scenes[sceneIndex].wardrobe.push(newCostume);
     
     window.productionsService?.updateProduction?.(production.id, { acts: updatedActs });
+    onSave({ ...production, acts: updatedActs });
   };
 
   // Immediate update for React state (doesn't save to DB)
