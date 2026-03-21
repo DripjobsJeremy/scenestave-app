@@ -99,8 +99,8 @@ function PropsView({ production, onSave, onUpdateScene }) {
     let count = 0;
     (production.acts || []).forEach(act => {
       (act.scenes || []).forEach(scene => {
-        if (scene.props?.length) {
-          count += scene.props.length;
+        if (scene.props?.items?.length) {
+          count += scene.props.items.length;
         }
       });
     });
@@ -112,8 +112,8 @@ function PropsView({ production, onSave, onUpdateScene }) {
     const allKeys = [];
     (production.acts || []).forEach((act, actIndex) => {
       (act.scenes || []).forEach((scene, sceneIndex) => {
-        if (scene.props?.length) {
-          scene.props.forEach(prop => {
+        if (scene.props?.items?.length) {
+          scene.props.items.forEach(prop => {
             allKeys.push(`${actIndex}:${sceneIndex}:${prop.id}`);
           });
         }
@@ -191,8 +191,8 @@ function PropsView({ production, onSave, onUpdateScene }) {
     const values = new Set();
     (production.acts || []).forEach(act => {
       (act.scenes || []).forEach(scene => {
-        if (scene.props?.length) {
-          scene.props.forEach(prop => {
+        if (scene.props?.items?.length) {
+          scene.props.items.forEach(prop => {
             if (prop[field]) values.add(prop[field]);
           });
         }
@@ -222,8 +222,8 @@ function PropsView({ production, onSave, onUpdateScene }) {
     
     (production.acts || []).forEach(act => {
       (act.scenes || []).forEach(scene => {
-        if (scene.props?.length) {
-          scene.props.forEach(prop => {
+        if (scene.props?.items?.length) {
+          scene.props.items.forEach(prop => {
             totalProps++;
             if (prop.cost && !isNaN(parseFloat(prop.cost))) {
               totalCost += parseFloat(prop.cost);
@@ -702,8 +702,8 @@ function PropsView({ production, onSave, onUpdateScene }) {
     
     production.acts.forEach((act, actIndex) => {
       act.scenes.forEach((scene, sceneIndex) => {
-        if (scene.props && Array.isArray(scene.props)) {
-          scene.props.forEach(prop => {
+        if (scene.props && Array.isArray(scene.props.items)) {
+          scene.props.items.forEach(prop => {
             // Apply current filters if any are active
             const matchesFilters = 
               (!searchQuery || 
@@ -889,7 +889,7 @@ function PropsView({ production, onSave, onUpdateScene }) {
               'tbody',
               null,
               allScenes.flatMap((scene, sceneIdx) => {
-                const filteredProps = scene.props ? filterProps(scene.props, scene.act) : [];
+                const filteredProps = scene.props?.items ? filterProps(scene.props.items, scene.act) : [];
                 return filteredProps.map((prop, propIdx) =>
                   React.createElement(
                     'tr',
@@ -1229,15 +1229,15 @@ function PropsView({ production, onSave, onUpdateScene }) {
           React.createElement(
             'div',
             { className: 'flex items-center gap-3' },
-            scene.props && scene.props.length > 0 && React.createElement(
+            scene.props?.items && scene.props.items.length > 0 && React.createElement(
               'span',
               { className: 'text-sm text-gray-600' },
-              `${filterProps(scene.props, scene.act).length} prop${filterProps(scene.props, scene.act).length !== 1 ? 's' : ''}`
+              `${filterProps(scene.props.items, scene.act).length} prop${filterProps(scene.props.items, scene.act).length !== 1 ? 's' : ''}`
             ),
-            scene.props && calculateSceneCost(scene.props) > 0 && React.createElement(
+            scene.props?.items && calculateSceneCost(scene.props.items) > 0 && React.createElement(
               'span',
               { className: 'px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium' },
-              `$${calculateSceneCost(scene.props).toFixed(2)}`
+              `$${calculateSceneCost(scene.props.items).toFixed(2)}`
             ),
             React.createElement(
               'button',
@@ -1251,16 +1251,16 @@ function PropsView({ production, onSave, onUpdateScene }) {
         ),
         
         // Props list
-        (!scene.props || scene.props.length === 0) && React.createElement(
+        (!scene.props?.items || scene.props.items.length === 0) && React.createElement(
           'p',
           { className: 'text-gray-500 text-sm italic' },
           'No props for this scene yet.'
         ),
-        
-        scene.props && scene.props.length > 0 && React.createElement(
+
+        scene.props?.items && scene.props.items.length > 0 && React.createElement(
           'div',
           { className: 'space-y-2' },
-          filterProps(scene.props, scene.act).map(prop =>
+          filterProps(scene.props.items, scene.act).map(prop =>
             React.createElement(
               'div',
               { key: prop.id, className: 'relative flex items-start gap-3 p-3 bg-gray-50 rounded border border-gray-200' },
@@ -1467,7 +1467,7 @@ function PropsView({ production, onSave, onUpdateScene }) {
         ),
         
         // No results message when filters are active
-        scene.props && scene.props.length > 0 && filterProps(scene.props, scene.act).length === 0 && React.createElement(
+        scene.props?.items && scene.props.items.length > 0 && filterProps(scene.props.items, scene.act).length === 0 && React.createElement(
           'div',
           { className: 'p-4 text-center text-gray-500 bg-gray-50 rounded border border-gray-200' },
           'No props match the current filters'
