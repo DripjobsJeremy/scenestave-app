@@ -361,6 +361,12 @@ function SceneBuilder({ productionId: propId }) {
               },
               React.createElement('option', { value: '' }, '-- Select Act --'),
               React.createElement('option', { value: 'Pre-Show' }, 'Pre-Show'),
+              React.createElement('option', { value: 'Prologue' }, 'Prologue'),
+              React.createElement('option', { value: 'Act One' }, 'Act One'),
+              React.createElement('option', { value: 'Act Two' }, 'Act Two'),
+              React.createElement('option', { value: 'Act Three' }, 'Act Three'),
+              React.createElement('option', { value: 'Act Four' }, 'Act Four'),
+              React.createElement('option', { value: 'Act Five' }, 'Act Five'),
               React.createElement('option', { value: 'Act I' }, 'Act I'),
               React.createElement('option', { value: 'Act II' }, 'Act II'),
               React.createElement('option', { value: 'Act III' }, 'Act III'),
@@ -368,6 +374,7 @@ function SceneBuilder({ productionId: propId }) {
               React.createElement('option', { value: 'Act V' }, 'Act V'),
               React.createElement('option', { value: 'Intermission' }, 'Intermission'),
               React.createElement('option', { value: "Entr'acte" }, "Entr'acte"),
+              React.createElement('option', { value: 'Epilogue' }, 'Epilogue'),
               React.createElement('option', { value: 'Post-Show' }, 'Post-Show')
             )
           ),
