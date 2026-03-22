@@ -158,18 +158,20 @@ function CalendarView({ production, onSave, userRole }) {
     'build': { label: 'Build Day', color: 'bg-indigo-500', textColor: 'text-indigo-700', bgLight: 'bg-indigo-50', border: 'border-indigo-300' }
   };
   
-  // Role-based event type filtering
+  // Roles that can schedule rehearsals, shows, and tech events
+  const FULL_ACCESS_ROLES = ['admin', 'director', 'stage_manager'];
+
+  // Role-based event type filtering — dept roles never see Rehearsal/Tech/Performance
   const allowedEventTypesForRole = () => {
-    if (!userRole || userRole === 'admin' || userRole === 'director') return eventTypes;
+    if (!userRole || FULL_ACCESS_ROLES.includes(userRole)) return eventTypes;
     const deptAllowed = {
-      lighting_designer:  ['rehearsal', 'tech', 'meeting', 'deadline'],
-      sound_designer:     ['rehearsal', 'tech', 'meeting', 'deadline'],
-      wardrobe_designer:  ['costume-fitting', 'deadline', 'meeting'],
-      props_master:       ['deadline', 'meeting'],
-      scenic_designer:    ['build', 'deadline', 'meeting'],
-      stage_manager:      Object.keys(eventTypes),
+      lighting_designer: ['deadline', 'meeting'],
+      sound_designer:    ['deadline', 'meeting'],
+      wardrobe_designer: ['costume-fitting', 'deadline', 'meeting'],
+      props_master:      ['deadline', 'meeting'],
+      scenic_designer:   ['build', 'deadline', 'meeting'],
     };
-    const allowed = deptAllowed[userRole] || ['meeting', 'deadline'];
+    const allowed = deptAllowed[userRole] || ['deadline', 'meeting'];
     return Object.fromEntries(Object.entries(eventTypes).filter(([key]) => allowed.includes(key)));
   };
 
@@ -1247,7 +1249,7 @@ function CalendarView({ production, onSave, userRole }) {
             onClick: handleAddEvent,
             className: 'px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm whitespace-nowrap flex items-center gap-1'
           }, '+ Add Event'),
-          React.createElement('button', {
+          FULL_ACCESS_ROLES.includes(userRole) && React.createElement('button', {
             onClick: generateTechWeek,
             className: 'px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium text-sm whitespace-nowrap flex items-center gap-1'
           }, '🎭 Tech Week'),
