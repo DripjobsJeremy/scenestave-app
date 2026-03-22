@@ -23,7 +23,7 @@ function SceneBuilder({ productionId: propId }) {
     } catch {}
     return localStorage.getItem('showsuite_active_department_tab') || 'scenes';
   });
-  const [currentRole, setCurrentRole] = useState(() => {
+  const [currentRole] = useState(() => {
     // If the app-level role is a dept role, map it to the workspace long-form ID
     const APP_ROLE_MAP = {
       lighting:      'lighting_designer',
@@ -292,20 +292,10 @@ function SceneBuilder({ productionId: propId }) {
       React.createElement('h2', { className: 'text-2xl font-bold text-gray-900' }, production.title)
     ),
     React.createElement(
-      'div',
-      { className: 'flex items-center gap-4' },
-      React.createElement(
-        'span',
-        { className: 'text-sm text-gray-500' },
-        (production.acts?.length || 0) + ' Acts, ' + 
-        (production.acts?.reduce((sum, act) => sum + (act.scenes?.length || 0), 0) || 0) + ' Scenes'
-      ),
-      React.createElement(UserRoleSelector, { 
-        onRoleChange: (role) => {
-          console.log('Role changed to:', role.name);
-          setCurrentRole(role);
-        }
-      })
+      'span',
+      { className: 'text-sm text-gray-500' },
+      (production.acts?.length || 0) + ' Acts, ' +
+      (production.acts?.reduce((sum, act) => sum + (act.scenes?.length || 0), 0) || 0) + ' Scenes'
     )
   );
 
