@@ -899,7 +899,11 @@ function PropsView({ production, onSave, onUpdateScene }) {
                     React.createElement(
                       'td',
                       { className: 'p-3 text-sm font-semibold text-gray-800 whitespace-nowrap' },
-                      `Act ${scene.act}, Scene ${scene.number}`
+                      (() => {
+                        const actLabel = scene.act || 'Act ?';
+                        const sceneLabel = scene.name || scene.title || `Scene ${scene.number || sceneIdx + 1}`;
+                        return `${actLabel} – ${sceneLabel}`;
+                      })()
                     ),
                     React.createElement(
                       'td',
