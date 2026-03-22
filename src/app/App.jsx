@@ -94,7 +94,6 @@ function getNavigationTabs(userRole) {
   if (userRole === 'admin' || userRole === 'super_admin' || userRole === 'venue_manager') {
     return [
       { id: 'dashboard',     label: 'Dashboard',     icon: '🏠', path: '/' },
-      { id: 'calendar',      label: 'Calendar',      icon: '📅', path: '/calendar' },
       { id: 'financial',     label: 'Financial',     icon: '💰', path: '/financial' },
       { id: 'productions',   label: 'Productions',   icon: '🎬', path: '/productions' },
       { id: 'actors',        label: 'Actors',        icon: '🎭', path: '/actors' },
@@ -108,7 +107,6 @@ function getNavigationTabs(userRole) {
   if (userRole === 'board_member') {
     return [
       { id: 'dashboard',    label: 'Dashboard',    icon: '🏠', path: '/' },
-      { id: 'calendar',     label: 'Calendar',     icon: '📅', path: '/calendar' },
       { id: 'financial',    label: 'Financial',    icon: '💰', path: '/financial' },
       { id: 'productions',  label: 'Productions',  icon: '🎬', path: '/productions' },
       { id: 'actors',       label: 'Actors',       icon: '🎭', path: '/actors' },
@@ -139,7 +137,6 @@ function getNavigationTabs(userRole) {
     return [
       { id: 'department-portal', label: `${deptLabels[userRole]} Portal`, icon: '🎨', path: '/department-portal' },
       { id: 'productions',       label: 'Productions',                    icon: '🎬', path: '/productions' },
-      { id: 'calendar',          label: 'Calendar',                       icon: '📅', path: '/calendar' },
     ];
   }
 
@@ -147,21 +144,18 @@ function getNavigationTabs(userRole) {
     return [
       { id: 'actor-portal', label: 'Actor Portal',  icon: '🎭', path: '/actor-portal' },
       { id: 'productions',  label: 'Productions',   icon: '🎬', path: '/productions' },
-      { id: 'calendar',     label: 'Calendar',      icon: '📅', path: '/calendar' },
     ];
   }
 
   if (userRole === 'volunteer') {
     return [
       { id: 'volunteer-portal', label: 'Volunteer Portal', icon: '🤝', path: '/volunteer-portal' },
-      { id: 'calendar',         label: 'Calendar',         icon: '📅', path: '/calendar' },
     ];
   }
 
   // Default fallback — same as admin
   return [
     { id: 'dashboard',    label: 'Dashboard',    icon: '🏠', path: '/' },
-    { id: 'calendar',     label: 'Calendar',     icon: '📅', path: '/calendar' },
     { id: 'financial',    label: 'Financial',    icon: '💰', path: '/financial' },
     { id: 'productions',  label: 'Productions',  icon: '🎬', path: '/productions' },
     { id: 'actors',       label: 'Actors',       icon: '🎭', path: '/actors' },
@@ -191,7 +185,7 @@ function App() {
     const path = pathname.split('/')[1] || 'dashboard';
     const validViews = [
       'dashboard', 'financial', 'donors', 'actors', 'productions',
-      'volunteers', 'settings', 'actor-portal', 'calendar',
+      'volunteers', 'settings', 'actor-portal',
       'department-portal', 'volunteer-portal', 'donor-portal', 'donor-login'
     ];
     return validViews.includes(path) ? path : 'dashboard';
@@ -444,17 +438,7 @@ function App() {
             </Route>
 
             <Route path="/calendar">
-              <div className="p-6 max-w-7xl mx-auto">
-                {window.GlobalCalendarView ? (
-                  <window.GlobalCalendarView userRole={userRole} />
-                ) : (
-                  <div className="text-center py-20 text-gray-400">
-                    <div className="text-5xl mb-4">📅</div>
-                    <h2 className="text-xl font-semibold text-gray-600 mb-2">Global Calendar</h2>
-                    <p className="text-sm">Coming soon — view all productions and events in one place.</p>
-                  </div>
-                )}
-              </div>
+              <Redirect to="/" />
             </Route>
 
             <Route path="/financial">
