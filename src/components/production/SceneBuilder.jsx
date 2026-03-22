@@ -24,22 +24,35 @@ function SceneBuilder({ productionId: propId }) {
     return localStorage.getItem('showsuite_active_department_tab') || 'scenes';
   });
   const [currentRole] = useState(() => {
-    // If the app-level role is a dept role, map it to the workspace long-form ID
-    const APP_ROLE_MAP = {
-      lighting:      'lighting_designer',
-      sound:         'sound_designer',
-      wardrobe:      'wardrobe_designer',
-      props:         'props_master',
-      set:           'scenic_designer',
-      stage_manager: 'stage_manager',
+    const rawAppRole = localStorage.getItem('showsuite_user_role') || 'admin';
+    const SUPER_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin'];
+
+    const resolveCurrentRole = () => {
+      // Super admin roles always get full production workspace access,
+      // regardless of any previously saved showsuite_current_role value.
+      if (SUPER_ROLES.includes(rawAppRole)) {
+        return window.USER_ROLES?.find(r => r.id === 'admin') ||
+               window.USER_ROLES?.find(r => r.departments === 'all') ||
+               { id: 'admin', departments: 'all' };
+      }
+      // Department roles: map app-level short ID to USER_ROLES long-form entry
+      const APP_ROLE_MAP = {
+        lighting:      'lighting_designer',
+        sound:         'sound_designer',
+        wardrobe:      'wardrobe_designer',
+        props:         'props_master',
+        set:           'scenic_designer',
+        stage_manager: 'stage_manager',
+      };
+      const mappedId = APP_ROLE_MAP[rawAppRole];
+      if (mappedId) {
+        const mapped = window.USER_ROLES?.find(r => r.id === mappedId);
+        if (mapped) return mapped;
+      }
+      return window.getCurrentRole?.() || { id: 'admin', departments: 'all' };
     };
-    const appRole = localStorage.getItem('showsuite_user_role') || '';
-    const mappedId = APP_ROLE_MAP[appRole];
-    if (mappedId) {
-      const mapped = window.USER_ROLES?.find(r => r.id === mappedId);
-      if (mapped) return mapped;
-    }
-    return window.getCurrentRole?.() || { id: 'admin', departments: 'all' };
+
+    return resolveCurrentRole();
   });
   
   // Get ID from React Router params (defined globally via routerGlobals.js)

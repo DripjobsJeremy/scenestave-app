@@ -236,9 +236,12 @@ function App() {
     }
 
     const role = localStorage.getItem('showsuite_user_role') || 'admin';
+    const SUPER_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin'];
     console.log('🚀 App mounted | role:', role, '| path:', location.pathname);
     if (location.pathname === '/' || location.pathname === '') {
-      if (role === 'volunteer') {
+      if (SUPER_ROLES.includes(role)) {
+        // Super admin roles always land on the main dashboard — never redirect to portals
+      } else if (role === 'volunteer') {
         console.log('   → Redirecting to /volunteer-portal');
         window.location.hash = '/volunteer-portal';
       } else if (role === 'actor') {
@@ -271,8 +274,10 @@ function App() {
     setUserRole(newRole);
     localStorage.setItem('showsuite_user_role', newRole);
 
+    const SUPER_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin'];
     let newPath = '/';
-    if (newRole === 'actor') newPath = '/actor-portal';
+    if (SUPER_ROLES.includes(newRole)) newPath = '/';
+    else if (newRole === 'actor') newPath = '/actor-portal';
     else if (newRole === 'volunteer') newPath = '/volunteer-portal';
     else if (['lighting', 'sound', 'wardrobe', 'props', 'set', 'stage_manager'].includes(newRole)) newPath = '/department-portal';
 
