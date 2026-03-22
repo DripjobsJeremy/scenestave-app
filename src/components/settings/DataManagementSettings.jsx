@@ -9,6 +9,7 @@ const DataManagementSettings = () => {
   const [stats, setStats] = React.useState(null);
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [lastBackup, setLastBackup] = React.useState(null);
+  const [importConfirmed, setImportConfirmed] = React.useState(false);
   
   React.useEffect(() => {
     loadStats();
@@ -338,6 +339,7 @@ const DataManagementSettings = () => {
   const handleOpenImportWizard = () => {
     // Trigger the import modal (assuming it exists globally)
     window.dispatchEvent(new CustomEvent('openImportWizard'));
+    setImportConfirmed(false);
   };
   
   /**
@@ -730,10 +732,21 @@ const DataManagementSettings = () => {
       // Warning Banner
       React.createElement(
         'div',
-        { className: 'warning-banner mb-4 p-4 bg-yellow-900/30 border border-yellow-600/50 rounded-lg' },
-        React.createElement('p', { className: 'text-sm text-yellow-300' },
+        { className: 'warning-banner mb-4 p-4 bg-amber-50 border-l-4 border-amber-500 rounded text-amber-900 text-sm' },
+        React.createElement('p', null,
           React.createElement('strong', null, '⚠️ Warning: '),
           'Importing data will overwrite existing records. Make sure to create a backup first!'
+        ),
+        React.createElement(
+          'label',
+          { className: 'flex items-center gap-2 mt-3 cursor-pointer text-sm text-amber-900' },
+          React.createElement('input', {
+            type: 'checkbox',
+            checked: importConfirmed,
+            onChange: (e) => setImportConfirmed(e.target.checked),
+            className: 'w-4 h-4 accent-amber-600'
+          }),
+          'I understand this will overwrite my existing records and cannot be undone'
         )
       ),
       
@@ -753,8 +766,8 @@ const DataManagementSettings = () => {
             'button',
             {
               onClick: handleRestoreBackup,
-              disabled: isProcessing,
-              className: 'w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 text-gray-900 rounded-lg font-medium transition-colors'
+              disabled: isProcessing || !importConfirmed,
+              className: 'w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 text-gray-900 rounded-lg font-medium transition-colors' + (!importConfirmed ? ' opacity-50 cursor-not-allowed' : '')
             },
             '📂 Select Backup File'
           )
@@ -772,7 +785,8 @@ const DataManagementSettings = () => {
             'button',
             {
               onClick: handleOpenImportWizard,
-              className: 'w-full px-4 py-2 bg-gray-200 hover:bg-gray-100 text-gray-900 rounded-lg font-medium transition-colors'
+              disabled: !importConfirmed,
+              className: 'w-full px-4 py-2 bg-gray-200 hover:bg-gray-100 disabled:bg-gray-200 text-gray-900 rounded-lg font-medium transition-colors' + (!importConfirmed ? ' opacity-50 cursor-not-allowed' : '')
             },
             '📥 Open Import Wizard'
           )
