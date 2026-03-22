@@ -81,6 +81,22 @@
     };
   }
 
+  // ---------- Default Staff Profile ----------
+  function defaultStaffProfile() {
+    return {
+      isStaff: false,
+      roles: [],
+      skills: '',
+      availability: '',
+      productions: [],
+      emergencyContact: '',
+      notes: '',
+      portalAccess: false,
+      portalInvitedAt: null,
+      lastActiveAt: null,
+    };
+  }
+
   // ---------- Core load/save ----------
   /**
    * Load contacts and apply migration.
@@ -89,7 +105,7 @@
   function loadContacts() {
     const data = safeParseLS(LS_KEY);
     const arr = Array.isArray(data) ? data : [];
-    return migrateToDonorSchema(arr);
+    return migrateToStaffSchema(migrateToDonorSchema(arr));
   }
 
   /**
@@ -131,6 +147,52 @@
         for (const k in def) {
           if (!(k in contact.donorProfile)) {
             contact.donorProfile[k] = def[k];
+            changed = true;
+          }
+        }
+      }
+
+      return contact;
+    });
+
+    if (changed) safeWriteLS(LS_KEY, migrated);
+    return migrated;
+  }
+
+  // ---------- Migration ----------
+  /**
+   * Ensure each contact contains staff schema fields; preserve existing data.
+   * - If tags include a staff role tag, set isStaff = true (non-destructive).
+   * - Initialize staffProfile if missing.
+   * @param {Array<any>} contacts
+   * @returns {Array<any>} migrated contacts
+   */
+  function migrateToStaffSchema(contacts) {
+    let changed = false;
+    const migrated = (contacts || []).map(c => {
+      const contact = { ...c };
+
+      const STAFF_TAGS = ['director', 'stage manager', 'wardrobe', 'lighting',
+                          'sound', 'props', 'set', 'scenic', 'staff', 'crew'];
+      const hasStaffTag = Array.isArray(contact.tags) &&
+        contact.tags.some(t => STAFF_TAGS.includes(String(t).toLowerCase()));
+
+      if (typeof contact.isStaff !== 'boolean') {
+        contact.isStaff = hasStaffTag;
+        changed = true;
+      } else if (!contact.isStaff && hasStaffTag) {
+        contact.isStaff = true;
+        changed = true;
+      }
+
+      if (!contact.staffProfile || typeof contact.staffProfile !== 'object') {
+        contact.staffProfile = defaultStaffProfile();
+        changed = true;
+      } else {
+        const def = defaultStaffProfile();
+        for (const k in def) {
+          if (!(k in contact.staffProfile)) {
+            contact.staffProfile[k] = def[k];
             changed = true;
           }
         }
@@ -282,7 +344,7 @@
   (function autoMigrate() {
     const data = safeParseLS(LS_KEY);
     const arr = Array.isArray(data) ? data : [];
-    migrateToDonorSchema(arr);
+    migrateToStaffSchema(migrateToDonorSchema(arr));
   })();
 
   /**
@@ -322,6 +384,35 @@
     return updated;
   }
 
+  // ---------- Staff Queries / Mutations ----------
+  function getStaffContacts() {
+    return loadContacts().filter(c => c.isStaff === true);
+  }
+
+  function getProductionStaff(productionId) {
+    return loadContacts().filter(c =>
+      c.isStaff &&
+      Array.isArray(c.staffProfile?.productions) &&
+      c.staffProfile.productions.some(p => p.productionId === productionId)
+    );
+  }
+
+  function updateContactStaffProfile(contactId, staffData) {
+    const contacts = loadContacts();
+    const idx = contacts.findIndex(c => c.id === contactId);
+    if (idx === -1) throw new Error('Contact not found');
+    const contact = { ...contacts[idx] };
+    if (!contact.staffProfile || typeof contact.staffProfile !== 'object') {
+      contact.staffProfile = defaultStaffProfile();
+    }
+    contact.staffProfile = { ...contact.staffProfile, ...staffData };
+    contact.isStaff = true;
+    if (contact.updatedAt) contact.updatedAt = new Date().toISOString();
+    contacts[idx] = contact;
+    saveContactsToLS(contacts);
+    return contact;
+  }
+
   return {
     // Storage
     loadContacts,
@@ -329,13 +420,17 @@
 
     // Migration
     migrateToDonorSchema,
+    migrateToStaffSchema,
 
     // Queries
     getContactById,
     getDonorContacts,
+    getStaffContacts,
+    getProductionStaff,
 
     // Mutations
     updateContact,
     updateContactDonorProfile,
+    updateContactStaffProfile,
   };
 });
