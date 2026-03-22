@@ -142,6 +142,9 @@ function SetDesignView({ production, onSave }) {
     const saved = localStorage.getItem(`rentals_${production.id}`);
     return saved ? JSON.parse(saved) : [];
   });
+  const [expandedConstruction, setExpandedConstruction] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem('scenestave_set_construction_expanded') || '{}'); } catch { return {}; }
+  });
   
   // Set piece types
   const pieceTypes = [
@@ -241,6 +244,14 @@ function SetDesignView({ production, onSave }) {
     }
   };
   
+  const toggleConstruction = (pieceId) => {
+    setExpandedConstruction(prev => {
+      const next = { ...prev, [pieceId]: !prev[pieceId] };
+      localStorage.setItem('scenestave_set_construction_expanded', JSON.stringify(next));
+      return next;
+    });
+  };
+
   // Add new set piece
   const handleAddPiece = (actIndex, sceneIndex) => {
     const newPiece = {
@@ -2123,6 +2134,9 @@ function SetDesignView({ production, onSave }) {
                           'div',
                           { className: 'space-y-2' },
 
+                          // === DESIGN SECTION (always visible) ===
+                          React.createElement('p', { className: 'text-xs font-semibold text-gray-400 uppercase tracking-wide -mb-1' }, 'Design'),
+
                           // Description
                           React.createElement('textarea', {
                             value: piece.description || '',
@@ -2185,7 +2199,7 @@ function SetDesignView({ production, onSave }) {
                             })
                           ),
 
-                          // Materials, Weight, Cost, Labor Hours
+                          // Materials + Cost (design budget)
                           React.createElement(
                             'div',
                             { className: 'grid grid-cols-2 gap-2' },
@@ -2195,14 +2209,6 @@ function SetDesignView({ production, onSave }) {
                               value: piece.materials || '',
                               onChange: (e) => handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'materials', e.target.value),
                               onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'materials', e.target.value),
-                              className: 'px-2 py-1.5 border border-gray-300 rounded text-xs'
-                            }),
-                            React.createElement('input', {
-                              type: 'text',
-                              placeholder: 'Weight',
-                              value: piece.weight || '',
-                              onChange: (e) => handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'weight', e.target.value),
-                              onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'weight', e.target.value),
                               className: 'px-2 py-1.5 border border-gray-300 rounded text-xs'
                             }),
                             React.createElement(
@@ -2227,59 +2233,119 @@ function SetDesignView({ production, onSave }) {
                                 },
                                 className: 'w-full pl-5 pr-2 py-1.5 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500'
                               })
-                            ),
-                            React.createElement('input', {
-                              type: 'text',
-                              inputMode: 'decimal',
-                              placeholder: 'Labor hrs',
-                              value: piece.laborHours || '',
-                              onChange: (e) => {
-                                let cleanValue = e.target.value.replace(/[^\d.]/g, '');
-                                handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'laborHours', cleanValue);
-                              },
-                              onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'laborHours', e.target.value),
-                              className: 'px-2 py-1.5 border border-gray-300 rounded text-xs'
-                            })
+                            )
                           ),
 
-                          // Assigned To, Due Date
+                          // === BUILD DETAILS TOGGLE ===
                           React.createElement(
+                            'button',
+                            {
+                              type: 'button',
+                              onClick: () => toggleConstruction(piece.id),
+                              className: 'flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 font-medium mt-1 select-none'
+                            },
+                            expandedConstruction[piece.id] ? '▼' : '▶',
+                            ' Build Details',
+                            (() => {
+                              const hasData = !!(piece.weight || piece.laborHours || piece.assignedTo || piece.dueDate || piece.laborLog || piece.constructionNotes || piece.riggingNotes || piece.safetyNotes);
+                              return hasData && !expandedConstruction[piece.id]
+                                ? React.createElement('span', { className: 'w-2 h-2 rounded-full bg-amber-400 inline-block ml-1', title: 'Build data entered' })
+                                : null;
+                            })()
+                          ),
+
+                          // === CONSTRUCTION SECTION (collapsible) ===
+                          expandedConstruction[piece.id] && React.createElement(
                             'div',
-                            { className: 'grid grid-cols-2 gap-2' },
-                            React.createElement('input', {
-                              type: 'text',
-                              placeholder: 'Assigned to',
-                              value: piece.assignedTo || '',
-                              onChange: (e) => handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'assignedTo', e.target.value),
-                              onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'assignedTo', e.target.value),
-                              className: 'px-2 py-1.5 border border-gray-300 rounded text-xs'
-                            }),
-                            React.createElement('input', {
-                              type: 'date',
-                              value: piece.dueDate || '',
-                              onChange: (e) => handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'dueDate', e.target.value),
-                              onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'dueDate', e.target.value),
-                              className: 'px-2 py-1.5 border border-gray-300 rounded text-xs'
-                            }),
+                            { className: 'space-y-2 pt-2 border-t border-gray-200' },
+
+                            // Weight + Labor Hours
+                            React.createElement(
+                              'div',
+                              { className: 'grid grid-cols-2 gap-2' },
+                              React.createElement('input', {
+                                type: 'text',
+                                placeholder: 'Weight',
+                                value: piece.weight || '',
+                                onChange: (e) => handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'weight', e.target.value),
+                                onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'weight', e.target.value),
+                                className: 'px-2 py-1.5 border border-gray-300 rounded text-xs'
+                              }),
+                              React.createElement('input', {
+                                type: 'text',
+                                inputMode: 'decimal',
+                                placeholder: 'Labor hrs',
+                                value: piece.laborHours || '',
+                                onChange: (e) => {
+                                  let cleanValue = e.target.value.replace(/[^\d.]/g, '');
+                                  handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'laborHours', cleanValue);
+                                },
+                                onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'laborHours', e.target.value),
+                                className: 'px-2 py-1.5 border border-gray-300 rounded text-xs'
+                              })
+                            ),
+
+                            // Assigned To + Due Date
+                            React.createElement(
+                              'div',
+                              { className: 'grid grid-cols-2 gap-2' },
+                              React.createElement('input', {
+                                type: 'text',
+                                placeholder: 'Assigned to',
+                                value: piece.assignedTo || '',
+                                onChange: (e) => handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'assignedTo', e.target.value),
+                                onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'assignedTo', e.target.value),
+                                className: 'px-2 py-1.5 border border-gray-300 rounded text-xs'
+                              }),
+                              React.createElement('input', {
+                                type: 'date',
+                                value: piece.dueDate || '',
+                                onChange: (e) => handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'dueDate', e.target.value),
+                                onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'dueDate', e.target.value),
+                                className: 'px-2 py-1.5 border border-gray-300 rounded text-xs'
+                              })
+                            ),
+
+                            // Labor Log
                             React.createElement('input', {
                               type: 'text',
                               placeholder: 'Labor log (e.g., 2 hrs - framing)',
                               value: piece.laborLog || '',
                               onChange: (e) => handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'laborLog', e.target.value),
                               onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'laborLog', e.target.value),
-                              className: 'px-2 py-1.5 border border-gray-300 rounded text-xs'
-                            })
-                          ),
+                              className: 'w-full px-2 py-1.5 border border-gray-300 rounded text-xs'
+                            }),
 
-                          // Construction Notes
-                          React.createElement('textarea', {
-                            placeholder: 'Construction notes (materials, techniques, concerns)',
-                            value: piece.constructionNotes || '',
-                            onChange: (e) => handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'constructionNotes', e.target.value),
-                            onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'constructionNotes', e.target.value),
-                            className: 'w-full text-xs px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500',
-                            rows: 2
-                          })
+                            // Construction Notes
+                            React.createElement('textarea', {
+                              placeholder: 'Construction notes (materials, techniques, concerns)',
+                              value: piece.constructionNotes || '',
+                              onChange: (e) => handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'constructionNotes', e.target.value),
+                              onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'constructionNotes', e.target.value),
+                              className: 'w-full text-xs px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500',
+                              rows: 2
+                            }),
+
+                            // Rigging Notes
+                            React.createElement('textarea', {
+                              placeholder: 'Rigging notes',
+                              value: piece.riggingNotes || '',
+                              onChange: (e) => handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'riggingNotes', e.target.value),
+                              onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'riggingNotes', e.target.value),
+                              className: 'w-full text-xs px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500',
+                              rows: 2
+                            }),
+
+                            // Safety Notes
+                            React.createElement('textarea', {
+                              placeholder: 'Safety notes',
+                              value: piece.safetyNotes || '',
+                              onChange: (e) => handleUpdatePieceImmediate(actIndex, sceneIndex, piece.id, 'safetyNotes', e.target.value),
+                              onBlur: (e) => handleUpdatePieceAndSave(actIndex, sceneIndex, piece.id, 'safetyNotes', e.target.value),
+                              className: 'w-full text-xs px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500',
+                              rows: 2
+                            })
+                          )
                         )
                       )
                     )

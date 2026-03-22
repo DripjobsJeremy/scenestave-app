@@ -16,6 +16,14 @@ const VolunteerPortalHome = () => {
   const [showOpportunityDetail, setShowOpportunityDetail] = useState(null);
   const [showBrowseOpportunities, setShowBrowseOpportunities] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
+
+  // Inline application modal state
+  const [applyModal, setApplyModal] = useState({ open: false, step: 1, opportunityId: null });
+  const [applyForm, setApplyForm] = useState({ name: '', email: '', phone: '', availability: [], interest: '', message: '' });
+  const [submitted, setSubmitted] = useState(false);
+  // Inline opportunity detail drawer state
+  const [detailDrawer, setDetailDrawer] = useState({ open: false, opportunity: null });
+
   // Auto-popup login modal if redirected due to session expiry
   useEffect(() => {
     // Check for session expiry marker in URL
@@ -64,6 +72,41 @@ const VolunteerPortalHome = () => {
   const opportunities = storage?.getVolunteerOpportunities() || [];
   const featuredOpps = opportunities.filter(o => o.featured).slice(0, 4);
   const displayOpps = featuredOpps.length > 0 ? featuredOpps : opportunities.slice(0, 4);
+
+  const resetApplyModal = () => {
+    setApplyModal({ open: false, step: 1, opportunityId: null });
+    setApplyForm({ name: '', email: '', phone: '', availability: [], interest: '', message: '' });
+    setSubmitted(false);
+  };
+
+  const handleApplySubmit = () => {
+    const nameParts = applyForm.name.trim().split(/\s+/);
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+    const application = {
+      id: Date.now().toString(),
+      firstName,
+      lastName,
+      email: applyForm.email,
+      phone: applyForm.phone,
+      availability: { days: applyForm.availability, times: [], frequency: 'flexible' },
+      interests: applyForm.interest ? [applyForm.interest] : [],
+      experience: applyForm.message,
+      opportunityId: applyModal.opportunityId || null,
+      status: 'pending',
+      submittedAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    if (window.volunteerStorageService?.saveVolunteerApplication) {
+      window.volunteerStorageService.saveVolunteerApplication(application);
+    } else {
+      try {
+        const existing = JSON.parse(localStorage.getItem('volunteerApplications') || '[]');
+        localStorage.setItem('volunteerApplications', JSON.stringify([...existing, application]));
+      } catch {}
+    }
+    setSubmitted(true);
+  };
 
   const toggleFaq = (index) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
@@ -115,7 +158,7 @@ const VolunteerPortalHome = () => {
             Make a difference in the arts. Join our passionate community of volunteers.
           </p>
           <button
-            onClick={() => { setApplyPrefill(null); setShowApplicationForm(true); }}
+            onClick={() => setApplyModal({ open: true, step: 1, opportunityId: null })}
             className="bg-white text-violet-700 hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-semibold shadow-lg transition-all transform hover:scale-105"
           >
             Apply to Volunteer
@@ -160,7 +203,7 @@ const VolunteerPortalHome = () => {
                   {opp.description?.substring(0, 100) || 'Help support our theatre productions and events.'}...
                 </p>
                 <button
-                  onClick={() => setShowOpportunityDetail(opp)}
+                  onClick={() => setDetailDrawer({ open: true, opportunity: opp })}
                   className="text-violet-600 hover:text-violet-800 text-sm font-semibold"
                 >
                   Learn More →
@@ -301,44 +344,285 @@ const VolunteerPortalHome = () => {
         </div>
       </footer>
 
-      {/* Modals - Placeholder until components are built */}
-      {showApplicationForm && window.VolunteerApplicationForm && React.createElement(window.VolunteerApplicationForm, {
-        isModal: false,
-        prefill: applyPrefill,
-        onClose: () => setShowApplicationForm(false),
-        onSubmitted: () => {
-          setShowApplicationForm(false);
-          window.toast?.success?.('Application submitted! We\'ll contact you within 3-5 business days.');
-        }
-      })}
-
+      {/* Login modal — delegates to existing component */}
       {showLoginModal && window.VolunteerLogin && React.createElement(window.VolunteerLogin, {
         isModal: true,
         onClose: () => setShowLoginModal(false),
         onSuccess: (volunteer) => {
           setShowLoginModal(false);
-          // Redirect to dashboard page instead of showing overlay
           window.location.href = '/volunteer-dashboard.html';
         },
         sessionExpired: sessionExpired
       })}
 
-      {showOpportunityDetail && window.OpportunityDetailPage && React.createElement(window.OpportunityDetailPage, {
-        opportunity: showOpportunityDetail,
-        onClose: () => setShowOpportunityDetail(null),
-        onApply: (opp) => {
-          setShowOpportunityDetail(null);
-          // Prefill category and specific opportunity
-          setApplyPrefill({ category: opp?.category, opportunityId: opp?.id });
-          setShowApplicationForm(true);
-        }
-      })}
+      {/* ── Multi-step Application Modal ── */}
+      {applyModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => !submitted && resetApplyModal()} />
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg z-10 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">Volunteer Application</h2>
+              <button onClick={resetApplyModal} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+            </div>
+
+            {/* Progress bar */}
+            {!submitted && (
+              <div className="px-6 pt-4 pb-1">
+                <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
+                  <span className="font-medium">Step {applyModal.step} of 3</span>
+                  <span className="text-gray-400">{applyModal.step === 1 ? 'Basic Info' : applyModal.step === 2 ? 'Availability' : 'Interest'}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                  <div className={`bg-violet-600 h-1.5 rounded-full transition-all duration-300 ${
+                    applyModal.step === 1 ? 'w-1/3' : applyModal.step === 2 ? 'w-2/3' : 'w-full'
+                  }`} />
+                </div>
+              </div>
+            )}
+
+            <div className="px-6 py-5">
+              {submitted ? (
+                /* Confirmation screen */
+                <div className="text-center py-8">
+                  <div className="text-5xl mb-4">🎭</div>
+                  <h3 className="text-xl font-bold mb-2">Application Submitted!</h3>
+                  <p className="text-gray-600 mb-6">
+                    Thanks {applyForm.name} — we'll be in touch at <span className="font-medium">{applyForm.email}</span>.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={resetApplyModal}
+                    className="px-6 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 font-semibold"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : applyModal.step === 1 ? (
+                /* Step 1 — Basic Info */
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600 mb-4">Tell us a little about yourself.</p>
+                  <input
+                    type="text"
+                    placeholder="Full name *"
+                    value={applyForm.name}
+                    onChange={(e) => setApplyForm(f => ({ ...f, name: e.target.value }))}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none"
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email address *"
+                    value={applyForm.email}
+                    onChange={(e) => setApplyForm(f => ({ ...f, email: e.target.value }))}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none"
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Phone number (optional)"
+                    value={applyForm.phone}
+                    onChange={(e) => setApplyForm(f => ({ ...f, phone: e.target.value }))}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none"
+                  />
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="button"
+                      disabled={!applyForm.name.trim() || !applyForm.email.trim()}
+                      onClick={() => setApplyModal(m => ({ ...m, step: 2 }))}
+                      className="px-5 py-2 bg-violet-600 text-white rounded-lg font-semibold hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              ) : applyModal.step === 2 ? (
+                /* Step 2 — Availability */
+                <div>
+                  <p className="text-sm text-gray-600 mb-4">Which days are you generally available?</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+                      <label
+                        key={day}
+                        className={`flex items-center gap-2 px-3 py-2.5 border rounded-lg cursor-pointer transition-colors text-sm ${
+                          applyForm.availability.includes(day)
+                            ? 'bg-violet-50 border-violet-400 text-violet-800 font-medium'
+                            : 'border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={applyForm.availability.includes(day)}
+                          onChange={(e) => setApplyForm(f => ({
+                            ...f,
+                            availability: e.target.checked
+                              ? [...f.availability, day]
+                              : f.availability.filter(d => d !== day)
+                          }))}
+                          className="w-4 h-4 text-violet-600 rounded border-gray-300 focus:ring-violet-500"
+                        />
+                        {day}
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex justify-between pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setApplyModal(m => ({ ...m, step: 1 }))}
+                      className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 font-medium"
+                    >
+                      ← Back
+                    </button>
+                    <button
+                      type="button"
+                      disabled={applyForm.availability.length === 0}
+                      onClick={() => setApplyModal(m => ({ ...m, step: 3 }))}
+                      className="px-5 py-2 bg-violet-600 text-white rounded-lg font-semibold hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Step 3 — Area of Interest + Message */
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600 mb-1">Where would you like to help?</p>
+                  <select
+                    title="Area of interest"
+                    value={applyForm.interest}
+                    onChange={(e) => setApplyForm(f => ({ ...f, interest: e.target.value }))}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none"
+                  >
+                    <option value="">Select an area of interest *</option>
+                    <option>Stage Crew</option>
+                    <option>Front of House</option>
+                    <option>Box Office</option>
+                    <option>Marketing &amp; Outreach</option>
+                    <option>Production Support</option>
+                    <option>Board &amp; Administration</option>
+                  </select>
+                  <textarea
+                    placeholder="Anything else you'd like us to know? (optional)"
+                    value={applyForm.message}
+                    onChange={(e) => setApplyForm(f => ({ ...f, message: e.target.value }))}
+                    rows={3}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none resize-none"
+                  />
+                  <div className="flex justify-between pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setApplyModal(m => ({ ...m, step: 2 }))}
+                      className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 font-medium"
+                    >
+                      ← Back
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!applyForm.interest}
+                      onClick={handleApplySubmit}
+                      className="px-5 py-2 bg-violet-600 text-white rounded-lg font-semibold hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Submit Application
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Opportunity Detail Drawer ── */}
+      {detailDrawer.open && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-30 z-40"
+          onClick={() => setDetailDrawer({ open: false, opportunity: null })}
+        />
+      )}
+      <div className={`fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-xl transform transition-transform duration-300 z-50 flex flex-col ${detailDrawer.open ? 'translate-x-0' : 'translate-x-full'}`}>
+        {detailDrawer.opportunity && (() => {
+          const opp = detailDrawer.opportunity;
+          return (
+            <>
+              {/* Drawer header */}
+              <div className="flex items-start justify-between p-6 border-b border-gray-200 flex-shrink-0">
+                <div>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mb-2 ${
+                    opp.category === 'Front of House' ? 'bg-blue-100 text-blue-700' :
+                    opp.category === 'Backstage' ? 'bg-purple-100 text-purple-700' :
+                    opp.category === 'Administrative' ? 'bg-green-100 text-green-700' :
+                    'bg-gray-100 text-gray-700'
+                  }`}>
+                    {opp.category || 'General'}
+                  </span>
+                  <h2 className="text-2xl font-bold text-gray-900">{opp.title || 'Volunteer Opportunity'}</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDetailDrawer({ open: false, opportunity: null })}
+                  className="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600 text-2xl leading-none mt-1"
+                >
+                  &times;
+                </button>
+              </div>
+
+              {/* Drawer body */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                {opp.description && (
+                  <p className="text-gray-700 leading-relaxed">{opp.description}</p>
+                )}
+                {opp.timeCommitment && (
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Time Commitment</h3>
+                    <p className="text-sm text-gray-700">{opp.timeCommitment}</p>
+                  </div>
+                )}
+                {opp.schedule && (
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Schedule</h3>
+                    <p className="text-sm text-gray-700">{opp.schedule}</p>
+                  </div>
+                )}
+                {opp.skills && opp.skills.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Skills Helpful</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {(Array.isArray(opp.skills) ? opp.skills : [opp.skills]).map((skill, i) => (
+                        <span key={i} className="px-2 py-1 bg-violet-50 text-violet-700 rounded text-xs">{skill}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {(opp.spotsAvailable || opp.spots) && (
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Spots Available</h3>
+                    <p className="text-sm text-gray-700">{opp.spotsAvailable || opp.spots}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Drawer footer */}
+              <div className="p-6 border-t border-gray-200 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDetailDrawer({ open: false, opportunity: null });
+                    setApplyModal({ open: true, step: 1, opportunityId: opp.id });
+                  }}
+                  className="w-full py-3 bg-violet-600 text-white rounded-lg font-semibold hover:bg-violet-700 transition-colors"
+                >
+                  Apply for this Role →
+                </button>
+              </div>
+            </>
+          );
+        })()}
+      </div>
 
       {showBrowseOpportunities && window.BrowseOpportunities && (
         <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
           <div className="sticky top-0 bg-white border-b border-gray-200 flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={() => setShowBrowseOpportunities(false)}
                 className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50"
               >
@@ -347,7 +631,8 @@ const VolunteerPortalHome = () => {
               <h2 className="text-lg font-semibold text-gray-900">All Volunteer Opportunities</h2>
             </div>
             <button
-              onClick={() => setShowApplicationForm(true)}
+              type="button"
+              onClick={() => setApplyModal({ open: true, step: 1, opportunityId: null })}
               className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-sm font-semibold"
             >
               Apply to Volunteer

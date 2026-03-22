@@ -96,6 +96,7 @@ function getNavigationTabs(userRole) {
       { id: 'dashboard',     label: 'Dashboard',     icon: '🏠', path: '/' },
       { id: 'financial',     label: 'Financial',     icon: '💰', path: '/financial' },
       { id: 'productions',   label: 'Productions',   icon: '🎬', path: '/productions' },
+      { id: 'calendar',      label: 'Calendar',      icon: '📅', path: '/calendar' },
       { id: 'actors',        label: 'Actors',        icon: '🎭', path: '/actors' },
       { id: 'volunteers',    label: 'Volunteers',    icon: '🤝', path: '/volunteers' },
       { id: 'donors',        label: 'Donors',        icon: '👥', path: '/donors' },
@@ -109,6 +110,7 @@ function getNavigationTabs(userRole) {
       { id: 'dashboard',    label: 'Dashboard',    icon: '🏠', path: '/' },
       { id: 'financial',    label: 'Financial',    icon: '💰', path: '/financial' },
       { id: 'productions',  label: 'Productions',  icon: '🎬', path: '/productions' },
+      { id: 'calendar',     label: 'Calendar',     icon: '📅', path: '/calendar' },
       { id: 'actors',       label: 'Actors',       icon: '🎭', path: '/actors' },
       { id: 'volunteers',   label: 'Volunteers',   icon: '🤝', path: '/volunteers' },
       { id: 'donors',       label: 'Donors',       icon: '👥', path: '/donors' },
@@ -158,6 +160,7 @@ function getNavigationTabs(userRole) {
     { id: 'dashboard',    label: 'Dashboard',    icon: '🏠', path: '/' },
     { id: 'financial',    label: 'Financial',    icon: '💰', path: '/financial' },
     { id: 'productions',  label: 'Productions',  icon: '🎬', path: '/productions' },
+    { id: 'calendar',     label: 'Calendar',     icon: '📅', path: '/calendar' },
     { id: 'actors',       label: 'Actors',       icon: '🎭', path: '/actors' },
     { id: 'volunteers',   label: 'Volunteers',   icon: '🤝', path: '/volunteers' },
     { id: 'donors',       label: 'Donors',       icon: '👥', path: '/donors' },
@@ -184,7 +187,7 @@ function App() {
   const getViewFromPath = (pathname) => {
     const path = pathname.split('/')[1] || 'dashboard';
     const validViews = [
-      'dashboard', 'financial', 'donors', 'actors', 'productions',
+      'dashboard', 'financial', 'donors', 'actors', 'productions', 'calendar',
       'volunteers', 'settings', 'actor-portal',
       'department-portal', 'volunteer-portal', 'donor-portal', 'donor-login'
     ];
@@ -458,7 +461,9 @@ function App() {
             </Route>
 
             <Route path="/calendar">
-              <Redirect to="/" />
+              <div className="bg-gray-900 min-h-full">
+                {window.GlobalCalendar && <window.GlobalCalendar />}
+              </div>
             </Route>
 
             <Route path="/financial">

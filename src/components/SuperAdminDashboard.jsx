@@ -196,7 +196,12 @@ function SuperAdminDashboard({ userRole = 'admin' }) {
               {upcomingEvents.map((event, idx) => {
                 const { month, day } = formatDate(event.start || event.date);
                 return (
-                  <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div
+                    key={idx}
+                    className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                    onClick={() => { window.location.hash = `/productions/${event.productionId}?tab=calendar`; }}
+                    title={`Open ${event.productionTitle} calendar`}
+                  >
                     <div className="flex-shrink-0 w-12 text-center">
                       <div className="text-xs text-gray-500 font-medium">{month}</div>
                       <div className="text-xl font-bold text-gray-900">{day}</div>

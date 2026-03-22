@@ -9,9 +9,19 @@ function SceneBuilder({ productionId: propId }) {
   const [openCharacterSelector, setOpenCharacterSelector] = useState(null); // format: "actIndex-sceneIndex"
   const [collapsedScenes, setCollapsedScenes] = useState({}); // format: { "actIndex-sceneIndex": true }
   const [collapsedActs, setCollapsedActs] = useState({}); // format: { actIndex: true }
+  const [expandedSections, setExpandedSections] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('scenestave_scene_sections') || '{}'); } catch { return {}; }
+  });
   const [activeTab, setActiveTab] = useState(() => {
-    const saved = localStorage.getItem('showsuite_active_department_tab');
-    return saved || 'scenes';
+    try {
+      const hash = window.location.hash; // e.g. "#/productions/abc?tab=calendar"
+      const queryStart = hash.indexOf('?');
+      if (queryStart !== -1) {
+        const tab = new URLSearchParams(hash.substring(queryStart)).get('tab');
+        if (tab) return tab;
+      }
+    } catch {}
+    return localStorage.getItem('showsuite_active_department_tab') || 'scenes';
   });
   const [currentRole, setCurrentRole] = useState(window.getCurrentRole?.() || { id: 'admin', departments: 'all' });
   
@@ -171,6 +181,23 @@ function SceneBuilder({ productionId: propId }) {
 
   const isActCollapsed = (actIndex) => collapsedActs[actIndex] || false;
 
+  const toggleSection = (sceneKey, section) => {
+    setExpandedSections(prev => {
+      const next = { ...prev, [sceneKey]: { ...(prev[sceneKey] || {}), [section]: !(prev[sceneKey]?.[section]) } };
+      try { localStorage.setItem('scenestave_scene_sections', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
+  const isSectionOpen = (sceneKey, section) => expandedSections[sceneKey]?.[section] ?? false;
+
+  const hasCueData = (scene) => !!(
+    scene.lightingMood || scene.lightingColor ||
+    scene.songTitle || scene.artist || scene.soundType
+  );
+
+  const hasNotes = (scene) => !!(scene.notes || scene.stageNotes || scene.blocking || scene.directorNotes);
+
   const allActsCollapsed = (production.acts || []).length > 0 &&
     (production.acts || []).every((_, i) => isActCollapsed(i));
 
@@ -283,12 +310,25 @@ function SceneBuilder({ productionId: propId }) {
   };
 
   const canAccessTab = (tabId) => {
-    if (tabId === 'scenes') return true; // Everyone can see scenes
-    return window.canAccessAllDepartments?.(currentRole.id) || 
+    if (tabId === 'scenes') return true; // Everyone can see scenes (read-only for dept roles)
+    if (tabId === 'calendar') return true; // Everyone can view the calendar
+    return window.canAccessAllDepartments?.(currentRole.id) ||
            window.canAccessDepartment?.(currentRole.id, tabId);
   };
 
+  const canEditCurrentTab = () => {
+    // Admins and directors can edit everything
+    if (window.canAccessAllDepartments?.(currentRole.id)) return true;
+    // Dept roles can edit their own tab, but not scenes (read-only) or calendar (limited)
+    if (activeTab === 'scenes') return false;
+    if (activeTab === 'calendar') return false; // calendar gating handled inside CalendarView
+    return window.canAccessDepartment?.(currentRole.id, activeTab) || false;
+  };
+
   const visibleTabs = departmentTabs.filter(tab => canAccessTab(tab.id));
+
+  // True when a dept role is viewing the Scenes tab (read-only)
+  const scenesReadOnly = activeTab === 'scenes' && !canEditCurrentTab();
 
   const tabNavigation = React.createElement(
     'div',
@@ -385,7 +425,7 @@ function SceneBuilder({ productionId: propId }) {
               React.createElement('option', { value: 'Post-Show' }, 'Post-Show')
             )
           ),
-          React.createElement(
+          !scenesReadOnly && React.createElement(
             'div',
             { className: 'flex gap-2' },
             React.createElement(
@@ -456,8 +496,8 @@ function SceneBuilder({ productionId: propId }) {
                     (scene.soundType !== 'Musical Number' && scene.artist ? ' – ' + scene.artist : '')
                   )
                 ),
-                // Scene action buttons
-                React.createElement(
+                // Scene action buttons (hidden in read-only mode)
+                !scenesReadOnly && React.createElement(
                   'div',
                   { className: 'flex items-center gap-1' },
                   // Duplicate button
@@ -492,6 +532,21 @@ function SceneBuilder({ productionId: propId }) {
               !isSceneCollapsed(actIndex, sceneIndex) && React.createElement(
                 'div',
                 { className: 'p-3 pt-3 border-t border-gray-200' },
+                // Completion summary
+                React.createElement(
+                  'div',
+                  { className: 'flex gap-3 text-xs mb-3' },
+                  React.createElement(
+                    'span',
+                    { className: hasCueData(scene) ? 'text-green-600' : 'text-gray-400' },
+                    hasCueData(scene) ? '✓' : '○', ' Cues'
+                  ),
+                  React.createElement(
+                    'span',
+                    { className: hasNotes(scene) ? 'text-green-600' : 'text-gray-400' },
+                    hasNotes(scene) ? '✓' : '○', ' Notes'
+                  )
+                ),
                 // Scene number and label row
                 React.createElement(
                   'div',
@@ -691,132 +746,178 @@ function SceneBuilder({ productionId: propId }) {
                     })
                   )
                 ),
-                // Lighting section
+                // Department Cues toggle
                 React.createElement(
-                  'div',
-                  { className: 'grid grid-cols-1 md:grid-cols-2 gap-3 mb-2' },
-                  React.createElement('div', { className: 'relative' },
-                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '💡'),
-                    React.createElement('input', {
-                      type: 'text',
-                      value: scene.lightingMood || '',
-                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'lightingMood', e.target.value),
-                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
-                      placeholder: 'Lighting mood (e.g., warm, dramatic)'
-                    })
+                  'button',
+                  {
+                    type: 'button',
+                    onClick: () => toggleSection(`${actIndex}-${sceneIndex}`, 'cues'),
+                    className: 'flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 mt-3 mb-1 w-full select-none'
+                  },
+                  React.createElement(
+                    'span',
+                    { className: 'transition-transform duration-150 ' + (isSectionOpen(`${actIndex}-${sceneIndex}`, 'cues') ? 'rotate-90' : '') },
+                    '▶'
                   ),
-                  React.createElement('div', { className: 'relative' },
-                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '🎨'),
-                    React.createElement('input', {
-                      type: 'text',
-                      value: scene.lightingColor || '',
-                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'lightingColor', e.target.value),
-                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
-                      placeholder: 'Lighting color (e.g., amber, blue wash)'
-                    })
-                  )
+                  React.createElement('span', null, ' Department Cues'),
+                  hasCueData(scene) && !isSectionOpen(`${actIndex}-${sceneIndex}`, 'cues')
+                    ? React.createElement('span', { className: 'ml-1 text-green-500 text-xs' }, '●')
+                    : null,
+                  !hasCueData(scene)
+                    ? React.createElement('span', { className: 'ml-auto text-gray-400 text-xs italic' }, 'not set')
+                    : null
                 ),
-                // Sound section
-                React.createElement(
+                // Department Cues collapsible content
+                isSectionOpen(`${actIndex}-${sceneIndex}`, 'cues') && React.createElement(
                   'div',
-                  { className: 'grid grid-cols-1 md:grid-cols-4 gap-3 mb-2' },
-                  React.createElement('div', { className: 'relative' },
-                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '🎵'),
-                    React.createElement('input', {
-                      type: 'text',
-                      value: scene.songTitle || '',
-                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'songTitle', e.target.value),
-                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
-                      placeholder: 'Song title'
-                    })
-                  ),
-                  // Artist field OR Character selection depending on sound type
-                  (() => {
-                    if (scene.soundType === 'Musical Number') {
-                      const sceneChars = (production.characters || []).filter(c => (scene.characterIds || []).includes(c.id));
-                      return React.createElement(
-                        'div',
-                        null,
-                        React.createElement('label', { className: 'block text-xs text-gray-500 mb-1' }, '🎭 Performers (Characters)'),
-                        React.createElement(
-                          'div',
-                          { className: 'border border-gray-300 rounded bg-white p-2 max-h-32 overflow-y-auto' },
-                          sceneChars.length === 0
-                            ? React.createElement('p', { className: 'text-xs text-gray-400 italic' }, 'No characters in scene. Add characters above first.')
-                            : sceneChars.map(char => React.createElement(
-                                'label',
-                                { key: char.id, className: 'flex items-center gap-2 py-0.5 cursor-pointer hover:bg-gray-50 px-1 rounded' },
-                                React.createElement('input', {
-                                  type: 'checkbox',
-                                  checked: (scene.musicalCharacterIds || []).includes(char.id),
-                                  onChange: (e) => {
-                                    const current = scene.musicalCharacterIds || [];
-                                    const next = e.target.checked
-                                      ? [...current, char.id]
-                                      : current.filter(id => id !== char.id);
-                                    handleUpdateScene(actIndex, sceneIndex, 'musicalCharacterIds', next);
-                                  },
-                                  className: 'w-4 h-4 text-violet-600 rounded border-gray-300'
-                                }),
-                                React.createElement('span', { className: 'text-sm text-gray-700' }, char.name)
-                              ))
-                        ),
-                        (scene.musicalCharacterIds || []).length > 0 && React.createElement(
-                          'div',
-                          { className: 'flex flex-wrap gap-1 mt-1' },
-                          (production.characters || [])
-                            .filter(c => (scene.musicalCharacterIds || []).includes(c.id))
-                            .map(c => React.createElement(
-                              'span',
-                              { key: c.id, className: 'px-2 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full' },
-                              c.name
-                            ))
-                        )
-                      );
-                    }
-                    return React.createElement('div', { className: 'relative' },
-                      React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '🎤'),
+                  { className: 'mt-1 pt-2 border-t border-gray-200 space-y-2' },
+                  // Lighting section
+                  React.createElement(
+                    'div',
+                    { className: 'grid grid-cols-1 md:grid-cols-2 gap-3' },
+                    React.createElement('div', { className: 'relative' },
+                      React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '💡'),
                       React.createElement('input', {
                         type: 'text',
-                        value: scene.artist || '',
-                        onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'artist', e.target.value),
+                        value: scene.lightingMood || '',
+                        onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'lightingMood', e.target.value),
                         className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
-                        placeholder: 'Artist'
+                        placeholder: 'Lighting mood (e.g., warm, dramatic)'
                       })
-                    );
-                  })(),
-                  React.createElement('div', { className: 'relative' },
-                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '⏱️'),
-                    React.createElement('input', {
-                      type: 'text',
-                      value: scene.duration || '',
-                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'duration', e.target.value),
-                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
-                      placeholder: 'Duration'
-                    })
+                    ),
+                    React.createElement('div', { className: 'relative' },
+                      React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '🎨'),
+                      React.createElement('input', {
+                        type: 'text',
+                        value: scene.lightingColor || '',
+                        onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'lightingColor', e.target.value),
+                        className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
+                        placeholder: 'Lighting color (e.g., amber, blue wash)'
+                      })
+                    )
                   ),
+                  // Sound section
                   React.createElement(
-                    'select',
-                    {
-                      value: scene.soundType || '',
-                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'soundType', e.target.value),
-                      className: 'px-3 py-2 border border-gray-300 rounded w-full text-sm bg-white'
-                    },
-                    React.createElement('option', { value: '' }, '🔊 Sound Type'),
-                    React.createElement('option', { value: 'Musical Number' }, '🎵 Musical Number'),
-                    React.createElement('option', { value: 'Underscore' }, 'Underscore'),
-                    React.createElement('option', { value: 'Incidental Music' }, 'Incidental Music'),
-                    React.createElement('option', { value: 'Diegetic / Onstage' }, 'Diegetic / Onstage'),
-                    React.createElement('option', { value: 'Atmosphere / Ambience' }, 'Atmosphere / Ambience'),
-                    React.createElement('option', { value: 'Stinger / Button' }, 'Stinger / Button'),
-                    React.createElement('option', { value: 'Effect (SFX)' }, 'Effect (SFX)')
+                    'div',
+                    { className: 'grid grid-cols-1 md:grid-cols-4 gap-3' },
+                    React.createElement('div', { className: 'relative' },
+                      React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '🎵'),
+                      React.createElement('input', {
+                        type: 'text',
+                        value: scene.songTitle || '',
+                        onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'songTitle', e.target.value),
+                        className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
+                        placeholder: 'Song title'
+                      })
+                    ),
+                    // Artist field OR Character selection depending on sound type
+                    (() => {
+                      if (scene.soundType === 'Musical Number') {
+                        const sceneChars = (production.characters || []).filter(c => (scene.characterIds || []).includes(c.id));
+                        return React.createElement(
+                          'div',
+                          null,
+                          React.createElement('label', { className: 'block text-xs text-gray-500 mb-1' }, '🎭 Performers (Characters)'),
+                          React.createElement(
+                            'div',
+                            { className: 'border border-gray-300 rounded bg-white p-2 max-h-32 overflow-y-auto' },
+                            sceneChars.length === 0
+                              ? React.createElement('p', { className: 'text-xs text-gray-400 italic' }, 'No characters in scene. Add characters above first.')
+                              : sceneChars.map(char => React.createElement(
+                                  'label',
+                                  { key: char.id, className: 'flex items-center gap-2 py-0.5 cursor-pointer hover:bg-gray-50 px-1 rounded' },
+                                  React.createElement('input', {
+                                    type: 'checkbox',
+                                    checked: (scene.musicalCharacterIds || []).includes(char.id),
+                                    onChange: (e) => {
+                                      const current = scene.musicalCharacterIds || [];
+                                      const next = e.target.checked
+                                        ? [...current, char.id]
+                                        : current.filter(id => id !== char.id);
+                                      handleUpdateScene(actIndex, sceneIndex, 'musicalCharacterIds', next);
+                                    },
+                                    className: 'w-4 h-4 text-violet-600 rounded border-gray-300'
+                                  }),
+                                  React.createElement('span', { className: 'text-sm text-gray-700' }, char.name)
+                                ))
+                          ),
+                          (scene.musicalCharacterIds || []).length > 0 && React.createElement(
+                            'div',
+                            { className: 'flex flex-wrap gap-1 mt-1' },
+                            (production.characters || [])
+                              .filter(c => (scene.musicalCharacterIds || []).includes(c.id))
+                              .map(c => React.createElement(
+                                'span',
+                                { key: c.id, className: 'px-2 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full' },
+                                c.name
+                              ))
+                          )
+                        );
+                      }
+                      return React.createElement('div', { className: 'relative' },
+                        React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '🎤'),
+                        React.createElement('input', {
+                          type: 'text',
+                          value: scene.artist || '',
+                          onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'artist', e.target.value),
+                          className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
+                          placeholder: 'Artist'
+                        })
+                      );
+                    })(),
+                    React.createElement('div', { className: 'relative' },
+                      React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '⏱️'),
+                      React.createElement('input', {
+                        type: 'text',
+                        value: scene.duration || '',
+                        onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'duration', e.target.value),
+                        className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
+                        placeholder: 'Duration'
+                      })
+                    ),
+                    React.createElement(
+                      'select',
+                      {
+                        value: scene.soundType || '',
+                        onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'soundType', e.target.value),
+                        className: 'px-3 py-2 border border-gray-300 rounded w-full text-sm bg-white'
+                      },
+                      React.createElement('option', { value: '' }, '🔊 Sound Type'),
+                      React.createElement('option', { value: 'Musical Number' }, '🎵 Musical Number'),
+                      React.createElement('option', { value: 'Underscore' }, 'Underscore'),
+                      React.createElement('option', { value: 'Incidental Music' }, 'Incidental Music'),
+                      React.createElement('option', { value: 'Diegetic / Onstage' }, 'Diegetic / Onstage'),
+                      React.createElement('option', { value: 'Atmosphere / Ambience' }, 'Atmosphere / Ambience'),
+                      React.createElement('option', { value: 'Stinger / Button' }, 'Stinger / Button'),
+                      React.createElement('option', { value: 'Effect (SFX)' }, 'Effect (SFX)')
+                    )
                   )
                 ),
-                // Notes/Blocking section
+                // Production Notes toggle
                 React.createElement(
+                  'button',
+                  {
+                    type: 'button',
+                    onClick: () => toggleSection(`${actIndex}-${sceneIndex}`, 'notes'),
+                    className: 'flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 mt-3 mb-1 w-full select-none'
+                  },
+                  React.createElement(
+                    'span',
+                    { className: 'transition-transform duration-150 ' + (isSectionOpen(`${actIndex}-${sceneIndex}`, 'notes') ? 'rotate-90' : '') },
+                    '▶'
+                  ),
+                  React.createElement('span', null, ' Production Notes'),
+                  hasNotes(scene) && !isSectionOpen(`${actIndex}-${sceneIndex}`, 'notes')
+                    ? React.createElement('span', { className: 'ml-1 text-green-500 text-xs' }, '●')
+                    : null,
+                  !hasNotes(scene)
+                    ? React.createElement('span', { className: 'ml-auto text-gray-400 text-xs italic' }, 'not set')
+                    : null
+                ),
+                // Production Notes collapsible content
+                isSectionOpen(`${actIndex}-${sceneIndex}`, 'notes') && React.createElement(
                   'div',
-                  { className: 'mt-3 pt-3 border-t border-gray-200' },
-                  React.createElement('label', { className: 'block text-xs text-gray-600 mb-1' }, '📝 Stage Notes / Blocking'),
+                  { className: 'mt-1 pt-2 border-t border-gray-200' },
                   React.createElement('textarea', {
                     value: scene.notes || '',
                     onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'notes', e.target.value),
@@ -853,8 +954,8 @@ function SceneBuilder({ productionId: propId }) {
     )
   ) : null;
 
-  // Add Act button
-  const addActButton = React.createElement(
+  // Add Act button (hidden in read-only mode)
+  const addActButton = !scenesReadOnly ? React.createElement(
     'div',
     { className: 'mt-6' },
     React.createElement(
@@ -865,7 +966,7 @@ function SceneBuilder({ productionId: propId }) {
       },
       '+ Add Act'
     )
-  );
+  ) : null;
 
   // Empty state
   const emptyState = (production.acts || []).length === 0
@@ -874,7 +975,7 @@ function SceneBuilder({ productionId: propId }) {
         { className: 'text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300' },
         React.createElement('p', { className: 'text-gray-600 mb-4' }, 'No acts defined yet'),
         React.createElement('p', { className: 'text-gray-500 text-sm mb-4' }, 'Start building your production by adding acts and scenes'),
-        React.createElement(
+        !scenesReadOnly && React.createElement(
           'button',
           {
             onClick: handleAddAct,
@@ -893,6 +994,12 @@ function SceneBuilder({ productionId: propId }) {
     activeTab === 'scenes' && React.createElement(
       React.Fragment,
       null,
+      scenesReadOnly && React.createElement(
+        'div',
+        { className: 'mb-4 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2 text-sm text-amber-800' },
+        React.createElement('span', null, '👁'),
+        React.createElement('span', null, 'Read-only view — scene editing is available to Directors and Admins only.')
+      ),
       characterSection,
       React.createElement('hr', { className: 'my-6 border-gray-200' }),
       scenesToolbar,
@@ -949,7 +1056,8 @@ function SceneBuilder({ productionId: propId }) {
     }),
     activeTab === 'calendar' && React.createElement(CalendarView, {
       production: production,
-      onSave: saveProduction
+      onSave: saveProduction,
+      userRole: currentRole.id
     })
   );
 }

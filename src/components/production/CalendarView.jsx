@@ -1,4 +1,4 @@
-function CalendarView({ production, onSave }) {
+function CalendarView({ production, onSave, userRole }) {
   // Clean up event to ensure it has valid start field
   const cleanupEvent = (event) => {
     if (!event) return event;
@@ -158,6 +158,27 @@ function CalendarView({ production, onSave }) {
     'build': { label: 'Build Day', color: 'bg-indigo-500', textColor: 'text-indigo-700', bgLight: 'bg-indigo-50', border: 'border-indigo-300' }
   };
   
+  // Role-based event type filtering
+  const allowedEventTypesForRole = () => {
+    if (!userRole || userRole === 'admin' || userRole === 'director') return eventTypes;
+    const deptAllowed = {
+      lighting:      ['rehearsal', 'tech', 'meeting', 'deadline'],
+      sound:         ['rehearsal', 'tech', 'meeting', 'deadline'],
+      wardrobe:      ['costume-fitting', 'deadline', 'meeting'],
+      props:         ['deadline', 'meeting'],
+      set:           ['build', 'deadline', 'meeting'],
+      stage_manager: Object.keys(eventTypes),
+    };
+    const allowed = deptAllowed[userRole] || ['meeting', 'deadline'];
+    return Object.fromEntries(Object.entries(eventTypes).filter(([key]) => allowed.includes(key)));
+  };
+
+  const canEditEvent = (event) => {
+    if (!event) return false;
+    if (!userRole || userRole === 'admin' || userRole === 'director') return true;
+    return event.createdByRole === userRole || event.createdByRole === undefined;
+  };
+
   // Rehearsal type subtypes
   const rehearsalSubtypes = {
     'table-read': 'Table Read',
@@ -799,7 +820,8 @@ function CalendarView({ production, onSave }) {
       scenes: editingEvent.scenes || [],
       includeAllProps: editingEvent.includeAllProps || false,
       includeAllCostumes: editingEvent.includeAllCostumes || false,
-      createdAt: editingEvent.createdAt || new Date().toISOString()
+      createdAt: editingEvent.createdAt || new Date().toISOString(),
+      createdByRole: editingEvent.createdByRole || userRole || 'admin',
     };
 
     if (editingEvent.endDate && editingEvent.endDate !== editingEvent.date) {
@@ -2112,7 +2134,7 @@ function CalendarView({ production, onSave }) {
               onChange: (e) => setEditingEvent({ ...editingEvent, type: e.target.value }),
               className: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
             },
-              Object.entries(eventTypes).map(([key, type]) =>
+              Object.entries(allowedEventTypesForRole()).map(([key, type]) =>
                 React.createElement('option', { key: key, value: key }, type.label)
               )
             )
@@ -2893,7 +2915,7 @@ function CalendarView({ production, onSave }) {
           React.createElement(
             'div',
             { className: 'flex gap-2' },
-            editingEvent.id && events.find(e => e.id === editingEvent.id) && React.createElement('button', {
+            editingEvent.id && events.find(e => e.id === editingEvent.id) && canEditEvent(editingEvent) && React.createElement('button', {
               type: 'button',
               onClick: () => handleDeleteEvent(editingEvent.id),
               className: 'px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700'
@@ -2914,10 +2936,10 @@ function CalendarView({ production, onSave }) {
               },
               className: 'px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300'
             }, 'Cancel'),
-            React.createElement('button', {
+            (canEditEvent(editingEvent) || !editingEvent.id) && React.createElement('button', {
               onClick: handleSaveEvent,
               className: 'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700'
-            }, 'Save Event')
+            }, editingEvent.id ? 'Save Event' : 'Create Event')
           )
         )
       )
