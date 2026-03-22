@@ -99,6 +99,7 @@ function getNavigationTabs(userRole) {
       { id: 'calendar',      label: 'Calendar',      icon: '📅', path: '/calendar' },
       { id: 'actors',        label: 'Actors',        icon: '🎭', path: '/actors' },
       { id: 'volunteers',    label: 'Volunteers',    icon: '🤝', path: '/volunteers' },
+      { id: 'contacts',      label: 'Contacts',      icon: '📋', path: '/contacts' },
       { id: 'donors',        label: 'Donors',        icon: '👥', path: '/donors' },
       { id: 'donor-portal',  label: 'Donor Portal',  icon: '💎', path: '/donor-portal' },
     ];
@@ -113,6 +114,7 @@ function getNavigationTabs(userRole) {
       { id: 'calendar',     label: 'Calendar',     icon: '📅', path: '/calendar' },
       { id: 'actors',       label: 'Actors',       icon: '🎭', path: '/actors' },
       { id: 'volunteers',   label: 'Volunteers',   icon: '🤝', path: '/volunteers' },
+      { id: 'contacts',     label: 'Contacts',     icon: '📋', path: '/contacts' },
       { id: 'donors',       label: 'Donors',       icon: '👥', path: '/donors' },
     ];
   }
@@ -122,6 +124,7 @@ function getNavigationTabs(userRole) {
     return [
       { id: 'dashboard',    label: 'Dashboard',    icon: '🏠', path: '/' },
       { id: 'financial',    label: 'Financial',    icon: '💰', path: '/financial' },
+      { id: 'contacts',     label: 'Contacts',     icon: '📋', path: '/contacts' },
       { id: 'donors',       label: 'Donors',       icon: '👥', path: '/donors' },
     ];
   }
@@ -164,6 +167,7 @@ function getNavigationTabs(userRole) {
     { id: 'calendar',     label: 'Calendar',     icon: '📅', path: '/calendar' },
     { id: 'actors',       label: 'Actors',       icon: '🎭', path: '/actors' },
     { id: 'volunteers',   label: 'Volunteers',   icon: '🤝', path: '/volunteers' },
+    { id: 'contacts',     label: 'Contacts',     icon: '📋', path: '/contacts' },
     { id: 'donors',       label: 'Donors',       icon: '👥', path: '/donors' },
   ];
 }
@@ -188,7 +192,7 @@ function App() {
   const getViewFromPath = (pathname) => {
     const path = pathname.split('/')[1] || 'dashboard';
     const validViews = [
-      'dashboard', 'financial', 'donors', 'actors', 'productions', 'calendar',
+      'dashboard', 'financial', 'contacts', 'donors', 'actors', 'productions', 'calendar',
       'volunteers', 'settings', 'actor-portal',
       'department-portal', 'dept-calendar', 'volunteer-portal', 'donor-portal', 'donor-login'
     ];
@@ -479,30 +483,23 @@ function App() {
               </div>
             </Route>
 
+            <Route path="/contacts">
+              <div className="p-6 max-w-7xl mx-auto">
+                {window.ContactsHub && (
+                  <window.ContactsHub
+                    data={{
+                      contacts: appData.contacts,
+                      donations: appData.donations,
+                      donorLevels: appData.donorLevels,
+                    }}
+                  />
+                )}
+              </div>
+            </Route>
+
             <Route path="/donors">
               <div className="p-6 max-w-7xl mx-auto">
-                {/* Section tab bar */}
-                <div className="flex gap-1 mb-6 bg-gray-800 rounded-xl p-1 w-fit">
-                  {[
-                    { id: 'donors', label: 'Donors' },
-                    { id: 'staff',  label: 'Staff & Crew' },
-                  ].map(tab => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setContactsTab(tab.id)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        contactsTab === tab.id
-                          ? 'bg-violet-600 text-white'
-                          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-
-                {contactsTab === 'donors' && window.DonorsView && (
+                {window.DonorsView && (
                   <window.DonorsView
                     data={{
                       contacts: appData.contacts,
@@ -510,9 +507,6 @@ function App() {
                       donorLevels: appData.donorLevels
                     }}
                   />
-                )}
-                {contactsTab === 'staff' && window.StaffDirectory && (
-                  <window.StaffDirectory />
                 )}
               </div>
             </Route>
