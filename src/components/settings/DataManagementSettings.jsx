@@ -631,6 +631,30 @@ const DataManagementSettings = () => {
       )
     ),
     
+    // Restore Demo Data — first action for quick onboarding recovery
+    React.createElement(
+      'div',
+      { className: 'section mb-6' },
+      React.createElement('h3', { className: 'text-lg font-semibold mb-3 text-gray-900' }, '🎭 Demo Data'),
+      React.createElement(
+        'div',
+        { className: 'action-card bg-white border border-violet-200 rounded-lg p-4' },
+        React.createElement('h4', { className: 'font-semibold mb-2 text-gray-900' }, 'Restore Demo Data'),
+        React.createElement('p', { className: 'text-sm text-gray-600 mb-3' },
+          'Reload all sample productions, actors, donors, and donations. Useful if you cleared your browser data or want to start fresh with demo content.'
+        ),
+        React.createElement(
+          'button',
+          {
+            onClick: handleRestoreDemoData,
+            disabled: isProcessing,
+            className: 'px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:bg-gray-200 disabled:text-gray-600 text-white rounded-lg font-medium transition-colors'
+          },
+          isProcessing ? 'Restoring...' : '🔄 Restore Demo Data'
+        )
+      )
+    ),
+
     // Backup & Export Section
     React.createElement(
       'div',
@@ -777,7 +801,7 @@ const DataManagementSettings = () => {
         React.createElement(
           'div',
           { className: 'action-card bg-white border border-gray-200 rounded-lg p-4' },
-          React.createElement('h4', { className: 'font-semibold mb-2 text-gray-900' }, 'Import Donors (CSV)'),
+          React.createElement('h4', { className: 'font-semibold mb-2 text-gray-900' }, 'Import Donors (CSV/Excel)'),
           React.createElement('p', { className: 'text-sm text-gray-600 mb-3' },
             'Use the full CSV import wizard with field mapping'
           ),
@@ -877,30 +901,6 @@ const DataManagementSettings = () => {
             },
             '📊 View Details'
           )
-        )
-      )
-    ),
-
-    // Restore Demo Data
-    React.createElement(
-      'div',
-      { className: 'section mb-6' },
-      React.createElement('h3', { className: 'text-lg font-semibold mb-3 text-gray-900' }, '🎭 Demo Data'),
-      React.createElement(
-        'div',
-        { className: 'action-card bg-white border border-violet-200 rounded-lg p-4' },
-        React.createElement('h4', { className: 'font-semibold mb-2 text-gray-900' }, 'Restore Demo Data'),
-        React.createElement('p', { className: 'text-sm text-gray-600 mb-3' },
-          'Reload all sample productions, actors, donors, and donations. Useful if you cleared your browser data or want to start fresh with demo content.'
-        ),
-        React.createElement(
-          'button',
-          {
-            onClick: handleRestoreDemoData,
-            disabled: isProcessing,
-            className: 'px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:bg-gray-200 disabled:text-gray-600 text-white rounded-lg font-medium transition-colors'
-          },
-          isProcessing ? 'Restoring...' : '🔄 Restore Demo Data'
         )
       )
     ),

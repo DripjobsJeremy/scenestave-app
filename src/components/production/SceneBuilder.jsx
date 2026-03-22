@@ -100,6 +100,13 @@ function SceneBuilder({ productionId: propId }) {
   };
 
   const handleDeleteAct = (actIndex) => {
+    const act = production.acts[actIndex];
+    const label = act?.name || 'this act';
+    const sceneCount = (act?.scenes || []).length;
+    const confirmed = window.confirm(
+      `Delete ${label} and its ${sceneCount} scene${sceneCount !== 1 ? 's' : ''}? This cannot be undone.`
+    );
+    if (!confirmed) return;
     const updatedActs = production.acts.filter((_, i) => i !== actIndex);
     setProduction({ ...production, acts: updatedActs });
     window.productionsService.updateProduction(id, { acts: updatedActs });

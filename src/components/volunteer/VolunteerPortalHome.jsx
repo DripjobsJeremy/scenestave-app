@@ -291,7 +291,7 @@ const VolunteerPortalHome = () => {
       <footer className="py-8 bg-gray-900 text-white text-center">
         <div className="max-w-6xl mx-auto px-4">
           <p className="text-sm opacity-75 mb-2">
-            © 2025 Theatre Volunteer Program. All rights reserved.
+            © {new Date().getFullYear()} Theatre Volunteer Program. All rights reserved.
           </p>
           <div className="flex justify-center gap-4 text-sm">
             <a href="#" className="hover:text-violet-400 transition-colors">Privacy Policy</a>

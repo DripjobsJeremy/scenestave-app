@@ -581,6 +581,7 @@ function App() {
                     aria-label="User Role"
                     className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
                   >
+                    <option disabled value="">── Switch Role ──</option>
                     <option value="admin">Super Admin (admin)</option>
                     <option value="venue_manager">Venue Manager (Super Admin)</option>
                     <option value="board_member">Board Member</option>
