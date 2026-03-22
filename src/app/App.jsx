@@ -88,44 +88,46 @@ function VolunteerPortalView() {
   ) : null;
 }
 
+// Redirects legacy direct-URL routes to the Contacts hub on the correct tab
+function TabRedirect({ tab }) {
+  React.useEffect(() => {
+    localStorage.setItem('scenestave_contacts_tab', tab);
+    window.location.hash = '/contacts';
+  }, []);
+  return null;
+}
+
 // Returns role-specific nav items (Settings always rendered separately at bottom)
 function getNavigationTabs(userRole) {
   // venue_manager = Super Admin (full access, same as admin/super_admin)
   if (userRole === 'admin' || userRole === 'super_admin' || userRole === 'venue_manager') {
     return [
-      { id: 'dashboard',     label: 'Dashboard',     icon: '🏠', path: '/' },
-      { id: 'financial',     label: 'Financial',     icon: '💰', path: '/financial' },
-      { id: 'productions',   label: 'Productions',   icon: '🎬', path: '/productions' },
-      { id: 'calendar',      label: 'Calendar',      icon: '📅', path: '/calendar' },
-      { id: 'actors',        label: 'Actors',        icon: '🎭', path: '/actors' },
-      { id: 'volunteers',    label: 'Volunteers',    icon: '🤝', path: '/volunteers' },
-      { id: 'contacts',      label: 'Contacts',      icon: '📋', path: '/contacts' },
-      { id: 'donors',        label: 'Donors',        icon: '👥', path: '/donors' },
-      { id: 'donor-portal',  label: 'Donor Portal',  icon: '💎', path: '/donor-portal' },
+      { id: 'dashboard',    label: 'Dashboard',    icon: '🏠', path: '/' },
+      { id: 'financial',    label: 'Financial',    icon: '💰', path: '/financial' },
+      { id: 'productions',  label: 'Productions',  icon: '🎬', path: '/productions' },
+      { id: 'calendar',     label: 'Calendar',     icon: '📅', path: '/calendar' },
+      { id: 'contacts',     label: 'Contacts',     icon: '📋', path: '/contacts' },
+      { id: 'donor-portal', label: 'Donor Portal', icon: '💎', path: '/donor-portal' },
     ];
   }
 
   // board_member = Admin without Settings/Import access
   if (userRole === 'board_member') {
     return [
-      { id: 'dashboard',    label: 'Dashboard',    icon: '🏠', path: '/' },
-      { id: 'financial',    label: 'Financial',    icon: '💰', path: '/financial' },
-      { id: 'productions',  label: 'Productions',  icon: '🎬', path: '/productions' },
-      { id: 'calendar',     label: 'Calendar',     icon: '📅', path: '/calendar' },
-      { id: 'actors',       label: 'Actors',       icon: '🎭', path: '/actors' },
-      { id: 'volunteers',   label: 'Volunteers',   icon: '🤝', path: '/volunteers' },
-      { id: 'contacts',     label: 'Contacts',     icon: '📋', path: '/contacts' },
-      { id: 'donors',       label: 'Donors',       icon: '👥', path: '/donors' },
+      { id: 'dashboard',   label: 'Dashboard',   icon: '🏠', path: '/' },
+      { id: 'financial',   label: 'Financial',   icon: '💰', path: '/financial' },
+      { id: 'productions', label: 'Productions', icon: '🎬', path: '/productions' },
+      { id: 'calendar',    label: 'Calendar',    icon: '📅', path: '/calendar' },
+      { id: 'contacts',    label: 'Contacts',    icon: '📋', path: '/contacts' },
     ];
   }
 
   // accounting_manager = Financial and Donors read-only
   if (userRole === 'accounting_manager') {
     return [
-      { id: 'dashboard',    label: 'Dashboard',    icon: '🏠', path: '/' },
-      { id: 'financial',    label: 'Financial',    icon: '💰', path: '/financial' },
-      { id: 'contacts',     label: 'Contacts',     icon: '📋', path: '/contacts' },
-      { id: 'donors',       label: 'Donors',       icon: '👥', path: '/donors' },
+      { id: 'dashboard', label: 'Dashboard', icon: '🏠', path: '/' },
+      { id: 'financial',  label: 'Financial', icon: '💰', path: '/financial' },
+      { id: 'contacts',   label: 'Contacts',  icon: '📋', path: '/contacts' },
     ];
   }
 
@@ -161,14 +163,11 @@ function getNavigationTabs(userRole) {
 
   // Default fallback — same as admin
   return [
-    { id: 'dashboard',    label: 'Dashboard',    icon: '🏠', path: '/' },
-    { id: 'financial',    label: 'Financial',    icon: '💰', path: '/financial' },
-    { id: 'productions',  label: 'Productions',  icon: '🎬', path: '/productions' },
-    { id: 'calendar',     label: 'Calendar',     icon: '📅', path: '/calendar' },
-    { id: 'actors',       label: 'Actors',       icon: '🎭', path: '/actors' },
-    { id: 'volunteers',   label: 'Volunteers',   icon: '🤝', path: '/volunteers' },
-    { id: 'contacts',     label: 'Contacts',     icon: '📋', path: '/contacts' },
-    { id: 'donors',       label: 'Donors',       icon: '👥', path: '/donors' },
+    { id: 'dashboard',   label: 'Dashboard',   icon: '🏠', path: '/' },
+    { id: 'financial',   label: 'Financial',   icon: '💰', path: '/financial' },
+    { id: 'productions', label: 'Productions', icon: '🎬', path: '/productions' },
+    { id: 'calendar',    label: 'Calendar',    icon: '📅', path: '/calendar' },
+    { id: 'contacts',    label: 'Contacts',    icon: '📋', path: '/contacts' },
   ];
 }
 
@@ -258,9 +257,6 @@ function App() {
     }
   }, []); // mount only
 
-  const [volunteerView, setVolunteerView] = useState('dashboard');
-  const [volunteerModal, setVolunteerModal] = useState(null);
-  const [contactsTab, setContactsTab] = useState('donors');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -292,20 +288,6 @@ function App() {
     window.location.hash = newPath;
   };
 
-  const handleVolunteerNavigate = (view) => {
-    console.log('🎯 Volunteer Navigation:', view);
-
-    if (view === 'opportunities') {
-      setVolunteerModal('create-opportunity');
-      return;
-    }
-
-    if (view === 'schedule-shift' || view === 'review-applications' || view === 'roster' || view === 'volunteer-portal') {
-      setVolunteerView(view);
-      setVolunteerModal(null);
-    }
-  };
-
   const navTabs = getNavigationTabs(userRole);
   const settingsItem = { id: 'settings', label: 'Settings', icon: '⚙️', path: '/settings' };
 
@@ -316,10 +298,7 @@ function App() {
         <Link
           key={item.id}
           to={item.path}
-          onClick={() => {
-            if (item.id === 'volunteers') setVolunteerView('dashboard');
-            setMobileMenuOpen(false);
-          }}
+          onClick={() => setMobileMenuOpen(false)}
           title={item.label}
           className={`flex items-center justify-center w-10 h-10 mx-auto rounded-lg transition-colors ${
             isActive
@@ -335,10 +314,7 @@ function App() {
       <Link
         key={item.id}
         to={item.path}
-        onClick={() => {
-          if (item.id === 'volunteers') setVolunteerView('dashboard');
-          setMobileMenuOpen(false);
-        }}
+        onClick={() => setMobileMenuOpen(false)}
         className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
           isActive
             ? 'bg-white font-semibold'
@@ -487,6 +463,7 @@ function App() {
               <div className="p-6 max-w-7xl mx-auto">
                 {window.ContactsHub && (
                   <window.ContactsHub
+                    userRole={userRole}
                     data={{
                       contacts: appData.contacts,
                       donations: appData.donations,
@@ -497,26 +474,13 @@ function App() {
               </div>
             </Route>
 
+            {/* Legacy routes — redirect to Contacts hub on the right tab */}
             <Route path="/donors">
-              <div className="p-6 max-w-7xl mx-auto">
-                {window.DonorsView && (
-                  <window.DonorsView
-                    data={{
-                      contacts: appData.contacts,
-                      donations: appData.donations,
-                      donorLevels: appData.donorLevels
-                    }}
-                  />
-                )}
-              </div>
+              <TabRedirect tab="donors" />
             </Route>
 
             <Route path="/actors">
-              <div className="p-6 max-w-7xl mx-auto">
-                {window.ActorAdminRouter && (
-                  <window.ActorAdminRouter userRole="Admin" />
-                )}
-              </div>
+              <TabRedirect tab="actors" />
             </Route>
 
             <Route exact path="/productions">
@@ -530,49 +494,7 @@ function App() {
             </Route>
 
             <Route path="/volunteers">
-              <div className="p-6 max-w-7xl mx-auto">
-                <>
-                  {volunteerView === 'dashboard' && window.VolunteerDashboard && (
-                    <window.VolunteerDashboard
-                      userRole="Admin"
-                      onNavigate={handleVolunteerNavigate}
-                    />
-                  )}
-
-                  {volunteerView === 'schedule-shift' && window.VolunteerShiftScheduler && (
-                    <window.VolunteerShiftScheduler
-                      onBack={() => setVolunteerView('dashboard')}
-                    />
-                  )}
-
-                  {volunteerView === 'review-applications' && window.VolunteerApplicationReview && (
-                    <window.VolunteerApplicationReview
-                      onBack={() => setVolunteerView('dashboard')}
-                    />
-                  )}
-
-                  {volunteerView === 'roster' && window.VolunteerRosterView && (
-                    <window.VolunteerRosterView
-                      onBack={() => setVolunteerView('dashboard')}
-                    />
-                  )}
-
-                  {volunteerView === 'volunteer-portal' && window.VolunteerSelfDashboard && (
-                    <window.VolunteerSelfDashboard />
-                  )}
-
-                  {volunteerModal === 'create-opportunity' && window.VolunteerOpportunitiesManager && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto">
-                        <window.VolunteerOpportunitiesManager
-                          onBack={() => setVolunteerModal(null)}
-                          initialView="create"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </>
-              </div>
+              <TabRedirect tab="volunteers" />
             </Route>
 
             <Route path="/department-portal">
