@@ -158,13 +158,18 @@ function UsersSettings() {
                             <div key={user.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
+                                        <div className="flex items-center gap-3 mb-2 flex-wrap">
                                             <h4 className="font-semibold text-gray-900">
                                                 {user.firstName} {user.lastName}
                                             </h4>
                                             <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
                                                 {getPermissionLevel(user.role)?.name}
                                             </span>
+                                            {user.assignedProductions?.length > 0 && (
+                                                <span className="px-2 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full">
+                                                    {user.assignedProductions.length} production{user.assignedProductions.length !== 1 ? 's' : ''}
+                                                </span>
+                                            )}
                                         </div>
                                         <div className="space-y-1 text-sm text-gray-600">
                                             <div>📧 {user.email}</div>
@@ -328,6 +333,7 @@ function UserModal({ user, onSave, onClose }) {
         email: user?.email || '',
         phone: user?.phone || '',
         role: user?.role || 'board_member',
+        assignedProductions: user?.assignedProductions || [],
         address: user?.address || {
             street1: '',
             street2: '',
@@ -337,6 +343,11 @@ function UserModal({ user, onSave, onClose }) {
             country: 'US'
         }
     });
+
+    const productions = React.useMemo(
+        () => window.productionsService?.getAll?.() || [],
+        []
+    );
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -594,6 +605,39 @@ function UserModal({ user, onSave, onClose }) {
                             <p className="text-sm text-purple-700 mt-1">
                                 As the primary admin, you have full control over all account features. This role cannot be changed.
                             </p>
+                        </div>
+                    )}
+
+                    {/* Assigned Productions */}
+                    {!isPrimaryAdmin && (
+                        <div>
+                            <h4 className="font-semibold text-gray-900 mb-1">Assigned Productions</h4>
+                            <p className="text-xs text-gray-500 mb-3">Controls which productions this user can access and see events for</p>
+                            <div className="space-y-2 max-h-48 overflow-y-auto bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                {productions.length === 0 && (
+                                    <p className="text-gray-400 text-sm italic">No productions found</p>
+                                )}
+                                {productions.map(prod => (
+                                    <label key={prod.id} className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={(formData.assignedProductions || []).includes(prod.id)}
+                                            onChange={(e) => {
+                                                const current = formData.assignedProductions || [];
+                                                const updated = e.target.checked
+                                                    ? [...current, prod.id]
+                                                    : current.filter(id => id !== prod.id);
+                                                setFormData({ ...formData, assignedProductions: updated });
+                                            }}
+                                            className="w-4 h-4 accent-violet-600"
+                                        />
+                                        <span className="text-sm text-gray-800">{prod.title}</span>
+                                        {prod.status && (
+                                            <span className="text-xs text-gray-400">({prod.status})</span>
+                                        )}
+                                    </label>
+                                ))}
+                            </div>
                         </div>
                     )}
 

@@ -161,6 +161,7 @@ const UsersService = (() => {
                 country: 'US'
             },
             role: userData.role || 'board_member',
+            assignedProductions: userData.assignedProductions || [],
             isPrimaryAdmin: false,
             status: 'invited',
             invitedAt: new Date().toISOString(),
