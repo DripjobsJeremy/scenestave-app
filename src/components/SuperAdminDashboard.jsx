@@ -69,12 +69,10 @@ function SuperAdminDashboard({ userRole = 'admin' }) {
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     })();
 
-    const activeProductions = productions.filter(p =>
-      p.calendar?.some(e => {
-        const dateStr = (e.start || e.date || '').split('T')[0];
-        return e.type === 'show' && dateStr >= todayStr;
-      })
-    );
+    const activeProductions = productions.filter(p => {
+      const s = (p.status || '').toLowerCase();
+      return ['active', 'in rehearsal', 'in production', 'tech week', 'running', 'open'].includes(s);
+    });
 
     const thisYear = new Date().getFullYear();
     const donationsThisYear = donations.filter(d => new Date(d.date).getFullYear() === thisYear);
