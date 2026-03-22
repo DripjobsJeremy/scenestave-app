@@ -813,8 +813,8 @@ function WardrobeView({ production, onSave, onUpdateScene }) {
           {
             onClick: () => setChecklistMode(false),
             className: `px-4 py-2 text-sm font-medium rounded transition-colors ${
-              !checklistMode 
-                ? 'bg-rose-600 text-white' 
+              !checklistMode
+                ? 'bg-violet-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`
           },
@@ -825,8 +825,8 @@ function WardrobeView({ production, onSave, onUpdateScene }) {
           {
             onClick: () => setChecklistMode(true),
             className: `px-4 py-2 text-sm font-medium rounded transition-colors ${
-              checklistMode 
-                ? 'bg-rose-600 text-white' 
+              checklistMode
+                ? 'bg-violet-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`
           },
@@ -845,7 +845,7 @@ function WardrobeView({ production, onSave, onUpdateScene }) {
         React.createElement(
           'div',
           { className: 'p-4 bg-pink-50 border border-pink-200 rounded-lg' },
-          React.createElement('h2', { className: 'text-2xl font-bold text-pink-900 mb-1' }, '✓ Costume Checklist'),
+          React.createElement('h2', { className: 'text-2xl font-bold text-pink-900 mb-1' }, '✓ Costume Checklist — ' + (production.title || 'Production')),
           React.createElement('p', { className: 'text-sm text-pink-700' }, `${production.title || 'Production'} - ${allScenes.length} scenes`)
         ),
         // Checklist Controls

@@ -376,10 +376,10 @@ const VolunteerDashboard = ({ userRole = 'Admin', onNavigate = () => {} }) => {
 
       {/* Quick Actions */}
       <section aria-label="Quick Actions" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <ActionCard label="Create New Opportunity" icon="➕" onClick={() => onNavigate('opportunities',{ mode:'create' })} />
+        <ActionCard label="Create New Opportunity" icon="➕" onClick={() => { setShowShiftScheduler(false); onNavigate('opportunities', { mode: 'create' }); }} />
         <ActionCard label="Schedule Shift" icon="📅" onClick={() => onNavigate('schedule-shift')} />
-        <ActionCard label="Review Applications" icon="📋" onClick={() => onNavigate('review-applications')} />
-        <ActionCard label="Volunteer Roster" icon="👥" onClick={() => onNavigate('roster')} />
+        <ActionCard label="Review Applications" icon="📋" onClick={() => { setShowShiftScheduler(false); onNavigate('review-applications'); }} />
+        <ActionCard label="Volunteer Roster" icon="👥" onClick={() => { setShowShiftScheduler(false); onNavigate('roster'); }} />
       </section>
 
       {/* Volunteer Portal Preview Card */}

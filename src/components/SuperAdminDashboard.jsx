@@ -272,28 +272,28 @@ function SuperAdminDashboard({ userRole = 'admin' }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <button
             onClick={() => window.location.hash = '/productions'}
-            className="flex flex-col items-center gap-2 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200"
+            className="flex flex-col items-center gap-2 p-5 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200 cursor-pointer"
           >
             <span className="text-3xl">🎭</span>
             <span className="text-sm font-medium text-purple-900">Productions</span>
           </button>
           <button
             onClick={() => setShowAddDonationModal(true)}
-            className="flex flex-col items-center gap-2 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200"
+            className="flex flex-col items-center gap-2 p-5 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200 cursor-pointer"
           >
             <span className="text-3xl">💰</span>
             <span className="text-sm font-medium text-green-900">Log Donation</span>
           </button>
           <button
             onClick={() => window.location.hash = '/actors'}
-            className="flex flex-col items-center gap-2 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
+            className="flex flex-col items-center gap-2 p-5 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200 cursor-pointer"
           >
             <span className="text-3xl">🎬</span>
             <span className="text-sm font-medium text-blue-900">Actors</span>
           </button>
           <button
             onClick={() => window.location.hash = '/donors'}
-            className="flex flex-col items-center gap-2 p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200"
+            className="flex flex-col items-center gap-2 p-5 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200 cursor-pointer"
           >
             <span className="text-3xl">👥</span>
             <span className="text-sm font-medium text-indigo-900">Donors</span>

@@ -661,13 +661,13 @@ function SceneBuilder({ productionId: propId }) {
                   'div',
                   { className: 'grid grid-cols-1 md:grid-cols-3 gap-3 mb-2' },
                   React.createElement('div', { className: 'relative' },
-                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '📍'),
-                    React.createElement('input', {
-                      type: 'text',
+                    React.createElement('span', { className: 'absolute left-2.5 top-2 text-sm pointer-events-none' }, '📍'),
+                    React.createElement('textarea', {
                       value: scene.location || '',
                       onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'location', e.target.value),
-                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
-                      placeholder: 'Location'
+                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm resize-none',
+                      placeholder: 'Location',
+                      rows: 2
                     })
                   ),
                   React.createElement('div', { className: 'relative' },
@@ -681,13 +681,13 @@ function SceneBuilder({ productionId: propId }) {
                     })
                   ),
                   React.createElement('div', { className: 'relative' },
-                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '📝'),
-                    React.createElement('input', {
-                      type: 'text',
+                    React.createElement('span', { className: 'absolute left-2.5 top-2 text-sm pointer-events-none' }, '📝'),
+                    React.createElement('textarea', {
                       value: scene.description || '',
                       onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'description', e.target.value),
-                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
-                      placeholder: 'Description'
+                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm resize-none',
+                      placeholder: 'Description',
+                      rows: 2
                     })
                   )
                 ),

@@ -814,7 +814,7 @@ function PropsView({ production, onSave, onUpdateScene }) {
             onClick: () => setChecklistMode(false),
             className: `px-4 py-2 text-sm font-medium rounded transition-colors ${
               !checklistMode 
-                ? 'bg-purple-600 text-white' 
+                ? 'bg-violet-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`
           },
@@ -826,7 +826,7 @@ function PropsView({ production, onSave, onUpdateScene }) {
             onClick: () => setChecklistMode(true),
             className: `px-4 py-2 text-sm font-medium rounded transition-colors ${
               checklistMode 
-                ? 'bg-purple-600 text-white' 
+                ? 'bg-violet-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`
           },

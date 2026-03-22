@@ -195,6 +195,11 @@ function StageManagerView({ production, onUpdateScene, onUpdateProduction }) {
                       React.createElement(
                         'div',
                         { className: 'flex items-center gap-2' },
+                        (act.name) && React.createElement(
+                          'span',
+                          { className: 'text-gray-400 text-xs' },
+                          act.name + ' —'
+                        ),
                         React.createElement(
                           'span',
                           { className: 'px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded' },
