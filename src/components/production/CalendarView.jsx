@@ -2172,7 +2172,7 @@ function CalendarView({ production, onSave, userRole }) {
             )
           ),
 
-          editingEvent?.type === 'tech' && React.createElement(
+          editingEvent?.type === 'tech' && FULL_ACCESS_ROLES.includes(effectiveRole) && React.createElement(
             'div',
             null,
             React.createElement('label', { className: 'block text-sm font-medium mb-1' }, 'Tech Type'),
@@ -2565,8 +2565,8 @@ function CalendarView({ production, onSave, userRole }) {
             })()
           ),
           
-          // Rehearsal-specific fields (show for tech, or rehearsal in custom mode)
-          (editingEvent?.type === 'tech' || (editingEvent?.type === 'rehearsal' && rehearsalType === 'custom')) && React.createElement(
+          // Rehearsal-specific fields (show for tech, or rehearsal in custom mode — full-access roles only)
+          FULL_ACCESS_ROLES.includes(effectiveRole) && (editingEvent?.type === 'tech' || (editingEvent?.type === 'rehearsal' && rehearsalType === 'custom')) && React.createElement(
             'div',
             { className: 'space-y-4 p-4 bg-blue-50 border border-blue-200 rounded-lg' },
 
