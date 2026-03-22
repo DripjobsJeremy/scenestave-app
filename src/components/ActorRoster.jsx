@@ -96,16 +96,52 @@ function ActorRoster({ onViewActor, onAddActor }) {
     const stats = window.actorsService.getActorStats(actor.id);
     const primaryHeadshot = actor.actorProfile?.headshots?.find(h => h.isPrimary);
 
+    const handleHeadshotClick = () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const base64 = ev.target.result;
+          const existingHeadshots = (actor.actorProfile?.headshots || []).map(h => ({ ...h, isPrimary: false }));
+          const newHeadshot = { id: Date.now().toString(), data: base64, isPrimary: true, filename: file.name };
+          window.actorsService.updateActor(actor.id, {
+            actorProfile: { ...(actor.actorProfile || {}), headshots: [...existingHeadshots, newHeadshot] }
+          });
+          if (window.showToast) window.showToast('Headshot updated', 'success', 2000);
+          loadActors();
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    };
+
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
         {/* Headshot */}
         <div className="flex items-start gap-4 mb-3">
-          <div className="w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+          <div className="relative group w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden cursor-pointer" onClick={handleHeadshotClick}>
             {primaryHeadshot ? (
               <img src={primaryHeadshot.data} alt={`${actor.firstName} ${actor.lastName}`} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400 text-2xl">
                 👤
+              </div>
+            )}
+            {/* Hover overlay — empty state */}
+            {!primaryHeadshot && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                <span className="text-white text-lg leading-none">📷</span>
+                <span className="text-white text-xs font-medium mt-1">Add Photo</span>
+              </div>
+            )}
+            {/* Hover overlay — has headshot */}
+            {primaryHeadshot && (
+              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                <span className="text-white text-xs font-medium">Change</span>
               </div>
             )}
           </div>
