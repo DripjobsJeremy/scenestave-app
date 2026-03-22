@@ -295,28 +295,48 @@ function App() {
   const navTabs = getNavigationTabs(userRole);
   const settingsItem = { id: 'settings', label: 'Settings', icon: '⚙️', path: '/settings' };
 
-  const NavLink = ({ item }) => (
-    <Link
-      key={item.id}
-      to={item.path}
-      onClick={() => {
-        if (item.id === 'volunteers') setVolunteerView('dashboard');
-        setMobileMenuOpen(false);
-      }}
-      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-        currentView === item.id
-          ? 'bg-white font-semibold'
-          : 'text-white hover:bg-white hover:bg-opacity-20'
-      }`}
-      style={currentView === item.id ? { color: 'var(--brand-primary)' } : {}}
-      title={sidebarCollapsed ? item.label : ''}
-    >
-      <span className="text-xl flex-shrink-0">{item.icon}</span>
-      {!sidebarCollapsed && (
+  const NavLink = ({ item }) => {
+    const isActive = currentView === item.id;
+    if (sidebarCollapsed) {
+      return (
+        <Link
+          key={item.id}
+          to={item.path}
+          onClick={() => {
+            if (item.id === 'volunteers') setVolunteerView('dashboard');
+            setMobileMenuOpen(false);
+          }}
+          title={item.label}
+          className={`flex items-center justify-center w-10 h-10 mx-auto rounded-lg transition-colors ${
+            isActive
+              ? 'bg-violet-600 text-white'
+              : 'text-gray-300 hover:bg-white hover:bg-opacity-20 hover:text-white'
+          }`}
+        >
+          <span className="text-xl leading-none">{item.icon}</span>
+        </Link>
+      );
+    }
+    return (
+      <Link
+        key={item.id}
+        to={item.path}
+        onClick={() => {
+          if (item.id === 'volunteers') setVolunteerView('dashboard');
+          setMobileMenuOpen(false);
+        }}
+        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+          isActive
+            ? 'bg-white font-semibold'
+            : 'text-white hover:bg-white hover:bg-opacity-20'
+        }`}
+        style={isActive ? { color: 'var(--brand-primary)' } : {}}
+      >
+        <span className="text-xl flex-shrink-0">{item.icon}</span>
         <span className="text-sm">{item.label}</span>
-      )}
-    </Link>
-  );
+      </Link>
+    );
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
