@@ -256,6 +256,7 @@ function App() {
 
   const [volunteerView, setVolunteerView] = useState('dashboard');
   const [volunteerModal, setVolunteerModal] = useState(null);
+  const [contactsTab, setContactsTab] = useState('donors');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -480,7 +481,28 @@ function App() {
 
             <Route path="/donors">
               <div className="p-6 max-w-7xl mx-auto">
-                {window.DonorsView && (
+                {/* Section tab bar */}
+                <div className="flex gap-1 mb-6 bg-gray-800 rounded-xl p-1 w-fit">
+                  {[
+                    { id: 'donors', label: 'Donors' },
+                    { id: 'staff',  label: 'Staff & Crew' },
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setContactsTab(tab.id)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        contactsTab === tab.id
+                          ? 'bg-violet-600 text-white'
+                          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {contactsTab === 'donors' && window.DonorsView && (
                   <window.DonorsView
                     data={{
                       contacts: appData.contacts,
@@ -488,6 +510,9 @@ function App() {
                       donorLevels: appData.donorLevels
                     }}
                   />
+                )}
+                {contactsTab === 'staff' && window.StaffDirectory && (
+                  <window.StaffDirectory />
                 )}
               </div>
             </Route>
