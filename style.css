@@ -1,5 +1,163 @@
 /* SceneStave — global styles */
 
+/* ══════════════════════════════════════════════════════════════════════════
+   CSS CUSTOM PROPERTY THEME SYSTEM
+   Foundation layer — components use these variables instead of hard-coded
+   Tailwind color classes. applyBrandingToDOM() overrides --color-primary
+   at runtime when an org has a custom palette.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Brand colors (overridden by organization settings) ── */
+  --color-primary:         #7C3AED;
+  --color-primary-dark:    #6D28D9;
+  --color-primary-light:   #8B5CF6;
+  --color-primary-surface: rgba(124, 58, 237, 0.15);
+  --color-primary-text:    #FFFFFF;
+
+  --color-accent:          #05a9fe;
+  --color-accent-dark:     #0284c7;
+  --color-accent-surface:  rgba(5, 169, 254, 0.15);
+
+  --color-secondary:       #5e6467;
+
+  /* ── Surface colors — dark mode default ── */
+  --color-bg-base:         #111827;
+  --color-bg-surface:      #1F2937;
+  --color-bg-elevated:     #374151;
+  --color-bg-overlay:      #4B5563;
+
+  /* ── Border colors ── */
+  --color-border:          #374151;
+  --color-border-subtle:   #1F2937;
+  --color-border-strong:   #6B7280;
+
+  /* ── Text colors ── */
+  --color-text-primary:    #FFFFFF;
+  --color-text-secondary:  #9CA3AF;
+  --color-text-muted:      #6B7280;
+  --color-text-disabled:   #4B5563;
+
+  /* ── Status colors (not brand-dependent) ── */
+  --color-success:         #10B981;
+  --color-success-surface: rgba(16, 185, 129, 0.15);
+  --color-warning:         #F59E0B;
+  --color-warning-surface: rgba(245, 158, 11, 0.15);
+  --color-danger:          #EF4444;
+  --color-danger-surface:  rgba(239, 68, 68, 0.15);
+  --color-info:            #3B82F6;
+  --color-info-surface:    rgba(59, 130, 246, 0.15);
+
+  /* ── Sidebar ── */
+  --color-sidebar-bg:          #111827;
+  --color-sidebar-text:        #D1D5DB;
+  --color-sidebar-active-bg:   var(--color-primary);
+  --color-sidebar-active-text: #FFFFFF;
+  --color-sidebar-hover-bg:    rgba(255, 255, 255, 0.1);
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Light mode overrides ── */
+[data-theme="light"] {
+  --color-bg-base:         #F9FAFB;
+  --color-bg-surface:      #FFFFFF;
+  --color-bg-elevated:     #F3F4F6;
+  --color-bg-overlay:      #E5E7EB;
+
+  --color-border:          #E5E7EB;
+  --color-border-subtle:   #F3F4F6;
+  --color-border-strong:   #D1D5DB;
+
+  --color-text-primary:    #111827;
+  --color-text-secondary:  #6B7280;
+  --color-text-muted:      #9CA3AF;
+  --color-text-disabled:   #D1D5DB;
+
+  --color-sidebar-bg:          #1F2937;
+  --color-sidebar-text:        #D1D5DB;
+  --color-sidebar-active-bg:   var(--color-primary);
+  --color-sidebar-active-text: #FFFFFF;
+  --color-sidebar-hover-bg:    rgba(255, 255, 255, 0.1);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* ── Semantic utility classes ─────────────────────────────────────────────
+   Bridge CSS variables to usable classes. Components will migrate to these
+   instead of hard-coded Tailwind color classes over time.
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* Backgrounds */
+.bg-base              { background-color: var(--color-bg-base); }
+.bg-surface           { background-color: var(--color-bg-surface); }
+.bg-elevated          { background-color: var(--color-bg-elevated); }
+.bg-primary-theme     { background-color: var(--color-primary); }
+.bg-primary-surface   { background-color: var(--color-primary-surface); }
+
+/* Text */
+.text-primary-color   { color: var(--color-text-primary); }
+.text-secondary-color { color: var(--color-text-secondary); }
+.text-muted-color     { color: var(--color-text-muted); }
+.text-brand           { color: var(--color-primary); }
+.text-accent          { color: var(--color-accent); }
+
+/* Borders */
+.border-theme         { border-color: var(--color-border); }
+.border-theme-subtle  { border-color: var(--color-border-subtle); }
+.border-primary-theme { border-color: var(--color-primary); }
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-primary-text);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.btn-primary:hover    { background-color: var(--color-primary-dark); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.btn-secondary:hover  { background-color: var(--color-bg-overlay); }
+
+/* Cards */
+.card {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+}
+
+/* Status */
+.bg-success            { background-color: var(--color-success-surface); }
+.bg-warning            { background-color: var(--color-warning-surface); }
+.bg-danger             { background-color: var(--color-danger-surface); }
+.bg-info               { background-color: var(--color-info-surface); }
+.text-success          { color: var(--color-success); }
+.text-warning          { color: var(--color-warning); }
+.text-danger           { color: var(--color-danger); }
+.text-info             { color: var(--color-info); }
+.border-success        { border-color: var(--color-success); }
+.border-warning        { border-color: var(--color-warning); }
+.border-danger         { border-color: var(--color-danger); }
+.border-info           { border-color: var(--color-info); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   END THEME SYSTEM
+   ══════════════════════════════════════════════════════════════════════════ */
+
+
 /* ── Brand CSS custom properties ────────────────────────────────────────────
    Defaults match the initial organization branding values.
    window.organizationService.applyBrandingToDOM() overrides these at runtime.
