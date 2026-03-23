@@ -254,12 +254,118 @@
   color: var(--brand-primary);
 }
 
-/* Violet overrides — volunteer portal uses violet-600 as primary gradient stop */
-.from-violet-600 {
-  --tw-gradient-from: var(--brand-primary);
+/* ── Violet → Brand color overrides ────────────────────────────────────────
+   Maps Tailwind violet utility classes to CSS custom properties.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Background colors */
+.bg-violet-50  { background-color: color-mix(in srgb, var(--color-primary) 10%, white) !important; }
+.bg-violet-100 { background-color: color-mix(in srgb, var(--color-primary) 20%, white) !important; }
+.bg-violet-200 { background-color: color-mix(in srgb, var(--color-primary) 35%, white) !important; }
+.bg-violet-500 { background-color: var(--color-primary) !important; }
+.bg-violet-600 { background-color: var(--color-primary) !important; }
+.bg-violet-700 { background-color: var(--color-primary-dark) !important; }
+.bg-violet-800 { background-color: color-mix(in srgb, var(--color-primary) 70%, black) !important; }
+.bg-violet-900 { background-color: color-mix(in srgb, var(--color-primary) 55%, black) !important; }
+
+/* Text colors */
+.text-violet-100 { color: color-mix(in srgb, var(--color-primary) 20%, white) !important; }
+.text-violet-200 { color: color-mix(in srgb, var(--color-primary) 35%, white) !important; }
+.text-violet-300 { color: color-mix(in srgb, var(--color-primary) 55%, white) !important; }
+.text-violet-400 { color: color-mix(in srgb, var(--color-primary) 70%, white) !important; }
+.text-violet-500 { color: var(--color-primary) !important; }
+.text-violet-600 { color: var(--color-primary) !important; }
+.text-violet-700 { color: var(--color-primary-dark) !important; }
+.text-violet-800 { color: color-mix(in srgb, var(--color-primary) 70%, black) !important; }
+.text-violet-900 { color: color-mix(in srgb, var(--color-primary) 55%, black) !important; }
+
+/* Border colors */
+.border-violet-200 { border-color: color-mix(in srgb, var(--color-primary) 30%, white) !important; }
+.border-violet-300 { border-color: color-mix(in srgb, var(--color-primary) 45%, white) !important; }
+.border-violet-400 { border-color: color-mix(in srgb, var(--color-primary) 60%, white) !important; }
+.border-violet-500 { border-color: var(--color-primary) !important; }
+.border-violet-600 { border-color: var(--color-primary) !important; }
+.border-violet-700 { border-color: var(--color-primary-dark) !important; }
+
+/* Hover states */
+.hover\:bg-violet-50:hover  { background-color: color-mix(in srgb, var(--color-primary) 10%, white) !important; }
+.hover\:bg-violet-100:hover { background-color: color-mix(in srgb, var(--color-primary) 20%, white) !important; }
+.hover\:bg-violet-200:hover { background-color: color-mix(in srgb, var(--color-primary) 30%, white) !important; }
+.hover\:bg-violet-600:hover { background-color: var(--color-primary) !important; }
+.hover\:bg-violet-700:hover { background-color: var(--color-primary-dark) !important; }
+.hover\:text-violet-300:hover { color: color-mix(in srgb, var(--color-primary) 55%, white) !important; }
+.hover\:text-violet-400:hover { color: color-mix(in srgb, var(--color-primary) 70%, white) !important; }
+.hover\:text-violet-600:hover { color: var(--color-primary) !important; }
+.hover\:text-violet-700:hover { color: var(--color-primary-dark) !important; }
+.hover\:border-violet-400:hover { border-color: color-mix(in srgb, var(--color-primary) 60%, white) !important; }
+.hover\:border-violet-500:hover { border-color: var(--color-primary) !important; }
+
+/* Focus / ring states */
+.focus\:ring-violet-400:focus,
+.focus\:ring-violet-500:focus,
+.focus\:ring-violet-600:focus { --tw-ring-color: var(--color-primary) !important; }
+.focus\:border-violet-500:focus { border-color: var(--color-primary) !important; }
+
+/* Gradient stops */
+.from-violet-500,
+.from-violet-600,
+.from-violet-700 {
+  --tw-gradient-from: var(--color-primary);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(0 0 0 / 0));
 }
-.bg-violet-50 { background-color: color-mix(in srgb, var(--brand-primary) 8%, white) !important; }
+.to-violet-600,
+.to-violet-700,
+.to-violet-800 {
+  --tw-gradient-to: var(--color-primary-dark);
+}
+.via-violet-600 {
+  --tw-gradient-stops: var(--tw-gradient-from), var(--color-primary), var(--tw-gradient-to, rgb(0 0 0 / 0));
+}
+
+/* ── Indigo → Brand color overrides ────────────────────────────────────────
+   Maps Tailwind indigo utility classes to CSS custom properties.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Background colors */
+.bg-indigo-50  { background-color: color-mix(in srgb, var(--color-primary) 10%, white) !important; }
+.bg-indigo-100 { background-color: color-mix(in srgb, var(--color-primary) 20%, white) !important; }
+.bg-indigo-500 { background-color: var(--color-primary) !important; }
+.bg-indigo-600 { background-color: var(--color-primary) !important; }
+.bg-indigo-700 { background-color: var(--color-primary-dark) !important; }
+.bg-indigo-800 { background-color: color-mix(in srgb, var(--color-primary) 70%, black) !important; }
+.bg-indigo-900 { background-color: color-mix(in srgb, var(--color-primary) 55%, black) !important; }
+
+/* Text colors */
+.text-indigo-400 { color: color-mix(in srgb, var(--color-primary) 70%, white) !important; }
+.text-indigo-500 { color: var(--color-primary) !important; }
+.text-indigo-600 { color: var(--color-primary) !important; }
+.text-indigo-700 { color: var(--color-primary-dark) !important; }
+.text-indigo-800 { color: color-mix(in srgb, var(--color-primary) 70%, black) !important; }
+
+/* Border colors */
+.border-indigo-500 { border-color: var(--color-primary) !important; }
+.border-indigo-600 { border-color: var(--color-primary) !important; }
+
+/* Hover states */
+.hover\:bg-indigo-600:hover { background-color: var(--color-primary) !important; }
+.hover\:bg-indigo-700:hover { background-color: var(--color-primary-dark) !important; }
+.hover\:text-indigo-600:hover { color: var(--color-primary) !important; }
+
+/* Focus / ring states */
+.focus\:ring-indigo-500:focus,
+.focus\:ring-indigo-600:focus { --tw-ring-color: var(--color-primary) !important; }
+.focus\:border-indigo-500:focus { border-color: var(--color-primary) !important; }
+
+/* Gradient stops */
+.from-indigo-500,
+.from-indigo-600 {
+  --tw-gradient-from: var(--color-primary);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(0 0 0 / 0));
+}
+.to-indigo-600,
+.to-indigo-700 {
+  --tw-gradient-to: var(--color-primary-dark);
+}
 
 /* ── Mobile utilities ──────────────────────────────────────────────────────── */
 .scrollbar-hide {

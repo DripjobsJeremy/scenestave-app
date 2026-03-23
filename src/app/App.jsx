@@ -367,10 +367,10 @@ function App() {
         onClick={() => setMobileMenuOpen(false)}
         className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
           isActive
-            ? 'bg-white font-semibold'
+            ? 'font-semibold'
             : 'text-white hover:bg-white hover:bg-opacity-20'
         }`}
-        style={isActive ? { color: 'var(--brand-primary)' } : {}}
+        style={isActive ? { backgroundColor: 'var(--color-primary)', color: '#FFFFFF' } : {}}
       >
         <span className="text-xl flex-shrink-0">{item.icon}</span>
         <span className="text-sm">{item.label}</span>
@@ -379,7 +379,7 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-base">
 
       {/* Mobile overlay */}
       {mobileMenuOpen && (
@@ -474,7 +474,7 @@ function App() {
           >
             ☰
           </button>
-          <h1 className="text-xl font-bold text-purple-900">SceneStave</h1>
+          <h1 className="text-xl font-bold text-brand">SceneStave</h1>
           <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${roleInfo.cls}`}>
             {roleInfo.label}
           </span>
