@@ -239,7 +239,11 @@ function App() {
 
     loadData();
     window.addEventListener('focus', loadData);
-    return () => window.removeEventListener('focus', loadData);
+    window.addEventListener('contactsUpdated', loadData);
+    return () => {
+      window.removeEventListener('focus', loadData);
+      window.removeEventListener('contactsUpdated', loadData);
+    };
   }, []);
 
   // On initial mount: apply saved branding + theme mode, then redirect based on role

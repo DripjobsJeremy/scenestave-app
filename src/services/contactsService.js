@@ -115,6 +115,7 @@
   function saveContactsToLS(contacts) {
     if (!Array.isArray(contacts)) throw new Error('contacts must be an array');
     safeWriteLS(LS_KEY, contacts);
+    window.dispatchEvent(new CustomEvent('contactsUpdated'));
   }
 
   // ---------- Migration ----------
