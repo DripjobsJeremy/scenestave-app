@@ -209,12 +209,23 @@ const ProductionsView = () => {
         production.title
       );
 
-      const director = production.director
+      const staffDirector = (() => {
+        const staff = window.contactsService?.getProductionStaff?.(production.id) || [];
+        const d = staff.find(c =>
+          (c.staffProfile?.productions || []).some(p =>
+            p.productionId === production.id && p.role === 'Director'
+          )
+        );
+        if (!d) return null;
+        return (`${d.firstName || ''} ${d.lastName || ''}`).trim() || d.email || null;
+      })();
+      const directorName = staffDirector || production.director;
+      const director = directorName
         ? React.createElement(
             'p',
             { className: 'text-gray-600 mb-3' },
-            'Director: ',
-            production.director
+            '🎬 ',
+            directorName
           )
         : null;
 

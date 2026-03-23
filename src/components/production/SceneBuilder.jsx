@@ -23,37 +23,64 @@ function SceneBuilder({ productionId: propId }) {
     } catch {}
     return localStorage.getItem('showsuite_active_department_tab') || 'scenes';
   });
-  const [currentRole] = useState(() => {
+  // Resolve role from staffProfile.productions assignment for this specific production,
+  // falling back to the app-level role. Computed each render so URL changes are reflected.
+  const currentRole = (() => {
     const rawAppRole = localStorage.getItem('showsuite_user_role') || 'admin';
     const SUPER_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin'];
 
-    const resolveCurrentRole = () => {
-      // Super admin roles always get full production workspace access,
-      // regardless of any previously saved showsuite_current_role value.
-      if (SUPER_ROLES.includes(rawAppRole)) {
-        return window.USER_ROLES?.find(r => r.id === 'admin') ||
-               window.USER_ROLES?.find(r => r.departments === 'all') ||
-               { id: 'admin', departments: 'all' };
-      }
-      // Department roles: map app-level short ID to USER_ROLES long-form entry
-      const APP_ROLE_MAP = {
-        lighting:      'lighting_designer',
-        sound:         'sound_designer',
-        wardrobe:      'wardrobe_designer',
-        props:         'props_master',
-        set:           'scenic_designer',
-        stage_manager: 'stage_manager',
-      };
-      const mappedId = APP_ROLE_MAP[rawAppRole];
-      if (mappedId) {
-        const mapped = window.USER_ROLES?.find(r => r.id === mappedId);
-        if (mapped) return mapped;
-      }
-      return window.getCurrentRole?.() || { id: 'admin', departments: 'all' };
-    };
+    if (SUPER_ROLES.includes(rawAppRole)) {
+      return window.USER_ROLES?.find(r => r.id === 'admin') ||
+             window.USER_ROLES?.find(r => r.departments === 'all') ||
+             { id: 'admin', departments: 'all' };
+    }
 
-    return resolveCurrentRole();
-  });
+    // Extract productionId from URL hash without a hook (avoids ordering constraints)
+    const hashMatch = (window.location.hash || '').match(/\/productions\/([^/?#]+)/);
+    const urlProductionId = propId || (hashMatch ? hashMatch[1] : null);
+
+    // Check if viewing as a specific staff contact — look up their role in this production
+    const staffContactId = localStorage.getItem('showsuite_staff_contact_id');
+    if (staffContactId && urlProductionId) {
+      const contact = window.contactsService?.getContactById?.(staffContactId);
+      const assignment = (contact?.staffProfile?.productions || [])
+        .find(p => p.productionId === urlProductionId);
+      if (assignment?.role) {
+        const ROLE_MAP = {
+          'Director':         'director',
+          'Stage Manager':    'stage_manager',
+          'Wardrobe Designer':'wardrobe_designer',
+          'Lighting Designer':'lighting_designer',
+          'Sound Designer':   'sound_designer',
+          'Props Master':     'props_master',
+          'Scenic Designer':  'scenic_designer',
+          'Musical Director': 'director',
+          'Choreographer':    'director',
+        };
+        const roleId = ROLE_MAP[assignment.role] ||
+          assignment.role.toLowerCase().replace(/\s+/g, '_');
+        const matched = window.USER_ROLES?.find(r => r.id === roleId);
+        if (matched) return matched;
+      }
+    }
+
+    // Fall back to app-level role → USER_ROLES entry
+    const APP_ROLE_MAP = {
+      lighting:      'lighting_designer',
+      sound:         'sound_designer',
+      wardrobe:      'wardrobe_designer',
+      props:         'props_master',
+      set:           'scenic_designer',
+      stage_manager: 'stage_manager',
+      director:      'director',
+    };
+    const mappedId = APP_ROLE_MAP[rawAppRole];
+    if (mappedId) {
+      const mapped = window.USER_ROLES?.find(r => r.id === mappedId);
+      if (mapped) return mapped;
+    }
+    return window.getCurrentRole?.() || { id: 'admin', departments: 'all' };
+  })();
   
   // Get ID from React Router params (defined globally via routerGlobals.js)
   const params = typeof useParams === 'function' ? useParams() : null;

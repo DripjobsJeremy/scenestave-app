@@ -302,7 +302,13 @@ function App() {
     if (SUPER_ROLES.includes(newRole)) newPath = '/';
     else if (newRole === 'actor') newPath = '/actor-portal';
     else if (newRole === 'volunteer') newPath = '/volunteer-portal';
-    else if (['director', 'lighting', 'sound', 'wardrobe', 'props', 'set', 'stage_manager'].includes(newRole)) newPath = '/dept-dashboard';
+    else if (newRole === 'director') {
+      // Only redirect if a staff contact is already selected — otherwise stay
+      // on Settings so the user can pick one from the "Viewing as" picker
+      const existingContactId = localStorage.getItem('showsuite_staff_contact_id');
+      newPath = existingContactId ? '/dept-dashboard' : '/settings';
+    }
+    else if (['lighting', 'sound', 'wardrobe', 'props', 'set', 'stage_manager'].includes(newRole)) newPath = '/dept-dashboard';
 
     console.log('📍 Navigating to:', newPath);
     // Use window.location.hash directly — more reliable than history.push
