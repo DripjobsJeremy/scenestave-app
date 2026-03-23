@@ -276,22 +276,70 @@ const OrganizationService = (() => {
         return org.branding;
     };
 
+    // ── Color utility functions ──────────────────────────────────────────────
+    const hexToRgba = (hex, opacity) => {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        if (!result) return hex;
+        return `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${opacity})`;
+    };
+
+    const darkenColor = (hex, percent) => {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        if (!result) return hex;
+        const factor = 1 - percent / 100;
+        const r = Math.max(0, Math.floor(parseInt(result[1], 16) * factor));
+        const g = Math.max(0, Math.floor(parseInt(result[2], 16) * factor));
+        const b = Math.max(0, Math.floor(parseInt(result[3], 16) * factor));
+        return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+    };
+
+    const lightenColor = (hex, percent) => {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        if (!result) return hex;
+        const factor = percent / 100;
+        const r = Math.min(255, Math.floor(parseInt(result[1], 16) + (255 - parseInt(result[1], 16)) * factor));
+        const g = Math.min(255, Math.floor(parseInt(result[2], 16) + (255 - parseInt(result[2], 16)) * factor));
+        const b = Math.min(255, Math.floor(parseInt(result[3], 16) + (255 - parseInt(result[3], 16)) * factor));
+        return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+    };
+    // ────────────────────────────────────────────────────────────────────────
+
     const applyBrandingToDOM = (branding) => {
         if (!branding) return;
 
         console.log('🎨 Applying branding to DOM:', branding);
 
         const root = document.documentElement;
+
+        // ── Existing --brand-* variables (backwards compatibility) ──
         root.style.setProperty('--brand-primary',    branding.primaryColor);
         root.style.setProperty('--brand-secondary',  branding.secondaryColor);
         root.style.setProperty('--brand-accent',     branding.accentColor);
         root.style.setProperty('--brand-background', branding.backgroundColor);
         root.style.setProperty('--brand-text',       branding.textColor);
 
+        // ── New --color-* theme system variables ──
+        if (branding.primaryColor) {
+            root.style.setProperty('--color-primary',         branding.primaryColor);
+            root.style.setProperty('--color-primary-dark',    darkenColor(branding.primaryColor, 15));
+            root.style.setProperty('--color-primary-light',   lightenColor(branding.primaryColor, 15));
+            root.style.setProperty('--color-primary-surface', hexToRgba(branding.primaryColor, 0.15));
+            root.style.setProperty('--color-sidebar-active-bg', branding.primaryColor);
+        }
+        if (branding.accentColor) {
+            root.style.setProperty('--color-accent',         branding.accentColor);
+            root.style.setProperty('--color-accent-dark',    darkenColor(branding.accentColor, 15));
+            root.style.setProperty('--color-accent-surface', hexToRgba(branding.accentColor, 0.15));
+        }
+        if (branding.secondaryColor) {
+            root.style.setProperty('--color-secondary', branding.secondaryColor);
+        }
+
         console.log('✅ CSS variables set:', {
             primary:    getComputedStyle(root).getPropertyValue('--brand-primary').trim(),
             secondary:  getComputedStyle(root).getPropertyValue('--brand-secondary').trim(),
-            accent:     getComputedStyle(root).getPropertyValue('--brand-accent').trim()
+            accent:     getComputedStyle(root).getPropertyValue('--brand-accent').trim(),
+            colorPrimary: getComputedStyle(root).getPropertyValue('--color-primary').trim(),
         });
 
         // Force-update elements that use the sidebar-gradient class directly
