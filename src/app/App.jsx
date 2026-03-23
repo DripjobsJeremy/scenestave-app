@@ -274,6 +274,28 @@ function App() {
 
   const [staffContactId, setStaffContactId] = useState(() => localStorage.getItem('showsuite_staff_contact_id') || '');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Role badge — computed from userRole + optional staffContact name
+  const ROLE_DISPLAY = {
+    super_admin:        { label: 'Super Admin',   cls: 'bg-violet-900 text-violet-300' },
+    venue_manager:      { label: 'Super Admin',   cls: 'bg-violet-900 text-violet-300' },
+    admin:              { label: 'Admin',          cls: 'bg-violet-900 text-violet-300' },
+    client_admin:       { label: 'Admin',          cls: 'bg-violet-900 text-violet-300' },
+    board_member:       { label: 'Board Member',   cls: 'bg-blue-900 text-blue-300' },
+    accounting_manager: { label: 'Accounting',     cls: 'bg-blue-900 text-blue-300' },
+    director:           { label: 'Director',       cls: 'bg-green-900 text-green-300' },
+    stage_manager:      { label: 'Stage Manager',  cls: 'bg-teal-900 text-teal-300' },
+    wardrobe:           { label: 'Wardrobe',       cls: 'bg-pink-900 text-pink-300' },
+    lighting:           { label: 'Lighting',       cls: 'bg-yellow-900 text-yellow-300' },
+    sound:              { label: 'Sound',          cls: 'bg-blue-800 text-blue-200' },
+    props:              { label: 'Props',          cls: 'bg-orange-900 text-orange-300' },
+    set:                { label: 'Set & Scenic',   cls: 'bg-teal-800 text-teal-300' },
+  };
+  const roleInfo = ROLE_DISPLAY[userRole] || { label: userRole, cls: 'bg-gray-700 text-gray-300' };
+  const staffContact = staffContactId ? window.contactsService?.getContactById?.(staffContactId) : null;
+  const staffName = staffContact
+    ? (`${staffContact.firstName || ''} ${staffContact.lastName || ''}`).trim() || staffContact.email
+    : null;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Organization info — loaded once on mount for sidebar display
@@ -424,13 +446,18 @@ function App() {
           <NavLink item={settingsItem} />
         </div>
 
-        {/* Footer */}
+        {/* Footer — role indicator */}
         {!sidebarCollapsed && (
           <div className="p-4 border-t border-white border-opacity-20 flex-shrink-0">
-            <div className="text-xs text-white opacity-75">
-              <div className="font-semibold mb-1">SceneStave v1.0</div>
-              <div className="opacity-75">Theatre Management CRM</div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${roleInfo.cls}`}>
+                {roleInfo.label}
+              </span>
             </div>
+            {staffName && (
+              <div className="text-xs text-gray-300 truncate mb-1.5">👤 {staffName}</div>
+            )}
+            <div className="text-xs text-white opacity-40">SceneStave v1.0</div>
           </div>
         )}
       </aside>
@@ -448,7 +475,9 @@ function App() {
             ☰
           </button>
           <h1 className="text-xl font-bold text-purple-900">SceneStave</h1>
-          <div className="w-10"></div>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${roleInfo.cls}`}>
+            {roleInfo.label}
+          </span>
         </div>
 
         {/* Scrollable Content */}

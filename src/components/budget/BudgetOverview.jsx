@@ -1,4 +1,4 @@
-function BudgetOverview({ budget, summary, onUpdateTotalBudget, onSyncCosts }) {
+function BudgetOverview({ budget, summary, canEditBudget = true, onUpdateTotalBudget, onSyncCosts }) {
     const [totalBudget, setTotalBudget] = React.useState(budget.totalBudget);
 
     return (
@@ -17,22 +17,23 @@ function BudgetOverview({ budget, summary, onUpdateTotalBudget, onSyncCosts }) {
                                 id="total-budget"
                                 type="number"
                                 value={totalBudget}
-                                onChange={(e) => setTotalBudget(e.target.value)}
-                                onBlur={() => onUpdateTotalBudget(totalBudget)}
-                                className="w-full pl-8 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-2xl font-bold"
+                                onChange={(e) => canEditBudget && setTotalBudget(e.target.value)}
+                                onBlur={() => canEditBudget && onUpdateTotalBudget(totalBudget)}
+                                readOnly={!canEditBudget}
+                                className={`w-full pl-8 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-2xl font-bold ${!canEditBudget ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                                 placeholder="0.00"
                                 step="0.01"
                             />
                         </div>
                     </div>
-                    <button
+                    {canEditBudget && <button
                         type="button"
                         onClick={onSyncCosts}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                         title="Sync costs from scene-level department data"
                     >
                         🔄 Sync Costs
-                    </button>
+                    </button>}
                 </div>
             </div>
 

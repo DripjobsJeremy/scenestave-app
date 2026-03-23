@@ -1,4 +1,4 @@
-function DepartmentsBudget({ budget, summary, departments, productionId, onUpdateAllocation, onRefresh }) {
+function DepartmentsBudget({ budget, summary, departments, productionId, canEditBudget = true, onUpdateAllocation, onRefresh }) {
     const [selectedDept, setSelectedDept] = React.useState(null);
     const [showAddItem, setShowAddItem] = React.useState(false);
 
@@ -64,9 +64,10 @@ function DepartmentsBudget({ budget, summary, departments, productionId, onUpdat
                                     <input
                                         type="number"
                                         value={deptData.allocated || ''}
-                                        onChange={(e) => onUpdateAllocation(dept.id, e.target.value)}
+                                        onChange={(e) => canEditBudget && onUpdateAllocation(dept.id, e.target.value)}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="w-full pl-6 pr-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-500"
+                                        readOnly={!canEditBudget}
+                                        className={`w-full pl-6 pr-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-500 ${!canEditBudget ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                                         placeholder="0.00"
                                         step="0.01"
                                     />

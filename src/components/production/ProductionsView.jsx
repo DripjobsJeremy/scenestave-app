@@ -50,6 +50,9 @@ const ProductionsView = () => {
 
   const [staffContactId, setStaffContactId] = useState(() => localStorage.getItem('showsuite_staff_contact_id') || '');
 
+  const BUDGET_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin', 'board_member', 'accounting_manager'];
+  const canEditBudget = BUDGET_ROLES.includes(localStorage.getItem('showsuite_user_role') || 'admin');
+
   const loadProductions = () => {
     const allProductions = window.productionsService.getAll();
     setProductions(allProductions);
@@ -333,7 +336,7 @@ const ProductionsView = () => {
         venue,
         description,
         footer,
-        React.createElement('div', { className: 'flex gap-2 mt-3' }, editDetailsButton, editButton, budgetButton)
+        React.createElement('div', { className: 'flex gap-2 mt-3' }, editDetailsButton, editButton, canEditBudget ? budgetButton : null)
       );
     })
   );

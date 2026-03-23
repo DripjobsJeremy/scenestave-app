@@ -4,6 +4,9 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
     const [budget, setBudget] = React.useState(null);
     const [activeTab, setActiveTab] = React.useState('overview');
 
+    const BUDGET_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin', 'board_member', 'accounting_manager'];
+    const canEditBudget = BUDGET_ROLES.includes(localStorage.getItem('showsuite_user_role') || 'admin');
+
     React.useEffect(() => {
         loadBudget();
     }, [production.id]);
@@ -145,6 +148,7 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
                         <window.BudgetOverview
                             budget={budget}
                             summary={summary}
+                            canEditBudget={canEditBudget}
                             onUpdateTotalBudget={handleUpdateTotalBudget}
                             onSyncCosts={handleSyncDepartmentCosts}
                         />
@@ -156,6 +160,7 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
                             summary={summary}
                             departments={DEPARTMENTS}
                             productionId={production.id}
+                            canEditBudget={canEditBudget}
                             onUpdateAllocation={handleUpdateDepartmentAllocation}
                             onRefresh={loadBudget}
                         />
@@ -186,7 +191,7 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
                         >
                             Close
                         </button>
-                        <button
+                        {canEditBudget && <button
                             type="button"
                             onClick={() => {
                                 if (onSave) onSave();
@@ -197,7 +202,7 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
                             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                         >
                             Save & Close
-                        </button>
+                        </button>}
                     </div>
                 </div>
             </div>
