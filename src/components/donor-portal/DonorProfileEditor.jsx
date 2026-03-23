@@ -1,12 +1,21 @@
 function DonorProfileEditor({ donor, onUpdate }) {
+    const formatAddress = (addr) => {
+        if (!addr) return '';
+        if (typeof addr === 'string') return addr;
+        return [addr.street, addr.street2, addr.city, addr.state, addr.zip]
+            .filter(Boolean).join(', ');
+    };
+
     const [formData, setFormData] = React.useState(() => {
         const profile = donor.donorProfile || {};
         const prefs = profile.preferences || {};
+        const fullName = donor.name ||
+            `${donor.firstName || ''} ${donor.lastName || ''}`.trim();
         return {
-            name: donor.name || '',
+            name: fullName,
             email: donor.email || '',
             phone: donor.phone || '',
-            address: donor.address || '',
+            address: formatAddress(donor.address),
             bio: profile.bio || '',
             photoUrl: profile.photoUrl || '',
             preferences: {
@@ -32,8 +41,14 @@ function DonorProfileEditor({ donor, onUpdate }) {
         console.log('💾 Saving donor profile...', formData);
 
         try {
+            const nameParts = formData.name.trim().split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ');
+
             window.contactsService.updateContact(donor.id, {
                 name: formData.name,
+                firstName,
+                lastName,
                 email: formData.email,
                 phone: formData.phone,
                 address: formData.address,
