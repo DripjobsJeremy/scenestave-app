@@ -638,10 +638,10 @@ function StaffDirectory() {
             </thead>
             <tbody>
               {filteredStaff.map(contact => {
-                const name      = `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Unnamed';
-                const roles     = contact.staffProfile?.roles || [];
-                const prodCount = (contact.staffProfile?.productions || []).length;
-                const status    = contact.status || 'unassigned';
+                const name        = `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Unnamed';
+                const roles       = contact.staffProfile?.roles || [];
+                const assignments = contact.staffProfile?.productions || [];
+                const status      = contact.status || 'unassigned';
                 return (
                   <tr key={contact.id}>
                     <td className="font-medium">
@@ -659,8 +659,17 @@ function StaffDirectory() {
                         {roles.length === 0 && <span className="text-xs text-muted-color">—</span>}
                       </div>
                     </td>
-                    <td className="secondary hidden md:table-cell">
-                      {prodCount > 0 ? `${prodCount} production${prodCount !== 1 ? 's' : ''}` : '—'}
+                    <td className="hidden md:table-cell">
+                      {assignments.length === 0 ? (
+                        <span className="text-muted-color">—</span>
+                      ) : (
+                        <div title={assignments.map(p => {
+                          const prod = productions.find(pr => pr.id === p.productionId);
+                          return prod ? `${prod.title || prod.name} (${p.role})` : p.productionId;
+                        }).join(', ')}>
+                          <span className="hub-badge">{assignments.length} production{assignments.length !== 1 ? 's' : ''}</span>
+                        </div>
+                      )}
                     </td>
                     <td className="hidden md:table-cell">
                       <div className="flex items-center gap-1.5">
@@ -689,10 +698,10 @@ function StaffDirectory() {
       {filteredStaff.length > 0 && viewMode === 'cards' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredStaff.map(contact => {
-            const name      = `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Unnamed';
-            const roles     = contact.staffProfile?.roles || [];
-            const prodCount = (contact.staffProfile?.productions || []).length;
-            const status    = contact.status || 'unassigned';
+            const name        = `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Unnamed';
+            const roles       = contact.staffProfile?.roles || [];
+            const assignments = contact.staffProfile?.productions || [];
+            const status      = contact.status || 'unassigned';
 
             return (
               <div key={contact.id} className="hub-card hover:border-violet-300 hover:shadow-sm transition-all">
@@ -730,16 +739,23 @@ function StaffDirectory() {
                   </div>
                 )}
 
-                {/* Productions badge */}
-                <div className="mt-2">
-                  {prodCount > 0 ? (
-                    <span className="px-2 py-0.5 bg-violet-100 text-violet-700 rounded text-xs font-medium">
-                      {prodCount} production{prodCount !== 1 ? 's' : ''}
-                    </span>
-                  ) : (
+                {/* Productions list */}
+                {assignments.length > 0 ? (
+                  <div className="mt-2 space-y-0.5">
+                    {assignments.map(p => {
+                      const prod = productions.find(pr => pr.id === p.productionId);
+                      return prod ? (
+                        <div key={p.productionId} className="text-xs text-muted-color">
+                          🎭 {prod.title || prod.name} · <span className="text-muted-color">{p.role}</span>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                ) : (
+                  <div className="mt-2">
                     <span className="text-xs text-muted-color">No productions assigned</span>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             );
           })}

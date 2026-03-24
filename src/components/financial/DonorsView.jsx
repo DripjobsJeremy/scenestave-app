@@ -469,11 +469,12 @@
             'tr',
             null,
             React.createElement('th', null, 'Name'),
-            React.createElement('th', { className: 'hidden md:table-cell' }, 'Email'),
+            React.createElement('th', { className: 'muted hidden md:table-cell' }, 'Email'),
             React.createElement('th', { className: 'right' }, 'Total Given'),
             React.createElement('th', { className: 'right' }, 'Donations'),
             React.createElement('th', { className: 'hidden md:table-cell' }, 'Last Gift'),
-            React.createElement('th', null, 'Level')
+            React.createElement('th', null, 'Level'),
+            React.createElement('th', { className: 'right' }, React.createElement('span', { className: 'sr-only' }, 'Actions'))
           )
         ),
         React.createElement(
@@ -493,11 +494,21 @@
                   name
                 )
               ),
-              React.createElement('td', { className: 'secondary hidden md:table-cell' }, donor.email || '—'),
+              React.createElement('td', { className: 'muted hidden md:table-cell' }, donor.email || '—'),
               React.createElement('td', { className: 'right font-semibold text-green-600' }, formatCurrency(donor.totalGiven)),
               React.createElement('td', { className: 'right' }, donor.frequency),
-              React.createElement('td', { className: 'secondary hidden md:table-cell' }, donor.lastGift ? formatDate(donor.lastGift) : '—'),
-              React.createElement('td', null, donor.level?.name || '—')
+              React.createElement('td', { className: 'hidden md:table-cell' }, donor.lastGift ? formatDate(donor.lastGift) : '—'),
+              React.createElement('td', null, donor.level?.name || '—'),
+              React.createElement('td', { className: 'right' },
+                React.createElement('button', {
+                  type: 'button',
+                  onClick: () => {
+                    window.donorAuthService?.createSession(donor.id);
+                    window.location.hash = '/donor-portal';
+                  },
+                  className: 'text-xs text-violet-600 hover:text-violet-800 font-medium'
+                }, '💎 Portal')
+              )
             );
           })
         )

@@ -26,7 +26,7 @@ function AllContactsList({ contacts, donations }) {
     const types = [];
     if (c.isDonor) types.push({ label: 'Donor', color: 'amber' });
     if (c.isStaff) types.push({ label: 'Staff', color: 'violet' });
-    if (c.type === 'Actor' || c.actorProfile) types.push({ label: 'Actor', color: 'pink' });
+    if (c.type === 'Actor') types.push({ label: 'Actor', color: 'pink' });
     if (c.volunteerInfo || c.isVolunteer) types.push({ label: 'Volunteer', color: 'green' });
     if (Array.isArray(c.tags) && c.tags.some(t => BOARD_TAGS.includes(String(t).toLowerCase()))) types.push({ label: 'Board', color: 'blue' });
     if (types.length === 0) types.push({ label: 'Contact', color: 'gray' });
@@ -68,7 +68,7 @@ function AllContactsList({ contacts, donations }) {
       const matchesType = typeFilter === 'all'
         || (typeFilter === 'donor'     && c.isDonor)
         || (typeFilter === 'staff'     && c.isStaff)
-        || (typeFilter === 'actor'     && (c.type === 'Actor' || c.actorProfile))
+        || (typeFilter === 'actor'     && c.type === 'Actor')
         || (typeFilter === 'volunteer' && (c.volunteerInfo || c.isVolunteer))
         || (typeFilter === 'board'     && Array.isArray(c.tags) && c.tags.some(t => BOARD_TAGS.includes(String(t).toLowerCase())));
       return matchesSearch && matchesType;
@@ -409,10 +409,27 @@ function VolunteerDirectory({ contacts }) {
   const [viewMode, setViewMode] = React.useState(() => {
     try { return localStorage.getItem('scenestave_volunteer_view') || 'cards'; } catch { return 'cards'; }
   });
+  const [showFull, setShowFull] = React.useState(false);
+
   const setView = (mode) => {
     setViewMode(mode);
     try { localStorage.setItem('scenestave_volunteer_view', mode); } catch {}
   };
+
+  if (showFull && window.VolunteerDashboard) {
+    return (
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowFull(false)}
+          className="mb-4 text-sm text-violet-600 hover:text-violet-800 font-medium flex items-center gap-1"
+        >
+          ← Back to Directory
+        </button>
+        {React.createElement(window.VolunteerDashboard, { userRole: 'admin', onNavigate: () => {} })}
+      </div>
+    );
+  }
 
   const filtered = React.useMemo(() => {
     const q = search.toLowerCase();
@@ -442,13 +459,15 @@ function VolunteerDirectory({ contacts }) {
             <button type="button" onClick={() => setView('cards')} className={`view-toggle-btn${viewMode === 'cards' ? ' active' : ''}`}>⊞ Cards</button>
             <button type="button" onClick={() => setView('table')} className={`view-toggle-btn${viewMode === 'table' ? ' active' : ''}`}>≡ Table</button>
           </div>
-          <button
-            type="button"
-            onClick={() => { window.location.hash = '/volunteers'; }}
-            className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-sm font-medium transition-colors"
-          >
-            Manage Volunteers →
-          </button>
+          {window.VolunteerDashboard && (
+            <button
+              type="button"
+              onClick={() => setShowFull(true)}
+              className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              ⚙️ Full Dashboard →
+            </button>
+          )}
         </div>
       </div>
 
@@ -469,13 +488,15 @@ function VolunteerDirectory({ contacts }) {
           <div className="text-4xl mb-3">🤝</div>
           <p className="font-medium mb-1 text-primary-color">No volunteers yet</p>
           <p className="text-sm text-muted-color">Add volunteer info to contacts, or manage from the Volunteers section</p>
-          <button
-            type="button"
-            onClick={() => { window.location.hash = '/volunteers'; }}
-            className="mt-4 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-sm font-medium transition-colors"
-          >
-            Go to Volunteer Management
-          </button>
+          {window.VolunteerDashboard && (
+            <button
+              type="button"
+              onClick={() => setShowFull(true)}
+              className="mt-4 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              ⚙️ Full Dashboard →
+            </button>
+          )}
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
@@ -524,13 +545,15 @@ function VolunteerDirectory({ contacts }) {
                     <td className="secondary right hidden md:table-cell">{hours}</td>
                     <td className="secondary hidden lg:table-cell">{skills}</td>
                     <td className="right">
-                      <button
-                        type="button"
-                        onClick={() => { window.location.hash = '/volunteers'; }}
-                        className="text-xs text-violet-600 hover:text-violet-800 font-medium"
-                      >
-                        Manage
-                      </button>
+                      {window.VolunteerDashboard && (
+                        <button
+                          type="button"
+                          onClick={() => setShowFull(true)}
+                          className="text-xs text-violet-600 hover:text-violet-800 font-medium"
+                        >
+                          Full View
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
