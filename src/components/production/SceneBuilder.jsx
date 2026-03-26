@@ -7,6 +7,7 @@ function SceneBuilder({ productionId: propId }) {
   const [loading, setLoading] = useState(true);
   const [draggedActIndex, setDraggedActIndex] = useState(null);
   const [openCharacterSelector, setOpenCharacterSelector] = useState(null); // format: "actIndex-sceneIndex"
+  const [newCharInput, setNewCharInput] = useState({}); // keyed by "actIndex-sceneIndex"
   const [collapsedScenes, setCollapsedScenes] = useState({}); // format: { "actIndex-sceneIndex": true }
   const [collapsedActs, setCollapsedActs] = useState({}); // format: { actIndex: true }
   const [expandedSections, setExpandedSections] = useState(() => {
@@ -649,114 +650,81 @@ function SceneBuilder({ productionId: propId }) {
                         placeholder: 'Scene title (optional)'
                       })
                 ),
-                // Characters in scene (multi-select popover)
+                // Characters in scene (inline input)
                 React.createElement(
                   'div',
                   { className: 'mb-3' },
                   React.createElement('label', { className: 'block text-xs text-gray-600 mb-1' }, '🎭 Characters in Scene'),
-                  // Selected characters display
                   React.createElement(
                     'div',
-                    { className: 'flex flex-wrap items-center gap-1 mb-2' },
+                    { className: 'flex flex-wrap items-center gap-1' },
+                    // characterIds pills (production-level characters)
                     (scene.characterIds || []).map(charId => {
                       const char = (production.characters || []).find(c => c.id === charId);
                       if (!char) return null;
                       return React.createElement(
                         'span',
-                        { 
-                          key: charId,
-                          className: 'inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-violet-100 text-violet-800'
-                        },
+                        { key: charId, className: 'inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-violet-100 text-violet-800' },
                         char.name,
-                        React.createElement(
-                          'button',
-                          {
-                            type: 'button',
-                            onClick: () => {
-                              const newChars = (scene.characterIds || []).filter(id => id !== charId);
-                              handleUpdateScene(actIndex, sceneIndex, 'characterIds', newChars);
-                            },
-                            className: 'ml-1 text-violet-600 hover:text-violet-900 font-bold'
-                          },
-                          '×'
-                        )
+                        React.createElement('button', {
+                          type: 'button',
+                          onClick: () => handleUpdateScene(actIndex, sceneIndex, 'characterIds', (scene.characterIds || []).filter(id => id !== charId)),
+                          className: 'ml-1 text-violet-600 hover:text-violet-900 font-bold'
+                        }, '×')
                       );
                     }),
-                    // Add button to open selector
-                    React.createElement(
-                      'button',
-                      {
-                        type: 'button',
-                        onClick: () => setOpenCharacterSelector(
-                          openCharacterSelector === `${actIndex}-${sceneIndex}` ? null : `${actIndex}-${sceneIndex}`
-                        ),
-                        className: 'inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full border border-dashed border-gray-300 text-gray-600 hover:border-violet-400 hover:text-violet-600'
-                      },
-                      '+ Add Characters'
-                    )
-                  ),
-                  // Multi-select popover
-                  openCharacterSelector === `${actIndex}-${sceneIndex}` && React.createElement(
-                    'div',
-                    { className: 'absolute z-10 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-2' },
-                    // Header
-                    React.createElement(
-                      'div',
-                      { className: 'flex items-center justify-between mb-2 pb-2 border-b border-gray-100' },
-                      React.createElement('span', { className: 'text-sm font-medium text-gray-700' }, 'Select Characters'),
+                    // scene.characters pills (free-text names)
+                    (scene.characters || []).map((charName, i) =>
                       React.createElement(
-                        'button',
-                        {
+                        'span',
+                        { key: `freechar-${i}`, className: 'inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-violet-100 text-violet-800' },
+                        charName,
+                        React.createElement('button', {
                           type: 'button',
-                          onClick: () => setOpenCharacterSelector(null),
-                          className: 'text-gray-400 hover:text-gray-600'
-                        },
-                        '✕'
+                          onClick: () => handleUpdateScene(actIndex, sceneIndex, 'characters', (scene.characters || []).filter((_, idx) => idx !== i)),
+                          className: 'ml-1 text-violet-600 hover:text-violet-900 font-bold'
+                        }, '×')
                       )
                     ),
-                    // Character list with checkboxes
-                    React.createElement(
-                      'div',
-                      { className: 'max-h-48 overflow-y-auto space-y-1' },
-                      (production.characters || []).length === 0
-                        ? React.createElement('p', { className: 'text-xs text-gray-400 italic p-2' }, 'No characters defined yet')
-                        : (production.characters || []).map(char =>
-                            React.createElement(
-                              'label',
-                              { 
-                                key: char.id,
-                                className: 'flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer'
-                              },
-                              React.createElement('input', {
-                                type: 'checkbox',
-                                checked: (scene.characterIds || []).includes(char.id),
-                                onChange: (e) => {
-                                  const currentChars = scene.characterIds || [];
-                                  const newChars = e.target.checked
-                                    ? [...currentChars, char.id]
-                                    : currentChars.filter(id => id !== char.id);
-                                  handleUpdateScene(actIndex, sceneIndex, 'characterIds', newChars);
-                                },
-                                className: 'w-4 h-4 text-violet-600 rounded border-gray-300 focus:ring-violet-500'
-                              }),
-                              React.createElement('span', { className: 'text-sm text-gray-700' }, char.name)
-                            )
-                          )
-                    ),
-                    // Done button
-                    React.createElement(
-                      'div',
-                      { className: 'mt-2 pt-2 border-t border-gray-100' },
-                      React.createElement(
-                        'button',
-                        {
+                    // Inline input or + Add Characters button
+                    openCharacterSelector === `${actIndex}-${sceneIndex}`
+                      ? React.createElement('input', {
+                          type: 'text',
+                          autoFocus: true,
+                          value: newCharInput[`${actIndex}-${sceneIndex}`] || '',
+                          onChange: e => setNewCharInput(prev => ({ ...prev, [`${actIndex}-${sceneIndex}`]: e.target.value })),
+                          onKeyDown: e => {
+                            const key = `${actIndex}-${sceneIndex}`;
+                            if (e.key === 'Enter') {
+                              const name = (newCharInput[key] || '').trim();
+                              if (name) {
+                                const unique = Array.from(new Set([...(scene.characters || []), name]));
+                                handleUpdateScene(actIndex, sceneIndex, 'characters', unique);
+                                setNewCharInput(prev => ({ ...prev, [key]: '' }));
+                              }
+                            } else if (e.key === 'Escape') {
+                              setOpenCharacterSelector(null);
+                              setNewCharInput(prev => ({ ...prev, [`${actIndex}-${sceneIndex}`]: '' }));
+                            }
+                          },
+                          onBlur: () => {
+                            const key = `${actIndex}-${sceneIndex}`;
+                            const name = (newCharInput[key] || '').trim();
+                            if (name) {
+                              const unique = Array.from(new Set([...(scene.characters || []), name]));
+                              handleUpdateScene(actIndex, sceneIndex, 'characters', unique);
+                            }
+                            setNewCharInput(prev => ({ ...prev, [key]: '' }));
+                            setOpenCharacterSelector(null);
+                          },
+                          placeholder: 'Character name, Enter to add…',
+                          className: 'px-2 py-1 text-xs border border-violet-400 rounded-full focus:outline-none focus:ring-1 focus:ring-violet-400 w-44'
+                        })
+                      : React.createElement('button', {
                           type: 'button',
-                          onClick: () => setOpenCharacterSelector(null),
-                          className: 'w-full px-3 py-1 text-sm bg-violet-600 text-white rounded hover:bg-violet-700'
-                        },
-                        'Done'
-                      )
-                    )
+                          onClick: () => setOpenCharacterSelector(`${actIndex}-${sceneIndex}`),
+                          className: 'inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full border border-dashed border-gray-300 text-gray-600 hover:border-violet-400 hover:text-violet-600'
+                        }, '+ Add Characters')
                   )
                 ),
                 React.createElement(
@@ -773,13 +741,13 @@ function SceneBuilder({ productionId: propId }) {
                     })
                   ),
                   React.createElement('div', { className: 'relative' },
-                    React.createElement('span', { className: 'absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none' }, '🕐'),
-                    React.createElement('input', {
-                      type: 'text',
+                    React.createElement('span', { className: 'absolute left-2.5 top-2 text-sm pointer-events-none' }, '🕐'),
+                    React.createElement('textarea', {
                       value: scene.time || '',
                       onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'time', e.target.value),
-                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm',
-                      placeholder: 'Time of day'
+                      className: 'pl-8 pr-3 py-2 border border-gray-300 rounded w-full text-sm resize-none',
+                      placeholder: 'Time of day',
+                      rows: 2
                     })
                   ),
                   React.createElement('div', { className: 'relative' },
