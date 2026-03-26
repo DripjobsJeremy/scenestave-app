@@ -866,51 +866,55 @@ function SceneBuilder({ productionId: propId }) {
                     ),
                     (() => {
                       if (scene.soundType === 'Musical Number') {
-                        const sceneChars = (production.characters || []).filter(c => (scene.characterIds || []).includes(c.id));
+                        const sceneChars = scene.characters || [];
+                        const selectedPerformers = scene.musicalCharacters ||
+                          (scene.artist ? scene.artist.split(',').map(s => s.trim()).filter(Boolean) : []);
                         return React.createElement(
                           'div',
                           null,
                           React.createElement('label', { className: 'block text-xs font-medium text-gray-600 mb-1' }, '🎭 Performers'),
-                          React.createElement(
-                            'div',
-                            { className: 'border border-gray-300 rounded-lg bg-white p-2 max-h-32 overflow-y-auto' },
-                            sceneChars.length === 0
-                              ? React.createElement('p', { className: 'text-xs text-gray-400 italic' }, 'No characters in scene yet')
-                              : sceneChars.map(char => React.createElement(
-                                  'label',
-                                  { key: char.id, className: 'flex items-center gap-2 py-0.5 cursor-pointer hover:bg-gray-50 px-1 rounded' },
-                                  React.createElement('input', {
-                                    type: 'checkbox',
-                                    checked: (scene.musicalCharacterIds || []).includes(char.id),
-                                    onChange: (e) => {
-                                      const current = scene.musicalCharacterIds || [];
-                                      const next = e.target.checked ? [...current, char.id] : current.filter(id => id !== char.id);
-                                      handleUpdateScene(actIndex, sceneIndex, 'musicalCharacterIds', next);
+                          sceneChars.length === 0
+                            ? React.createElement('p', {
+                                className: 'text-xs px-3 py-2 rounded-lg border border-gray-300 text-gray-400 italic'
+                              }, 'No characters in scene — add characters above first')
+                            : React.createElement(
+                                'div',
+                                { className: 'flex flex-wrap gap-1' },
+                                sceneChars.map(char => {
+                                  const isSelected = selectedPerformers.includes(char);
+                                  return React.createElement(
+                                    'button',
+                                    {
+                                      key: char,
+                                      type: 'button',
+                                      onClick: () => {
+                                        const updated = isSelected
+                                          ? selectedPerformers.filter(p => p !== char)
+                                          : [...selectedPerformers, char];
+                                        handleUpdateScene(actIndex, sceneIndex, 'musicalCharacters', updated);
+                                        handleUpdateScene(actIndex, sceneIndex, 'artist', updated.join(', '));
+                                      },
+                                      className: 'px-2 py-1 rounded-full text-xs font-medium transition-colors ' +
+                                        (isSelected
+                                          ? 'bg-violet-600 text-white border border-violet-600'
+                                          : 'bg-white text-gray-600 border border-gray-300 hover:border-violet-400 hover:text-violet-600')
                                     },
-                                    className: 'w-4 h-4 text-violet-600 rounded border-gray-300 focus:ring-violet-500'
-                                  }),
-                                  React.createElement('span', { className: 'text-sm text-gray-700' }, char.name)
-                                ))
-                          ),
-                          (scene.musicalCharacterIds || []).length > 0 && React.createElement(
-                            'div',
-                            { className: 'flex flex-wrap gap-1 mt-1' },
-                            (production.characters || [])
-                              .filter(c => (scene.musicalCharacterIds || []).includes(c.id))
-                              .map(c => React.createElement('span', { key: c.id, className: 'px-2 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full' }, c.name))
-                          )
+                                    (isSelected ? '✓ ' : '') + char
+                                  );
+                                })
+                              )
                         );
                       }
                       return React.createElement(
                         'div',
                         null,
-                        React.createElement('label', { className: 'block text-xs font-medium text-gray-600 mb-1' }, '🎤 Artist'),
+                        React.createElement('label', { className: 'block text-xs font-medium text-gray-600 mb-1' }, '🎤 Artist / Composer'),
                         React.createElement('input', {
                           type: 'text',
                           value: scene.artist || '',
                           onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'artist', e.target.value),
                           className: 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors',
-                          placeholder: 'Artist'
+                          placeholder: 'e.g., Stephen Sondheim'
                         })
                       );
                     })(),
