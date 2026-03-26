@@ -8,6 +8,13 @@ function SceneBuilder({ productionId: propId }) {
   const [draggedActIndex, setDraggedActIndex] = useState(null);
   const [openCharacterSelector, setOpenCharacterSelector] = useState(null); // format: "actIndex-sceneIndex"
   const [newCharInput, setNewCharInput] = useState({}); // keyed by "actIndex-sceneIndex"
+  const [castCharacters, setCastCharacters] = useState(() => {
+    try {
+      const prods = JSON.parse(localStorage.getItem('showsuite_productions') || '[]');
+      const prod = prods.find(p => p.id === (propId || null));
+      return (prod?.characters || []).map(c => c.name).filter(Boolean);
+    } catch { return []; }
+  });
   const [collapsedScenes, setCollapsedScenes] = useState({}); // format: { "actIndex-sceneIndex": true }
   const [collapsedActs, setCollapsedActs] = useState({}); // format: { actIndex: true }
   const [expandedSections, setExpandedSections] = useState(() => {
@@ -119,6 +126,26 @@ function SceneBuilder({ productionId: propId }) {
       loadProduction();
     }
   }, [activeTab]);
+
+  // Keep castCharacters in sync with localStorage (updated by Cast List widget)
+  useEffect(() => {
+    const refresh = () => {
+      try {
+        const prods = JSON.parse(localStorage.getItem('showsuite_productions') || '[]');
+        const prod = prods.find(p => p.id === production?.id);
+        setCastCharacters((prod?.characters || []).map(c => c.name).filter(Boolean));
+      } catch {}
+    };
+    refresh(); // run immediately when production changes
+    window.addEventListener('storage', refresh);
+    window.addEventListener('productionUpdated', refresh);
+    window.addEventListener('charactersUpdated', refresh);
+    return () => {
+      window.removeEventListener('storage', refresh);
+      window.removeEventListener('productionUpdated', refresh);
+      window.removeEventListener('charactersUpdated', refresh);
+    };
+  }, [production?.id]);
 
   if (loading) {
     return React.createElement('div', { className: 'p-6 text-center text-gray-600' }, 'Loading production...');
@@ -686,7 +713,7 @@ function SceneBuilder({ productionId: propId }) {
                     )
                   ),
                   (() => {
-                    const castCharacters = (production?.characters || []).map(c => c.name).filter(Boolean);
+                    // castCharacters comes from component-level state (kept fresh from localStorage)
                     const sceneCharacters = scene.characters || [];
                     const available = castCharacters.filter(c => !sceneCharacters.includes(c));
                     if (castCharacters.length > 0) {
