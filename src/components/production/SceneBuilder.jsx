@@ -685,25 +685,51 @@ function SceneBuilder({ productionId: propId }) {
                       )
                     )
                   ),
-                  React.createElement('input', {
-                    type: 'text',
-                    value: newCharInput[`${actIndex}-${sceneIndex}`] || '',
-                    onChange: e => setNewCharInput(prev => ({ ...prev, [`${actIndex}-${sceneIndex}`]: e.target.value })),
-                    onKeyDown: e => {
-                      if (e.key === 'Enter' || e.key === ',') {
-                        e.preventDefault();
-                        const key = `${actIndex}-${sceneIndex}`;
-                        const name = (newCharInput[key] || '').replace(',', '').trim();
-                        if (!name) return;
-                        const unique = Array.from(new Set([...(scene.characters || []), name]));
-                        handleUpdateScene(actIndex, sceneIndex, 'characters', unique);
-                        setNewCharInput(prev => ({ ...prev, [key]: '' }));
-                      }
-                    },
-                    className: 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors',
-                    placeholder: 'Type a character name and press Enter…'
-                  }),
-                  React.createElement('p', { className: 'text-xs text-gray-400 mt-1' }, 'Press Enter or comma to add')
+                  (() => {
+                    const castCharacters = Object.keys(production?.casting || {});
+                    const sceneCharacters = scene.characters || [];
+                    const available = castCharacters.filter(c => !sceneCharacters.includes(c));
+                    if (castCharacters.length > 0) {
+                      return React.createElement(
+                        'select',
+                        {
+                          value: '',
+                          onChange: e => {
+                            const name = e.target.value;
+                            if (!name) return;
+                            const unique = Array.from(new Set([...(scene.characters || []), name]));
+                            handleUpdateScene(actIndex, sceneIndex, 'characters', unique);
+                          },
+                          className: 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors'
+                        },
+                        React.createElement('option', { value: '' }, available.length > 0 ? '+ Add character from Cast List...' : '✓ All cast members added'),
+                        ...available.map(char => React.createElement('option', { key: char, value: char }, char))
+                      );
+                    }
+                    return React.createElement(
+                      'div',
+                      null,
+                      React.createElement('input', {
+                        type: 'text',
+                        value: newCharInput[`${actIndex}-${sceneIndex}`] || '',
+                        onChange: e => setNewCharInput(prev => ({ ...prev, [`${actIndex}-${sceneIndex}`]: e.target.value })),
+                        onKeyDown: e => {
+                          if (e.key === 'Enter' || e.key === ',') {
+                            e.preventDefault();
+                            const key = `${actIndex}-${sceneIndex}`;
+                            const name = (newCharInput[key] || '').replace(',', '').trim();
+                            if (!name) return;
+                            const unique = Array.from(new Set([...(scene.characters || []), name]));
+                            handleUpdateScene(actIndex, sceneIndex, 'characters', unique);
+                            setNewCharInput(prev => ({ ...prev, [key]: '' }));
+                          }
+                        },
+                        className: 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors',
+                        placeholder: 'Type character name and press Enter…'
+                      }),
+                      React.createElement('p', { className: 'text-xs text-gray-400 mt-1' }, '💡 Add characters to the Cast List first for faster entry')
+                    );
+                  })()
                 ),
                 // ── Location + Time of Day ────────────────────────────────────────────
                 React.createElement(
