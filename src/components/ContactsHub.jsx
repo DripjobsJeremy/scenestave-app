@@ -441,51 +441,72 @@ function BoardMembersView({ contacts }) {
 // ─── Volunteer Directory ──────────────────────────────────────────────────────
 
 function VolunteerDirectory({ contacts }) {
-  const volunteers = React.useMemo(() => (contacts || []).filter(c =>
-    c.volunteerInfo || c.isVolunteer ||
-    (Array.isArray(c.tags) && c.tags.some(t => String(t).toLowerCase().includes('volunteer')))
-  ), [contacts]);
-
   const [search, setSearch] = React.useState('');
   const [viewMode, setViewMode] = React.useState(() => {
-    try { return localStorage.getItem('scenestave_volunteer_view') || 'cards'; } catch { return 'cards'; }
+    try { return localStorage.getItem('scenestave_volunteer_view') || 'table'; } catch { return 'table'; }
   });
-  const [showFull, setShowFull] = React.useState(false);
+  const [statusFilter, setStatusFilter] = React.useState('all');
+
+  // Source 1: contacts tagged as volunteer
+  const volunteerContacts = React.useMemo(() => (contacts || []).filter(c =>
+    c.volunteerInfo || c.isVolunteer ||
+    (Array.isArray(c.tags) && c.tags.some(t => String(t).toLowerCase().includes('volunteer')))
+  ).map(c => ({
+    id: c.id,
+    firstName: c.firstName || '',
+    lastName: c.lastName || '',
+    email: c.email || '',
+    phone: c.phone || '',
+    status: 'active',
+    source: 'contact',
+    tags: c.tags || [],
+    hours: c.volunteerInfo?.totalHours || 0,
+    skills: c.volunteerInfo?.skills || [],
+  })), [contacts]);
+
+  // Source 2: pending applications not yet in contacts
+  const applications = React.useMemo(() => {
+    try {
+      const apps = JSON.parse(localStorage.getItem('volunteerApplications') || '[]');
+      const contactEmails = new Set((contacts || []).map(c => (c.email || '').toLowerCase()));
+      return apps
+        .filter(a => !a.email || !contactEmails.has(a.email.toLowerCase()))
+        .map(a => ({
+          id: a.id,
+          firstName: a.firstName || '',
+          lastName: a.lastName || '',
+          email: a.email || '',
+          phone: a.phone || '',
+          status: a.status || 'pending',
+          source: 'application',
+          opportunityTitle: a.opportunityTitle || '',
+          hours: 0,
+          skills: [],
+        }));
+    } catch { return []; }
+  }, [contacts]);
+
+  const allVolunteers = React.useMemo(() => [...volunteerContacts, ...applications], [volunteerContacts, applications]);
+
+  const filtered = React.useMemo(() => allVolunteers.filter(v => {
+    const name = `${v.firstName} ${v.lastName}`.toLowerCase();
+    const matchesSearch = !search || name.includes(search.toLowerCase()) || v.email.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || v.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  }), [allVolunteers, search, statusFilter]);
+
+  const statusBadgeClass = (status) => ({
+    active:   'bg-green-100 text-green-700',
+    approved: 'bg-blue-100 text-blue-700',
+    pending:  'bg-amber-100 text-amber-700',
+    rejected: 'bg-red-100 text-red-700',
+    inactive: 'bg-gray-100 text-gray-500',
+  }[String(status || 'pending').toLowerCase()] || 'bg-gray-100 text-gray-500');
 
   const setView = (mode) => {
     setViewMode(mode);
     try { localStorage.setItem('scenestave_volunteer_view', mode); } catch {}
   };
-
-  if (showFull && window.VolunteerDashboard) {
-    return (
-      <div>
-        <button
-          type="button"
-          onClick={() => setShowFull(false)}
-          className="mb-4 text-sm text-violet-600 hover:text-violet-800 font-medium flex items-center gap-1"
-        >
-          ← Back to Directory
-        </button>
-        {React.createElement(window.VolunteerDashboard, { userRole: 'admin', onNavigate: () => {} })}
-      </div>
-    );
-  }
-
-  const filtered = React.useMemo(() => {
-    const q = search.toLowerCase();
-    if (!q) return volunteers;
-    return volunteers.filter(c => {
-      const name = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
-      return name.includes(q) || (c.email || '').toLowerCase().includes(q);
-    });
-  }, [volunteers, search]);
-
-  const statusBadgeClass = (status) => ({
-    active:   'bg-green-100 text-green-700',
-    inactive: 'bg-gray-100 text-gray-500',
-    pending:  'bg-amber-100 text-amber-700',
-  }[String(status || 'pending').toLowerCase()] || 'bg-gray-100 text-gray-500');
 
   return (
     <div>
@@ -493,152 +514,124 @@ function VolunteerDirectory({ contacts }) {
       <div className="flex items-center justify-between mb-5">
         <div>
           <h2 className="text-2xl font-bold text-primary-color">Volunteers</h2>
-          <p className="text-sm text-muted-color mt-0.5">{volunteers.length} volunteer{volunteers.length !== 1 ? 's' : ''}</p>
+          <p className="text-sm text-muted-color mt-0.5">
+            {volunteerContacts.length} active · {applications.length} pending application{applications.length !== 1 ? 's' : ''}
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="view-toggle">
-            <button type="button" onClick={() => setView('cards')} className={`view-toggle-btn${viewMode === 'cards' ? ' active' : ''}`}>⊞ Cards</button>
-            <button type="button" onClick={() => setView('table')} className={`view-toggle-btn${viewMode === 'table' ? ' active' : ''}`}>≡ Table</button>
-          </div>
-          {window.VolunteerDashboard && (
-            <button
-              type="button"
-              onClick={() => setShowFull(true)}
-              className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              ⚙️ Full Dashboard →
-            </button>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={() => { window.location.hash = '#/volunteers'; }}
+          className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-sm font-medium transition-colors"
+        >
+          ⚙️ Manage Volunteers →
+        </button>
       </div>
 
-      {/* Search */}
-      <div className="mb-5">
+      {/* Toolbar */}
+      <div className="flex flex-wrap gap-3 mb-4 items-center">
         <input
           type="text"
           placeholder="Search volunteers…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="hub-input w-full max-w-sm"
+          className="hub-input flex-1 min-w-[200px]"
         />
+        <select
+          title="Filter by status"
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          className="hub-input"
+        >
+          <option value="all">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+        </select>
+        <div className="view-toggle">
+          <button type="button" onClick={() => setView('table')} className={`view-toggle-btn${viewMode === 'table' ? ' active' : ''}`}>≡ Table</button>
+          <button type="button" onClick={() => setView('cards')} className={`view-toggle-btn${viewMode === 'cards' ? ' active' : ''}`}>⊞ Cards</button>
+        </div>
       </div>
 
-      {/* Empty state */}
-      {volunteers.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="text-4xl mb-3">🤝</div>
-          <p className="font-medium mb-1 text-primary-color">No volunteers yet</p>
-          <p className="text-sm text-muted-color">Add volunteer info to contacts, or manage from the Volunteers section</p>
-          {window.VolunteerDashboard && (
-            <button
-              type="button"
-              onClick={() => setShowFull(true)}
-              className="mt-4 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              ⚙️ Full Dashboard →
-            </button>
-          )}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="text-4xl mb-3">🔍</div>
-          <p className="font-medium mb-1 text-primary-color">No results</p>
-          <p className="text-sm text-muted-color">Try a different search</p>
-        </div>
-      ) : viewMode === 'table' ? (
+      {/* Count */}
+      <p className="text-sm text-muted-color mb-3">
+        {filtered.length} of {allVolunteers.length} volunteer{allVolunteers.length !== 1 ? 's' : ''}
+      </p>
+
+      {/* Table view */}
+      {viewMode === 'table' ? (
         <div className="hub-table-wrap">
           <table className="hub-table">
             <thead>
               <tr>
                 <th>Name</th>
                 <th className="hidden md:table-cell">Email</th>
+                <th className="hidden md:table-cell">Phone</th>
                 <th>Status</th>
-                <th className="hidden md:table-cell right">Hours</th>
-                <th className="hidden lg:table-cell">Skills</th>
-                <th><span className="sr-only">Actions</span></th>
+                <th>Source</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(c => {
-                const name = `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unnamed';
-                const initial = name[0]?.toUpperCase() || '?';
-                const vi = c.volunteerInfo || {};
-                const hours = vi.hoursLogged ?? vi.hours ?? '—';
-                const status = vi.status || 'pending';
-                const skills = Array.isArray(vi.skills) ? vi.skills.join(', ') : (vi.skills || '—');
-                return (
-                  <tr key={c.id}>
-                    <td className="font-medium">
-                      <div className="flex items-center gap-2">
-                        {c.donorProfile?.photoUrl
-                          ? <img src={c.donorProfile.photoUrl} alt={name} className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
-                          : <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">{initial}</div>
-                        }
-                        <span className="text-primary-color">{name}</span>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-12 text-muted-color">No volunteers found</td>
+                </tr>
+              ) : filtered.map(v => (
+                <tr key={v.id}>
+                  <td className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                        {(v.firstName || '?')[0].toUpperCase()}
                       </div>
-                    </td>
-                    <td className="secondary hidden md:table-cell">{c.email || '—'}</td>
-                    <td>
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusBadgeClass(status)}`}>
-                        {status}
-                      </span>
-                    </td>
-                    <td className="secondary right hidden md:table-cell">{hours}</td>
-                    <td className="secondary hidden lg:table-cell">{skills}</td>
-                    <td className="right">
-                      {window.VolunteerDashboard && (
-                        <button
-                          type="button"
-                          onClick={() => setShowFull(true)}
-                          className="text-xs text-violet-600 hover:text-violet-800 font-medium"
-                        >
-                          Full View
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+                      <div>
+                        <div className="text-primary-color">{`${v.firstName} ${v.lastName}`.trim() || 'Unnamed'}</div>
+                        {v.opportunityTitle && <div className="text-xs text-muted-color">{v.opportunityTitle}</div>}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="secondary hidden md:table-cell">{v.email || '—'}</td>
+                  <td className="secondary hidden md:table-cell">{v.phone || '—'}</td>
+                  <td>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusBadgeClass(v.status)}`}>
+                      {v.status}
+                    </span>
+                  </td>
+                  <td className="secondary">{v.source === 'application' ? 'Application' : 'Contact'}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map(c => {
-            const name = `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unnamed';
-            const initial = name[0]?.toUpperCase() || '?';
-            const vi = c.volunteerInfo || {};
-            const hours = vi.hoursLogged ?? vi.hours;
-            const status = vi.status || 'pending';
-            const skills = Array.isArray(vi.skills) ? vi.skills : (vi.skills ? [vi.skills] : []);
-            return (
-              <div key={c.id} className="hub-card">
+        /* Card view */
+        filtered.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="text-4xl mb-3">🤝</div>
+            <p className="font-medium mb-1 text-primary-color">No volunteers found</p>
+            <p className="text-sm text-muted-color">Try a different search or filter</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {filtered.map(v => (
+              <div key={v.id} className="hub-card">
                 <div className="flex items-center gap-3 mb-2">
-                  {c.donorProfile?.photoUrl
-                    ? <img src={c.donorProfile.photoUrl} alt={name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-                    : <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">{initial}</div>
-                  }
+                  <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                    {(v.firstName || '?')[0].toUpperCase()}
+                  </div>
                   <div className="min-w-0">
-                    <div className="font-semibold truncate text-primary-color">{name}</div>
-                    {c.email && <div className="text-xs truncate text-secondary-color">{c.email}</div>}
+                    <div className="font-semibold truncate text-primary-color">{`${v.firstName} ${v.lastName}`.trim() || 'Unnamed'}</div>
+                    {v.email && <div className="text-xs truncate text-secondary-color">{v.email}</div>}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusBadgeClass(status)}`}>{status}</span>
-                  {hours != null && <span className="text-xs text-muted-color">{hours} hrs</span>}
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusBadgeClass(v.status)}`}>{v.status}</span>
+                  <span className="text-xs text-muted-color">{v.source === 'application' ? 'Application' : 'Contact'}</span>
                 </div>
-                {skills.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {skills.slice(0, 3).map((s, i) => (
-                      <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">{s}</span>
-                    ))}
-                    {skills.length > 3 && <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs">+{skills.length - 3}</span>}
-                  </div>
-                )}
+                {v.opportunityTitle && <div className="text-xs text-muted-color mt-1">📋 {v.opportunityTitle}</div>}
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )
       )}
     </div>
   );
