@@ -27,7 +27,7 @@ function SceneBuilder({ productionId: propId }) {
   // falling back to the app-level role. Computed each render so URL changes are reflected.
   const currentRole = (() => {
     const rawAppRole = localStorage.getItem('showsuite_user_role') || 'admin';
-    const SUPER_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin'];
+    const SUPER_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin', 'board_member', 'accounting_manager'];
 
     if (SUPER_ROLES.includes(rawAppRole)) {
       return window.USER_ROLES?.find(r => r.id === 'admin') ||

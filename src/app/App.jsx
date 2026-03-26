@@ -260,7 +260,7 @@ function App() {
     }
 
     const role = localStorage.getItem('showsuite_user_role') || 'admin';
-    const SUPER_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin'];
+    const SUPER_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin', 'board_member', 'accounting_manager'];
     console.log('🚀 App mounted | role:', role, '| path:', location.pathname);
     if (location.pathname === '/' || location.pathname === '') {
       if (SUPER_ROLES.includes(role)) {
@@ -327,7 +327,7 @@ function App() {
     localStorage.setItem('showsuite_user_role', newRole);
 
     // Super admin roles clear any staff-scoped contact association
-    const SUPER_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin'];
+    const SUPER_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin', 'board_member', 'accounting_manager'];
     if (SUPER_ROLES.includes(newRole)) {
       setStaffContactId('');
       localStorage.removeItem('showsuite_staff_contact_id');
