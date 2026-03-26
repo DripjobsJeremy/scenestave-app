@@ -686,7 +686,7 @@ function SceneBuilder({ productionId: propId }) {
                     )
                   ),
                   (() => {
-                    const castCharacters = Object.keys(production?.casting || {});
+                    const castCharacters = (production?.characters || []).map(c => c.name).filter(Boolean);
                     const sceneCharacters = scene.characters || [];
                     const available = castCharacters.filter(c => !sceneCharacters.includes(c));
                     if (castCharacters.length > 0) {
