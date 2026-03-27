@@ -851,6 +851,9 @@ function SceneBuilder({ productionId: propId }) {
                             if (!val) return;
                             if (val === '__full_company__') {
                               handleUpdateScene(actIndex, sceneIndex, 'characters', ['Full Company']);
+                              handleUpdateScene(actIndex, sceneIndex, 'fullCompany', true);
+                              handleUpdateScene(actIndex, sceneIndex, 'musicalCharacters', [...castCharacters]);
+                              handleUpdateScene(actIndex, sceneIndex, 'artist', 'Full Company');
                             } else {
                               const unique = Array.from(new Set([...(scene.characters || []), val]));
                               handleUpdateScene(actIndex, sceneIndex, 'characters', unique);
