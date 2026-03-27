@@ -2,6 +2,96 @@ const { useState, useEffect } = React;
 const { Link, useParams } = window.ReactRouterDOM || {};
 
 // Global SceneBuilder component - uses React Router useParams for production ID
+const CUSTOM_VALUES_KEY = 'scenestave_custom_field_values';
+
+const getCustomValues = (field) => {
+  try {
+    const all = JSON.parse(localStorage.getItem(CUSTOM_VALUES_KEY) || '{}');
+    return all[field] || [];
+  } catch { return []; }
+};
+
+const saveCustomValue = (field, value) => {
+  try {
+    const all = JSON.parse(localStorage.getItem(CUSTOM_VALUES_KEY) || '{}');
+    const existing = all[field] || [];
+    if (!existing.includes(value)) {
+      all[field] = [...existing, value];
+      localStorage.setItem(CUSTOM_VALUES_KEY, JSON.stringify(all));
+    }
+  } catch {}
+};
+
+const SmartDropdown = ({ field, value, defaultOptions, onChange, placeholder }) => {
+  const [showCustomInput, setShowCustomInput] = React.useState(false);
+  const [customText, setCustomText] = React.useState('');
+  const [customOptions, setCustomOptions] = React.useState(() => getCustomValues(field));
+  const allOptions = [...defaultOptions, ...customOptions.filter(c => !defaultOptions.includes(c))];
+  if (showCustomInput) {
+    return React.createElement(
+      'div',
+      { className: 'flex gap-2' },
+      React.createElement('input', {
+        autoFocus: true,
+        type: 'text',
+        value: customText,
+        onChange: (e) => setCustomText(e.target.value),
+        onKeyDown: (e) => {
+          if (e.key === 'Enter') {
+            const val = customText.trim();
+            if (val) {
+              saveCustomValue(field, val);
+              setCustomOptions(getCustomValues(field));
+              onChange(val);
+            }
+            setShowCustomInput(false);
+            setCustomText('');
+          }
+          if (e.key === 'Escape') {
+            setShowCustomInput(false);
+            setCustomText('');
+          }
+        },
+        placeholder: 'Type and press Enter...',
+        className: 'flex-1 px-3 py-2 rounded-lg text-sm',
+        style: { backgroundColor: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', border: '1px solid var(--color-primary)' }
+      }),
+      React.createElement(
+        'button',
+        {
+          type: 'button',
+          onClick: () => { setShowCustomInput(false); setCustomText(''); },
+          className: 'px-3 py-2 rounded-lg text-sm',
+          style: { backgroundColor: 'var(--color-bg-elevated)', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }
+        },
+        '✕'
+      )
+    );
+  }
+  return React.createElement(
+    'select',
+    {
+      value: value || '',
+      onChange: (e) => {
+        if (e.target.value === '__custom__') {
+          setShowCustomInput(true);
+        } else {
+          onChange(e.target.value);
+        }
+      },
+      className: 'w-full px-3 py-2 rounded-lg text-sm',
+      style: {
+        backgroundColor: 'var(--color-bg-elevated)',
+        color: value ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+        border: '1px solid var(--color-border)'
+      }
+    },
+    React.createElement('option', { value: '' }, placeholder),
+    allOptions.map(opt => React.createElement('option', { key: opt, value: opt }, opt)),
+    React.createElement('option', { value: '__custom__' }, '+ Add custom...')
+  );
+};
+
 function SceneBuilder({ productionId: propId }) {
   const [production, setProduction] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -1197,103 +1287,6 @@ function SceneBuilder({ productionId: propId }) {
         )
       )
     : null;
-
-  // ── SmartDropdown helpers ──────────────────────────────────────────────────
-  const CUSTOM_VALUES_KEY = 'scenestave_custom_field_values';
-  const getCustomValues = (field) => {
-    try {
-      const all = JSON.parse(localStorage.getItem(CUSTOM_VALUES_KEY) || '{}');
-      return all[field] || [];
-    } catch { return []; }
-  };
-  const saveCustomValue = (field, value) => {
-    try {
-      const all = JSON.parse(localStorage.getItem(CUSTOM_VALUES_KEY) || '{}');
-      const existing = all[field] || [];
-      if (!existing.includes(value)) {
-        all[field] = [...existing, value];
-        localStorage.setItem(CUSTOM_VALUES_KEY, JSON.stringify(all));
-      }
-    } catch {}
-  };
-  const TIME_OF_DAY_OPTIONS = [
-    'Dawn', 'Morning', 'Midday', 'Afternoon', 'Dusk',
-    'Evening', 'Night', 'Midnight', 'Pre-show', 'Intermission', 'Post-show'
-  ];
-  const LIGHTING_MOOD_OPTIONS = [
-    'Warm', 'Cool', 'Neutral', 'Bright', 'Dim', 'Dark',
-    'Dramatic', 'Romantic', 'Mysterious', 'Tense', 'Joyful',
-    'Melancholic', 'Ethereal', 'Harsh', 'Soft', 'Spotlight'
-  ];
-  const SmartDropdown = ({ field, value, defaultOptions, onChange, placeholder }) => {
-    const [showCustomInput, setShowCustomInput] = React.useState(false);
-    const [customText, setCustomText] = React.useState('');
-    const [customOptions, setCustomOptions] = React.useState(() => getCustomValues(field));
-    const allOptions = [...defaultOptions, ...customOptions.filter(c => !defaultOptions.includes(c))];
-    if (showCustomInput) {
-      return React.createElement(
-        'div',
-        { className: 'flex gap-2' },
-        React.createElement('input', {
-          autoFocus: true,
-          type: 'text',
-          value: customText,
-          onChange: (e) => setCustomText(e.target.value),
-          onKeyDown: (e) => {
-            if (e.key === 'Enter') {
-              const val = customText.trim();
-              if (val) {
-                saveCustomValue(field, val);
-                setCustomOptions(getCustomValues(field));
-                onChange(val);
-              }
-              setShowCustomInput(false);
-              setCustomText('');
-            }
-            if (e.key === 'Escape') {
-              setShowCustomInput(false);
-              setCustomText('');
-            }
-          },
-          placeholder: 'Type and press Enter...',
-          className: 'flex-1 px-3 py-2 rounded-lg text-sm',
-          style: { backgroundColor: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', border: '1px solid var(--color-primary)' }
-        }),
-        React.createElement(
-          'button',
-          {
-            type: 'button',
-            onClick: () => { setShowCustomInput(false); setCustomText(''); },
-            className: 'px-3 py-2 rounded-lg text-sm',
-            style: { backgroundColor: 'var(--color-bg-elevated)', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }
-          },
-          '✕'
-        )
-      );
-    }
-    return React.createElement(
-      'select',
-      {
-        value: value || '',
-        onChange: (e) => {
-          if (e.target.value === '__custom__') {
-            setShowCustomInput(true);
-          } else {
-            onChange(e.target.value);
-          }
-        },
-        className: 'w-full px-3 py-2 rounded-lg text-sm',
-        style: {
-          backgroundColor: 'var(--color-bg-elevated)',
-          color: value ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-          border: '1px solid var(--color-border)'
-        }
-      },
-      React.createElement('option', { value: '' }, placeholder),
-      allOptions.map(opt => React.createElement('option', { key: opt, value: opt }, opt)),
-      React.createElement('option', { value: '__custom__' }, '+ Add custom...')
-    );
-  };
 
 
   return React.createElement(
