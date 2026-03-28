@@ -233,47 +233,60 @@ function SoundDepartmentView({ production, onUpdateScene }) {
                             { className: 'text-xs font-semibold uppercase tracking-wide mb-2', style: { color: 'var(--color-text-muted)' } },
                             '🎭 Performers'
                           ),
-                          scene.fullCompany
-                            ? React.createElement(
-                                'span',
-                                {
-                                  className: 'text-sm px-3 py-1 rounded-full',
-                                  style: { backgroundColor: 'var(--color-primary-surface)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }
-                                },
-                                '🎭 Full Company'
-                              )
-                            : (scene.musicalCharacters || []).length === 0
-                              ? React.createElement('p', { className: 'text-sm', style: { color: 'var(--color-text-muted)' } }, 'No performers assigned')
-                              : React.createElement(
-                                  'div',
-                                  { className: 'rounded-lg overflow-hidden', style: { border: '1px solid var(--color-border)' } },
-                                  React.createElement(
+                          (() => {
+                            const castCharacters = (localProduction?.characters || []).map(c => c.name).filter(Boolean);
+                            const displayPerformers = scene.fullCompany
+                              ? (scene.musicalCharacters?.length > 0 ? scene.musicalCharacters : castCharacters)
+                              : (scene.musicalCharacters || []);
+                            return React.createElement(
+                              React.Fragment,
+                              null,
+                              scene.fullCompany && React.createElement(
+                                'div',
+                                { className: 'mb-2' },
+                                React.createElement(
+                                  'span',
+                                  {
+                                    className: 'text-xs px-2 py-0.5 rounded-full',
+                                    style: { backgroundColor: 'var(--color-primary-surface)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }
+                                  },
+                                  '🎭 Full Company'
+                                )
+                              ),
+                              displayPerformers.length === 0
+                                ? React.createElement('p', { className: 'text-sm', style: { color: 'var(--color-text-muted)' } }, 'No performers assigned')
+                                : React.createElement(
                                     'div',
-                                    {
-                                      className: 'grid text-xs font-semibold uppercase tracking-wide px-3 py-2',
-                                      style: { gridTemplateColumns: '1fr 70px 90px 1fr', backgroundColor: 'var(--color-bg-elevated)', color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }
-                                    },
-                                    React.createElement('span', null, 'Character'),
-                                    React.createElement('span', null, 'Mic #'),
-                                    React.createElement('span', null, 'Level'),
-                                    React.createElement('span', null, 'Custom')
-                                  ),
-                                  (scene.musicalCharacters || []).map(char => {
-                                    const mic = (scene.micAssignments || {})[char] || {};
-                                    return React.createElement(
+                                    { className: 'rounded-lg overflow-hidden', style: { border: '1px solid var(--color-border)' } },
+                                    React.createElement(
                                       'div',
                                       {
-                                        key: char,
-                                        className: 'grid px-3 py-2 items-center gap-2 text-sm',
-                                        style: { gridTemplateColumns: '1fr 70px 90px 1fr', borderTop: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }
+                                        className: 'grid text-xs font-semibold uppercase tracking-wide px-3 py-2',
+                                        style: { gridTemplateColumns: '1fr 70px 90px 1fr', backgroundColor: 'var(--color-bg-elevated)', color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }
                                       },
-                                      React.createElement('span', null, char),
-                                      React.createElement('span', { style: { color: mic.micNumber ? 'var(--color-text-primary)' : 'var(--color-text-muted)' } }, mic.micNumber || '—'),
-                                      React.createElement('span', { style: { color: mic.level ? 'var(--color-text-primary)' : 'var(--color-text-muted)' } }, mic.level || '—'),
-                                      React.createElement('span', { style: { color: mic.custom ? 'var(--color-text-primary)' : 'var(--color-text-muted)' } }, mic.custom || '—')
-                                    );
-                                  })
-                                )
+                                      React.createElement('span', null, 'Character'),
+                                      React.createElement('span', null, 'Mic #'),
+                                      React.createElement('span', null, 'Level'),
+                                      React.createElement('span', null, 'Custom')
+                                    ),
+                                    displayPerformers.map(char => {
+                                      const mic = (scene.micAssignments || {})[char] || {};
+                                      return React.createElement(
+                                        'div',
+                                        {
+                                          key: char,
+                                          className: 'grid px-3 py-2 items-center gap-2 text-sm',
+                                          style: { gridTemplateColumns: '1fr 70px 90px 1fr', borderTop: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }
+                                        },
+                                        React.createElement('span', null, char),
+                                        React.createElement('span', { style: { color: mic.micNumber ? 'var(--color-text-primary)' : 'var(--color-text-muted)' } }, mic.micNumber || '—'),
+                                        React.createElement('span', { style: { color: mic.level ? 'var(--color-text-primary)' : 'var(--color-text-muted)' } }, mic.level || '—'),
+                                        React.createElement('span', { style: { color: mic.custom ? 'var(--color-text-primary)' : 'var(--color-text-muted)' } }, mic.custom || '—')
+                                      );
+                                    })
+                                  )
+                            );
+                          })()
                         )
                       : null
                   )
