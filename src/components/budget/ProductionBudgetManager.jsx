@@ -41,6 +41,23 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
         setBudget(updated);
     };
 
+    const handleAutoAllocate = () => {
+        const total = budget.totalBudget || 0;
+        if (!total) return;
+        const deptIds = DEPARTMENTS.map(d => d.id);
+        const perDept = parseFloat((total / deptIds.length).toFixed(2));
+        const remainder = parseFloat((total - perDept * (deptIds.length - 1)).toFixed(2));
+        deptIds.forEach((deptId, idx) => {
+            window.budgetService.updateDepartmentBudget(production.id, deptId, {
+                allocated: idx === deptIds.length - 1 ? remainder : perDept
+            });
+        });
+        loadBudget();
+        if (window.showToast) {
+            window.showToast(`⚡ Budget split evenly: $${perDept.toFixed(2)} per department`, 'success');
+        }
+    };
+
     const handleSyncDepartmentCosts = () => {
         const updated = window.budgetService.syncDepartmentCosts(production.id);
         setBudget(updated);
@@ -163,6 +180,7 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
                             canEditBudget={canEditBudget}
                             onUpdateAllocation={handleUpdateDepartmentAllocation}
                             onRefresh={loadBudget}
+                            onAutoAllocate={handleAutoAllocate}
                         />
                     )}
 
