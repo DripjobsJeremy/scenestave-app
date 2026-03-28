@@ -183,6 +183,88 @@ function SuperAdminDashboard({ userRole = 'admin' }) {
         </div>
       </div>
 
+      {/* Client Organizations — only when Venue Operator Mode is enabled */}
+      {(() => {
+        let org = {};
+        try { org = JSON.parse(localStorage.getItem('showsuite_organization') || '{}'); } catch {}
+        if (!org.managesClientOrgs) return null;
+        const clientOrgs = org.clientOrganizations || [];
+        if (clientOrgs.length === 0) return (
+          <div className="rounded-lg border border-gray-200 bg-white p-6 text-center shadow-sm">
+            <div className="text-3xl mb-2">🏛️</div>
+            <p className="font-medium text-gray-900">No client organizations yet</p>
+            <p className="text-sm mt-1 mb-3 text-gray-500">
+              Add client organizations in Settings → Organization Profile → Clients
+            </p>
+            <button
+              type="button"
+              onClick={() => { window.location.hash = '#/settings'; }}
+              className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              Add Client Organization
+            </button>
+          </div>
+        );
+        return (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">🏛️ Client Organizations</h2>
+                <p className="text-sm text-gray-500">
+                  {clientOrgs.length} client organization{clientOrgs.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { window.location.hash = '#/settings'; }}
+                className="text-sm px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Manage →
+              </button>
+            </div>
+            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+              {clientOrgs.map(org => {
+                const clientProds = productions.filter(p => p.clientOrgId === org.id || p.clientOrg === org.name);
+                return (
+                  <div
+                    key={org.id}
+                    className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md hover:border-violet-300 transition-all cursor-pointer"
+                    onClick={() => { window.location.hash = '#/settings'; }}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-900 truncate">{org.name}</div>
+                        {org.contactName && (
+                          <div className="text-xs text-gray-500 mt-0.5">👤 {org.contactName}</div>
+                        )}
+                      </div>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ml-2 flex-shrink-0 font-medium ${
+                        org.isActive !== false
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        {org.isActive !== false ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                    {org.email && (
+                      <div className="text-xs text-gray-500 mb-1">✉️ {org.email}</div>
+                    )}
+                    {org.phone && (
+                      <div className="text-xs text-gray-500 mb-1">📞 {org.phone}</div>
+                    )}
+                    {clientProds.length > 0 && (
+                      <div className="text-xs text-gray-400 mt-2 pt-2 border-t border-gray-100">
+                        🎭 {clientProds.length} production{clientProds.length !== 1 ? 's' : ''}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Upcoming Events + Recent Donations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upcoming Events */}
