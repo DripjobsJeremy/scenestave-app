@@ -540,7 +540,7 @@
             activeView === 'budgets' && React.createElement(
               'div', { className: 'grid grid-cols-1 lg:grid-cols-3 gap-6' },
               React.createElement('div', { className: 'lg:col-span-2' },
-                global.ProductionBudgetsFinancialView && React.createElement(global.ProductionBudgetsFinancialView, { userRole: user?.role })
+                global.ProductionBudgetsFinancialView && React.createElement(global.ProductionBudgetsFinancialView, { userRole: currentUser?.role })
               ),
               React.createElement('div', { className: 'lg:col-span-1' },
                 global.RestrictedFundsWidget && React.createElement(global.RestrictedFundsWidget)
