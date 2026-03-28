@@ -493,7 +493,11 @@ function SceneBuilder({ productionId: propId }) {
     const contact = window.contactsService?.getContactById?.(staffId);
     if (!contact?.staffProfile?.productions) return null;
     const entries = contact.staffProfile.productions.filter(p => p.productionId === productionId);
-    const roles = entries.flatMap(e => Array.isArray(e.role) ? e.role : (e.role ? [e.role] : []));
+    const roles = entries.flatMap(e =>
+    Array.isArray(e.roles) ? e.roles :
+    Array.isArray(e.role)  ? e.role  :
+    (e.role ? [e.role] : [])
+  );
     return roles.length > 0 ? roles : null;
   };
 

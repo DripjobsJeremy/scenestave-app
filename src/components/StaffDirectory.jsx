@@ -23,7 +23,7 @@ function StaffProfileModal({ contact, productions, onClose, onSave }) {
   });
   const [saving, setSaving] = React.useState(false);
   const [showAssignForm, setShowAssignForm] = React.useState(false);
-  const [newAssign, setNewAssign] = React.useState({ productionId: '', role: '', status: 'invited' });
+  const [newAssign, setNewAssign] = React.useState({ productionId: '', roles: [], status: 'invited' });
   const [removeConfirm, setRemoveConfirm] = React.useState(null);
 
   const toggleRole = (role) =>
@@ -46,8 +46,8 @@ function StaffProfileModal({ contact, productions, onClose, onSave }) {
   };
 
   const handleAssign = () => {
-    if (!newAssign.productionId || !newAssign.role) {
-      window.showToast?.('Select a production and role', 'warning');
+    if (!newAssign.productionId || newAssign.roles.length === 0) {
+      window.showToast?.('Select a production and at least one role', 'warning');
       return;
     }
     if (profile.productions.some(p => p.productionId === newAssign.productionId)) {
@@ -57,7 +57,7 @@ function StaffProfileModal({ contact, productions, onClose, onSave }) {
     const assignment = { ...newAssign, invitedAt: new Date().toISOString(), acceptedAt: null };
     setProfile(p => ({ ...p, productions: [...p.productions, assignment] }));
     setShowAssignForm(false);
-    setNewAssign({ productionId: '', role: '', status: 'invited' });
+    setNewAssign({ productionId: '', roles: [], status: 'invited' });
   };
 
   const handleRemove = (productionId) => {
@@ -190,8 +190,13 @@ function StaffProfileModal({ contact, productions, onClose, onSave }) {
                 <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
                   <div>
                     <p className="text-sm font-medium text-gray-900">{getProdTitle(a.productionId)}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-gray-500">{a.role}</span>
+                    <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                      {(a.roles?.length > 0 ? a.roles : (a.role ? [a.role] : [])).map(role => (
+                        <span key={role} className="text-xs px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: 'var(--color-primary-surface)', color: 'var(--color-primary)' }}>
+                          {role}
+                        </span>
+                      ))}
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusBadge(a.status)}`}>
                         {a.status}
                       </span>
@@ -231,14 +236,31 @@ function StaffProfileModal({ contact, productions, onClose, onSave }) {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">Role on this production</label>
+                    <label className="block text-xs text-gray-600 mb-1">Roles on this production</label>
+                    {newAssign.roles.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-1">
+                        {newAssign.roles.map(role => (
+                          <span key={role} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-violet-100 text-violet-700">
+                            {role}
+                            <button type="button"
+                              onClick={() => setNewAssign(a => ({ ...a, roles: a.roles.filter(r => r !== role) }))}
+                              className="text-violet-500 hover:text-violet-800 leading-none">×</button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <select
-                      value={newAssign.role}
-                      onChange={e => setNewAssign(a => ({ ...a, role: e.target.value }))}
+                      value=""
+                      onChange={e => {
+                        if (e.target.value && !newAssign.roles.includes(e.target.value))
+                          setNewAssign(a => ({ ...a, roles: [...a.roles, e.target.value] }));
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                     >
-                      <option value="">Select role...</option>
-                      {STAFF_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                      <option value="">+ Add role...</option>
+                      {STAFF_ROLES.filter(r => !newAssign.roles.includes(r)).map(r => (
+                        <option key={r} value={r}>{r}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
