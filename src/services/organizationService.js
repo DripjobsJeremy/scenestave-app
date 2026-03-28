@@ -354,7 +354,7 @@ const OrganizationService = (() => {
 
     const DEFAULT_BTN_THEME = {
         primary:   { bg: '#7C3AED', hover: '#6D28D9', active: '#5B21B6', text: '#FFFFFF' },
-        secondary: { bg: '#374151', hover: '#4B5563', active: '#1F2937', text: '#FFFFFF' },
+        secondary: { bg: '#374151', hover: '#4B5563', active: '#1F2937', text: '#FFFFFF', border: '#6B7280' },
         success:   { bg: '#059669', hover: '#047857', active: '#065F46', text: '#FFFFFF' },
     };
 
@@ -365,11 +365,14 @@ const OrganizationService = (() => {
             const root = document.documentElement;
             ['primary', 'secondary', 'success'].forEach(type => {
                 const t = theme[type] || DEFAULT_BTN_THEME[type];
-                root.style.setProperty(`--btn-${type}-bg`,     t.bg);
-                root.style.setProperty(`--btn-${type}-hover`,  t.hover);
-                root.style.setProperty(`--btn-${type}-active`, t.active);
-                root.style.setProperty(`--btn-${type}-text`,   t.text);
+                root.style.setProperty(`--btn-${type}-bg`,        t.bg);
+                root.style.setProperty(`--btn-${type}-hover-bg`,  t.hover);
+                root.style.setProperty(`--btn-${type}-active-bg`, t.active);
+                root.style.setProperty(`--btn-${type}-text`,      t.text);
             });
+            // Secondary border
+            const sec = theme.secondary || DEFAULT_BTN_THEME.secondary;
+            root.style.setProperty('--btn-secondary-border', sec.border || DEFAULT_BTN_THEME.secondary.border);
         } catch (e) {
             console.warn('applyButtonTheme error:', e);
         }

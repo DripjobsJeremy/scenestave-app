@@ -61,20 +61,21 @@
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
 
   /* ── Button theming (overridden by applyButtonTheme) ── */
-  --btn-primary-bg:        #7C3AED;
-  --btn-primary-hover:     #6D28D9;
-  --btn-primary-active:    #5B21B6;
-  --btn-primary-text:      #FFFFFF;
+  --btn-primary-bg:         #7C3AED;
+  --btn-primary-hover-bg:   #6D28D9;
+  --btn-primary-active-bg:  #5B21B6;
+  --btn-primary-text:       #FFFFFF;
 
-  --btn-secondary-bg:      #374151;
-  --btn-secondary-hover:   #4B5563;
-  --btn-secondary-active:  #1F2937;
-  --btn-secondary-text:    #FFFFFF;
+  --btn-secondary-bg:         #374151;
+  --btn-secondary-hover-bg:   #4B5563;
+  --btn-secondary-active-bg:  #1F2937;
+  --btn-secondary-text:       #FFFFFF;
+  --btn-secondary-border:     #6B7280;
 
-  --btn-success-bg:        #059669;
-  --btn-success-hover:     #047857;
-  --btn-success-active:    #065F46;
-  --btn-success-text:      #FFFFFF;
+  --btn-success-bg:         #059669;
+  --btn-success-hover-bg:   #047857;
+  --btn-success-active-bg:  #065F46;
+  --btn-success-text:       #FFFFFF;
 }
 
 /* ── Light mode overrides ── */
@@ -127,39 +128,6 @@
 .border-theme         { border-color: var(--color-border); }
 .border-theme-subtle  { border-color: var(--color-border-subtle); }
 .border-primary-theme { border-color: var(--color-primary); }
-
-/* Buttons */
-.btn-primary {
-  background-color: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-.btn-primary:hover    { background-color: var(--btn-primary-hover); }
-.btn-primary:active   { background-color: var(--btn-primary-active); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.btn-secondary {
-  background-color: var(--btn-secondary-bg);
-  color: var(--btn-secondary-text);
-  border: 1px solid var(--color-border);
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-.btn-secondary:hover  { background-color: var(--btn-secondary-hover); }
-.btn-secondary:active { background-color: var(--btn-secondary-active); }
-
-.btn-success {
-  background-color: var(--btn-success-bg);
-  color: var(--btn-success-text);
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-.btn-success:hover    { background-color: var(--btn-success-hover); }
-.btn-success:active   { background-color: var(--btn-success-active); }
-.btn-success:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Cards */
 .card {
@@ -481,7 +449,6 @@ select:focus {
 .sidebar-gradient .hover\:bg-white:hover   { background-color: rgba(255, 255, 255, 0.2) !important; }
 
 /* Colored action buttons — always white text on colored bg */
-.btn-primary { color: #FFFFFF !important; }
 .bg-green-500, .bg-green-600, .bg-green-700 { color: #FFFFFF !important; }
 .bg-red-500,   .bg-red-600,   .bg-red-700   { color: #FFFFFF !important; }
 .bg-amber-500, .bg-amber-600, .bg-amber-700 { color: #FFFFFF !important; }
@@ -535,6 +502,53 @@ select:focus {
 .hub-badge { display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; background-color: var(--color-primary-surface); color: var(--color-primary); }
 .hub-avatar { width: 2rem; height: 2rem; border-radius: 9999px; object-fit: cover; flex-shrink: 0; }
 .hub-avatar-placeholder { width: 2rem; height: 2rem; border-radius: 9999px; background-color: var(--color-primary); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
+
+/* ── Button theme classes — must come after all Tailwind overrides ───────────
+   !important wins over the Tailwind color remapping blocks above.
+   ─────────────────────────────────────────────────────────────────────────── */
+.btn-primary {
+  background-color: var(--btn-primary-bg) !important;
+  color: var(--btn-primary-text) !important;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--btn-primary-hover-bg) !important;
+}
+.btn-primary:active:not(:disabled) {
+  background-color: var(--btn-primary-active-bg) !important;
+  transform: scale(0.98);
+}
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  background-color: var(--btn-secondary-bg) !important;
+  color: var(--btn-secondary-text) !important;
+  border: 1px solid var(--btn-secondary-border) !important;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--btn-secondary-hover-bg) !important;
+  color: var(--btn-secondary-text) !important;
+}
+.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-success {
+  background-color: var(--btn-success-bg) !important;
+  color: var(--btn-success-text) !important;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.btn-success:hover:not(:disabled) {
+  background-color: var(--btn-success-hover-bg) !important;
+}
+.btn-success:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-success:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Mobile utilities ──────────────────────────────────────────────────────── */
 .scrollbar-hide {
