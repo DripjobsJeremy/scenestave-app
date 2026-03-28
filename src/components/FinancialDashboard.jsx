@@ -538,13 +538,9 @@
             activeView === 'campaigns' && CampaignsViewComponent && React.createElement(CampaignsViewComponent, { data: renderData || dataForRender, dateRange: dateRange }),
             activeView === 'reports' && ReportsViewComponent && React.createElement(ReportsViewComponent, { data: renderData || dataForRender, dateRange: dateRange }),
             activeView === 'budgets' && React.createElement(
-              'div', { className: 'grid grid-cols-1 lg:grid-cols-3 gap-6' },
-              React.createElement('div', { className: 'lg:col-span-2' },
-                global.ProductionBudgetsFinancialView && React.createElement(global.ProductionBudgetsFinancialView, { userRole: currentUser?.role })
-              ),
-              React.createElement('div', { className: 'lg:col-span-1' },
-                global.RestrictedFundsWidget && React.createElement(global.RestrictedFundsWidget)
-              )
+              'div', { className: 'space-y-6' },
+              global.ProductionBudgetsFinancialView && React.createElement(global.ProductionBudgetsFinancialView, { userRole: currentUser?.role }),
+              global.RestrictedFundsWidget && React.createElement(global.RestrictedFundsWidget)
             )
           )
     );

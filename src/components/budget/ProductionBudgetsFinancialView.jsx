@@ -67,61 +67,63 @@ function ProductionBudgetsFinancialView({ userRole }) {
                 </div>
 
                 {budgetSummaries.length > 0 ? (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50">
+                    <div className="hub-table-wrap overflow-x-auto">
+                        <table className="hub-table budget-table">
+                            <thead>
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Production</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Budget</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Allocated</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Spent</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Revenue</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Net Income</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                    <th className="col-production">Production</th>
+                                    <th className="right whitespace-nowrap col-budget">Budget</th>
+                                    <th className="right whitespace-nowrap col-allocated">Allocated</th>
+                                    <th className="right whitespace-nowrap col-spent">Spent</th>
+                                    <th className="right whitespace-nowrap col-revenue">Revenue</th>
+                                    <th className="right whitespace-nowrap col-net-income">Net Income</th>
+                                    <th className="col-status">Status</th>
+                                    <th className="right col-actions">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody>
                                 {budgetSummaries.map(summary => (
-                                    <tr key={summary.productionId} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4">
-                                            <div className="font-semibold text-gray-900">{summary.productionTitle}</div>
+                                    <tr key={summary.productionId}>
+                                        <td className="col-production">
+                                            <span className="font-semibold">{summary.productionTitle}</span>
                                         </td>
-                                        <td className="px-6 py-4 text-gray-900">
+                                        <td className="right nowrap">
                                             ${summary.totalBudget.toLocaleString()}
                                         </td>
-                                        <td className="px-6 py-4 text-gray-900">
+                                        <td className="right nowrap">
                                             ${summary.totalAllocated.toLocaleString()}
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className={summary.isOverBudget ? 'text-red-600 font-semibold' : 'text-gray-900'}>
+                                        <td className="right nowrap">
+                                            <span className={summary.isOverBudget ? 'text-red-600 font-semibold' : ''}>
                                                 ${summary.totalSpent.toLocaleString()}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-green-600 font-semibold">
-                                            ${summary.totalRevenue.toLocaleString()}
+                                        <td className="right nowrap">
+                                            <span className="text-green-600 font-semibold">
+                                                ${summary.totalRevenue.toLocaleString()}
+                                            </span>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="right nowrap">
                                             <span className={`font-semibold ${summary.netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                                 ${summary.netIncome.toLocaleString()}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td>
                                             {summary.isOverBudget ? (
-                                                <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">
+                                                <span className="whitespace-nowrap px-2 py-1 bg-red-100 text-red-700 text-xs rounded">
                                                     Over Budget
                                                 </span>
                                             ) : summary.percentUsed > 90 ? (
-                                                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded">
+                                                <span className="whitespace-nowrap px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded">
                                                     Warning
                                                 </span>
                                             ) : (
-                                                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
+                                                <span className="whitespace-nowrap px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
                                                     On Track
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="right nowrap">
                                             <button
                                                 type="button"
                                                 onClick={() => {

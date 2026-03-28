@@ -492,6 +492,18 @@ select:focus {
 .hub-table td.center { text-align: center; }
 .hub-table tbody tr:hover { background-color: var(--color-bg-elevated); }
 
+/* ── Production Budgets table — column widths ────────────────────────────── */
+.hub-table.budget-table   { min-width: 760px; }
+.hub-table .col-production { min-width: 180px; width: 28%; }
+.hub-table .col-budget     { min-width: 90px; }
+.hub-table .col-allocated  { min-width: 90px; }
+.hub-table .col-spent      { min-width: 80px; }
+.hub-table .col-revenue    { min-width: 90px; }
+.hub-table .col-net-income { min-width: 100px; }
+.hub-table .col-status     { min-width: 90px; }
+.hub-table .col-actions    { min-width: 80px; }
+.hub-table td.nowrap       { white-space: nowrap; }
+
 /* ── Hub contact card ─────────────────────────────────────────────────────── */
 .hub-card { background-color: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: 0.5rem; padding: 1rem; transition: border-color 0.15s ease; }
 .hub-card:hover { border-color: var(--color-primary); }
