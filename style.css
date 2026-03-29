@@ -714,7 +714,8 @@ select:focus {
 /* ── CueSheetBuilder — Calling Screen (always dark) ───────────────────────── */
 .cs-screen {
   background: #0a0a0a;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   font-family: var(--font-sans, system-ui);
@@ -746,11 +747,6 @@ select:focus {
 
 .cs-scroll {
   flex: 1; padding: 12px 16px 8px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto;
-}
-/* GO button row — sibling of cs-scroll, NOT inside the brightness filter */
-.cs-go-row {
-  padding: 8px 16px; background: #0a0a0a; flex-shrink: 0;
-  display: flex; justify-content: flex-end;
 }
 
 /* Cue rows in calling view */

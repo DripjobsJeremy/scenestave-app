@@ -268,7 +268,7 @@ const CueSheetBuilder = ({ production, userRole }) => {
             </div>
           )}
 
-          {/* ── CURRENT CUE — info only (GO button is a sibling outside this filtered zone) */}
+          {/* ── CURRENT CUE — GO box ──────────────────────────────────────────── */}
           <div className="cs-current-cue" data-cue-type={current.type}>
             <div className="cs-current-badge-col">
               <DarkBadge type={current.type} number={current.number} />
@@ -277,6 +277,15 @@ const CueSheetBuilder = ({ production, userRole }) => {
               <div className="cs-current-desc">{current.description || 'No description'}</div>
               {current.notes && <div className="cs-current-notes">{current.notes}</div>}
             </div>
+            {/* GO button — cs-current-cue has no filter rule so this stays fully bright */}
+            <button
+              type="button"
+              onClick={onAdvance}
+              className="cs-go-btn"
+              aria-label="GO — advance to next cue"
+            >
+              GO
+            </button>
           </div>
 
           {/* Next cues */}
@@ -292,18 +301,6 @@ const CueSheetBuilder = ({ production, userRole }) => {
               </div>
             ) : null
           )}
-        </div>
-
-        {/* ── GO button — sibling of cs-scroll, outside filter: brightness() ────── */}
-        <div className="cs-go-row">
-          <button
-            type="button"
-            onClick={onAdvance}
-            className="cs-go-btn"
-            aria-label="GO — advance to next cue"
-          >
-            GO
-          </button>
         </div>
 
         {/* ── Footer ──────────────────────────────────────────────────────────── */}
