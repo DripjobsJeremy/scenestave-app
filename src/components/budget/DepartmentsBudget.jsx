@@ -8,6 +8,45 @@ function DepartmentsBudget({ budget, summary, departments, productionId, canEdit
         try { return JSON.parse(localStorage.getItem('scenestave_locked_depts') || '{}'); }
         catch { return {}; }
     });
+    const [showTemplates, setShowTemplates] = React.useState(false);
+
+    const ALLOCATION_TEMPLATES = [
+        {
+            id: 'even',
+            label: 'Evenly',
+            icon: '⚖',
+            description: 'Equal split across all departments',
+            allocations: null,
+        },
+        {
+            id: 'play',
+            label: 'Play (Low Tech)',
+            icon: '🎭',
+            description: 'Wardrobe-heavy, minimal lighting/sound',
+            allocations: { lighting: 10, sound: 8, wardrobe: 25, props: 15, set: 20, marketing: 12, venue: 5, cast: 3, crew: 2, other: 0 },
+        },
+        {
+            id: 'musical',
+            label: 'Musical (Balanced)',
+            icon: '🎶',
+            description: 'Balanced across all departments',
+            allocations: { lighting: 15, sound: 18, wardrobe: 20, props: 10, set: 15, marketing: 12, venue: 5, cast: 3, crew: 2, other: 0 },
+        },
+        {
+            id: 'tech',
+            label: 'Tech-Heavy Show',
+            icon: '💡',
+            description: 'Lighting and sound dominant',
+            allocations: { lighting: 28, sound: 25, wardrobe: 12, props: 8, set: 12, marketing: 8, venue: 4, cast: 2, crew: 1, other: 0 },
+        },
+        {
+            id: 'marketing_push',
+            label: 'Marketing-Heavy',
+            icon: '🎟',
+            description: 'Strong marketing push, lean production',
+            allocations: { lighting: 10, sound: 10, wardrobe: 12, props: 8, set: 10, marketing: 30, venue: 10, cast: 5, crew: 5, other: 0 },
+        },
+    ];
 
     React.useEffect(() => {
         localStorage.setItem('scenestave_alloc_mode', allocMode);
@@ -16,6 +55,13 @@ function DepartmentsBudget({ budget, summary, departments, productionId, canEdit
     React.useEffect(() => {
         localStorage.setItem('scenestave_locked_depts', JSON.stringify(lockedDepts));
     }, [lockedDepts]);
+
+    React.useEffect(() => {
+        if (!showTemplates) return;
+        const close = () => setShowTemplates(false);
+        document.addEventListener('mousedown', close);
+        return () => document.removeEventListener('mousedown', close);
+    }, [showTemplates]);
 
     const handleAddItem = (department, itemData) => {
         window.budgetService.addBudgetItem(productionId, department, itemData);
@@ -60,6 +106,31 @@ function DepartmentsBudget({ budget, summary, departments, productionId, canEdit
         onUpdateAllocation(deptId, parseFloat(newAmt) || 0);
     };
 
+    const applyTemplate = (template) => {
+        if (!totalBudget || totalBudget === 0) {
+            if (window.showToast) window.showToast('Set a total budget first', 'warning');
+            return;
+        }
+        if (template.allocations === null) {
+            const unlockedDepts = departments.filter(d => !lockedDepts[d.id]);
+            const lockedTotal = departments
+                .filter(d => lockedDepts[d.id])
+                .reduce((sum, d) => sum + (deptAmounts[d.id] || 0), 0);
+            const available = totalBudget - lockedTotal;
+            const evenAmt = parseFloat((available / unlockedDepts.length).toFixed(2));
+            unlockedDepts.forEach(d => updateDeptAmount(d.id, evenAmt));
+        } else {
+            departments.forEach(d => {
+                if (!lockedDepts[d.id]) {
+                    const pct = template.allocations[d.id] || 0;
+                    updateDeptAmount(d.id, parseFloat(((pct / 100) * totalBudget).toFixed(2)));
+                }
+            });
+        }
+        setShowTemplates(false);
+        if (window.showToast) window.showToast(`Applied "${template.label}" template`, 'success');
+    };
+
     const handlePctChange = (deptId, newPct) => {
         const newAmt = (newPct / 100) * totalBudget;
         const lockedAllocated = departments
@@ -80,23 +151,39 @@ function DepartmentsBudget({ budget, summary, departments, productionId, canEdit
 
     return (
         <div className="space-y-6">
-            {/* Auto-Allocate */}
-            {canEditBudget && (budget.totalBudget || 0) > 0 && onAutoAllocate && (
+            {/* Smart Allocate */}
+            {canEditBudget && (
                 <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3">
                     <div>
-                        <span className="text-sm font-medium text-green-900">Auto-Allocate</span>
+                        <span className="text-sm font-medium text-green-900">Smart Allocate</span>
                         <span className="text-xs text-green-700 ml-2">
-                            Splits ${(budget.totalBudget || 0).toLocaleString()} evenly across all {departments.length} departments
+                            Apply a theatre production template to all unlocked departments
                         </span>
                     </div>
-                    <button
-                        type="button"
-                        onClick={onAutoAllocate}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
-                        title={`Split $${(budget.totalBudget || 0).toLocaleString()} evenly across all ${departments.length} departments`}
-                    >
-                        ⚡ Auto-Allocate Evenly
-                    </button>
+                    <div className="smart-alloc-wrap" onMouseDown={e => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            onClick={() => setShowTemplates(s => !s)}
+                            className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                        >
+                            ⚡ Auto Allocate ▾
+                        </button>
+                        {showTemplates && (
+                            <div className="smart-alloc-dropdown">
+                                {ALLOCATION_TEMPLATES.map(template => (
+                                    <button
+                                        key={template.id}
+                                        type="button"
+                                        onClick={() => applyTemplate(template)}
+                                        className="smart-alloc-item"
+                                    >
+                                        <div className="smart-alloc-item-label">{template.icon} {template.label}</div>
+                                        <div className="smart-alloc-item-desc">{template.description}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 

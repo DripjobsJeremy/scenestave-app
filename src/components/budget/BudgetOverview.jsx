@@ -1,6 +1,10 @@
 function BudgetOverview({ budget, summary, canEditBudget = true, onUpdateTotalBudget, onSyncCosts, royaltiesTotal = 0 }) {
     const [totalBudget, setTotalBudget] = React.useState(budget.totalBudget);
 
+    const totalPlannedSpend = summary.totalAllocated + royaltiesTotal;
+    const isOverPlannedBudget = budget.totalBudget > 0 && totalPlannedSpend > budget.totalBudget;
+    const overBy = totalPlannedSpend - budget.totalBudget;
+
     return (
         <div className="space-y-6">
             {/* Total Budget */}
@@ -74,7 +78,24 @@ function BudgetOverview({ budget, summary, canEditBudget = true, onUpdateTotalBu
                                 </span>
                             </div>
                         )}
+                        <div className="budget-planned-row">
+                            <span className="budget-planned-label">Total planned spend</span>
+                            <span className={`budget-planned-amount ${isOverPlannedBudget ? 'budget-planned-amount--over' : ''}`}>
+                                ${totalPlannedSpend.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </span>
+                        </div>
                     </div>
+
+                    {isOverPlannedBudget && (
+                        <div className="budget-over-warning">
+                            <div className="budget-over-warning-title">
+                                ⚠ Over budget by ${overBy.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </div>
+                            <div className="budget-over-warning-detail">
+                                Production budget: ${budget.totalBudget.toLocaleString('en-US', { minimumFractionDigits: 2 })} · Total planned spend: ${totalPlannedSpend.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Progress Bar */}
                     <div className="mt-4">
