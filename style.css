@@ -745,13 +745,14 @@ select:focus {
   padding: 8px 12px; border-radius: 6px; display: flex; gap: 10px;
   align-items: flex-start; background: #0d0d0d; border: 1px solid #1a1a1a;
 }
-.cs-cue-row--prev2 { opacity: 0.18; border-color: #161616; }
-.cs-cue-row--prev1 { opacity: 0.32; }
+.cs-cue-row--prev2 { opacity: 0.30; border-color: #1e1e1e; }
+.cs-cue-row--prev1 { opacity: 0.50; }
 .cs-cue-row--next1 { opacity: 0.90; border-color: #1c1c1c; }
 .cs-cue-row--next2 { opacity: 0.68; border-color: #1c1c1c; }
 .cs-cue-row--next3 { opacity: 0.46; border-color: #1c1c1c; }
 
-.cs-prev-desc { flex: 1; font-size: 12px; color: #333; text-decoration: line-through; }
+.cs-prev-desc { flex: 1; font-size: 12px; color: #666; text-decoration: line-through; }
+.cs-completed-divider { height: 1px; background: #1a1a1a; margin: 4px 0; }
 .cs-next-body { flex: 1; min-width: 0; }
 .cs-next-trigger { font-size: 11px; color: #383838; font-style: italic; margin-bottom: 2px; }
 .cs-next-desc   { font-size: 13px; color: #555; }

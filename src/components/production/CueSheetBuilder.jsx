@@ -182,6 +182,9 @@ const CueSheetBuilder = ({ production, userRole }) => {
             </div>
           )}
 
+          {/* Separator between completed and current */}
+          {(prev1 || prev2) && <div className="cs-completed-divider" />}
+
           {/* Standby bar */}
           {current.triggerLine && (
             <div className="cs-standby-bar">
