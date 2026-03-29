@@ -228,43 +228,38 @@ const ProductionsView = () => {
     React.createElement('p', { className: 'text-amber-600 text-sm' }, 'You have no productions assigned to this staff member yet. Add assignments in Contacts → Staff & Crew.')
   );
 
-  const renderCardActions = (production) => {
-    const editButton = React.createElement(
+  const renderCardActions = (production) => React.createElement(
+    'div',
+    { className: 'prod-card-actions' + (canEditBudget ? '' : ' prod-card-actions--2col'), onClick: e => e.stopPropagation() },
+    React.createElement(
+      'button',
+      {
+        type: 'button',
+        onClick: (e) => { e.stopPropagation(); setEditingProduction(production); setShowEditModal(true); },
+        className: 'prod-card-btn prod-card-btn--ghost',
+        title: 'Edit production title and dates',
+      },
+      '✏️ Details'
+    ),
+    React.createElement(
       Link,
       {
         to: '/productions/' + production.id,
         onClick: (e) => e.stopPropagation(),
-        className: 'flex-1 px-3 py-2 bg-violet-600 text-white text-sm rounded hover:bg-violet-700 block text-center'
+        className: 'prod-card-btn prod-card-btn--primary',
       },
-      'Edit Scenes'
-    );
-    const editDetailsButton = React.createElement(
+      '🎬 Scenes'
+    ),
+    canEditBudget ? React.createElement(
       'button',
       {
-        onClick: (e) => { e.stopPropagation(); setEditingProduction(production); setShowEditModal(true); },
-        className: 'px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded border border-gray-300',
-        title: 'Edit production title and dates'
-      },
-      '✏️ Details'
-    );
-    const budgetButton = React.createElement(
-      'button',
-      {
-        onClick: (e) => {
-          e.stopPropagation();
-          setBudgetProduction(production);
-          setShowBudgetManager(true);
-        },
-        className: 'px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm rounded transition-colors'
+        type: 'button',
+        onClick: (e) => { e.stopPropagation(); setBudgetProduction(production); setShowBudgetManager(true); },
+        className: 'prod-card-btn prod-card-btn--primary',
       },
       '💰 Budget'
-    );
-    return React.createElement(
-      'div',
-      { className: 'flex gap-2 mt-3' },
-      editDetailsButton, editButton, canEditBudget ? budgetButton : null
-    );
-  };
+    ) : null
+  );
 
   const renderPosterCard = (production) => {
     const isActive = production.id === activeProductionId;
@@ -276,21 +271,25 @@ const ProductionsView = () => {
         onClick: () => handleSetActive(production.id),
         className: 'prod-poster-card' + (isActive ? ' prod-poster-card--active' : ''),
       },
-      posterUrl
-        ? React.createElement('img', { src: posterUrl, alt: production.title, className: 'prod-poster-img' })
-        : React.createElement('div', { className: 'prod-poster-placeholder' }, '🎭'),
       React.createElement(
         'div',
-        { className: 'prod-poster-overlay' },
-        isActive && React.createElement('span', { className: 'prod-poster-active-badge' }, 'ACTIVE'),
-        React.createElement('h3', { className: 'prod-poster-title' }, production.title),
+        { className: 'prod-poster-image-wrap' },
+        posterUrl
+          ? React.createElement('img', { src: posterUrl, alt: production.title, className: 'prod-poster-img' })
+          : React.createElement('div', { className: 'prod-poster-placeholder' }, '🎭'),
         React.createElement(
-          'span',
-          { className: 'px-2 py-0.5 text-xs font-semibold rounded ' + getStatusColor(production.status) },
-          production.status
+          'div',
+          { className: 'prod-poster-overlay' },
+          isActive && React.createElement('span', { className: 'prod-poster-active-badge' }, 'ACTIVE'),
+          React.createElement('h3', { className: 'prod-poster-title' }, production.title),
+          React.createElement(
+            'span',
+            { className: 'px-2 py-0.5 text-xs font-semibold rounded ' + getStatusColor(production.status) },
+            production.status
+          )
         )
       ),
-      React.createElement('div', { className: 'prod-poster-actions' }, renderCardActions(production))
+      renderCardActions(production)
     );
   };
 
@@ -311,7 +310,7 @@ const ProductionsView = () => {
       {
         key: production.id,
         onClick: () => handleSetActive(production.id),
-        className: 'bg-white rounded-lg border-2 p-6 cursor-pointer transition-all hover:shadow-lg ' +
+        className: 'prod-thumb-card bg-white rounded-lg border-2 p-6 cursor-pointer transition-all hover:shadow-lg ' +
           (isActive ? 'border-violet-500 shadow-md' : 'border-gray-200 hover:border-gray-300'),
       },
       isActive && React.createElement(
