@@ -105,7 +105,8 @@ function StageManagerView({ production, onUpdateScene, onUpdateProduction }) {
     { className: 'flex gap-2 mb-6' },
     [
       { id: 'runsheet', label: '📄 Run Sheet', desc: 'Scene-by-scene overview' },
-      { id: 'checklists', label: '✅ Checklists', desc: 'Pre-show & intermission' }
+      { id: 'checklists', label: '✅ Checklists', desc: 'Pre-show & intermission' },
+      { id: 'cuesheet', label: '📋 Cue Sheet', desc: 'Cue-to-cue builder' }
     ].map(section =>
       React.createElement(
         'button',
@@ -399,7 +400,12 @@ function StageManagerView({ production, onUpdateScene, onUpdateProduction }) {
     'div',
     null,
     sectionTabs,
-    activeSection === 'runsheet' ? runSheetContent : checklistsContent
+    activeSection === 'runsheet' ? runSheetContent :
+    activeSection === 'checklists' ? checklistsContent :
+    (window.CueSheetBuilder
+      ? React.createElement(window.CueSheetBuilder, { production, userRole: 'stage_manager' })
+      : React.createElement('div', { className: 'text-center py-12 text-gray-400' }, 'Loading cue sheet...')
+    )
   );
 }
 
