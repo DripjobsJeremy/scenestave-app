@@ -76,8 +76,23 @@ const CueSheetBuilder = ({ production, userRole }) => {
 
   // ─── CALLING SCREEN ────────────────────────────────────────────────────────
 
-  const CallingScreen = ({ cues, currentIdx, onAdvance, onBack, onExit }) => {
+  const CallingScreen = ({ cues, currentIdx, onAdvance, onBack, onExit, onJumpTo }) => {
     const sorted = React.useMemo(() => [...cues].sort((a, b) => a.order - b.order), [cues]);
+
+    const sceneOptions = React.useMemo(() =>
+      (production.acts || []).flatMap(act =>
+        (act.scenes || []).map(scene => ({
+          label: `${act.name || act.title || 'Act'} — ${scene.sceneLabel || scene.title || 'Scene'}`,
+          sceneId: scene.id,
+        }))
+      ),
+      [production.acts]
+    );
+
+    const getFirstCueIdxForScene = (sceneId) => {
+      const idx = sorted.findIndex(c => c.sceneId === sceneId);
+      return idx >= 0 ? idx : null;
+    };
     const current = sorted[currentIdx];
     const prev2 = sorted[currentIdx - 2];
     const prev1 = sorted[currentIdx - 1];
@@ -244,10 +259,20 @@ const CueSheetBuilder = ({ production, userRole }) => {
           >
             ◄ PREV
           </button>
-          <div className="cs-hint">
-            Space · → to advance
-            <span className="cs-hint-sub">Esc to exit</span>
-          </div>
+          <select
+            title="Jump to scene"
+            value=""
+            onChange={e => {
+              const idx = getFirstCueIdxForScene(e.target.value);
+              if (idx !== null) onJumpTo(idx);
+            }}
+            className="cs-jump-select"
+          >
+            <option value="">⏭ Jump to scene...</option>
+            {sceneOptions.map(s => (
+              <option key={s.sceneId} value={s.sceneId}>{s.label}</option>
+            ))}
+          </select>
           <button
             type="button"
             onClick={onAdvance}
@@ -270,6 +295,7 @@ const CueSheetBuilder = ({ production, userRole }) => {
         onAdvance={handleAdvance}
         onBack={handleBack}
         onExit={handleExitCalling}
+        onJumpTo={(idx) => setCurrentCueIdx(idx)}
       />
     );
   }
@@ -279,6 +305,7 @@ const CueSheetBuilder = ({ production, userRole }) => {
   // Cue row — colors via data-cue-type, no inline styles
   const CueRow = ({ cue }) => {
     const typeConfig = getCueTypeConfig(cue.type);
+    const rowNeedsReview = cue.autoFromScene && (!cue.triggerLine || !cue.number);
     return (
       <div className="cue-row">
         <div className="cue-row-badge-col">
@@ -296,6 +323,9 @@ const CueSheetBuilder = ({ production, userRole }) => {
           <div className="cue-row-desc">
             {cue.description || <span className="cue-row-desc--empty">No description</span>}
           </div>
+          {rowNeedsReview && (
+            <div className="cue-needs-review">⚠ Needs review — add cue number and trigger line</div>
+          )}
           {cue.notes && <div className="cue-row-meta">📝 {cue.notes}</div>}
           {cue.autoFromScene && <div className="cue-row-meta">↗ Auto from Scene Builder</div>}
           {cue.status === 'completed' && <div className="cue-row-called">✓ Called</div>}
@@ -392,6 +422,10 @@ const CueSheetBuilder = ({ production, userRole }) => {
     );
   };
 
+  const needsReview = cueSheet.cues.filter(c => c.autoFromScene && (!c.triggerLine || !c.number)).length;
+  const unassigned = cueSheet.cues.filter(c => !c.sceneId).length;
+  const total = cueSheet.cues.length;
+
   return (
     <div className="bg-base min-h-full p-6">
 
@@ -402,19 +436,19 @@ const CueSheetBuilder = ({ production, userRole }) => {
             📋 Cue Sheet — {production.title ?? 'Untitled'}
           </h2>
           <p className="text-sm mt-1 text-muted-color">
-            {cueSheet.cues.length} cues · Build mode
+            {total} cues
+            {needsReview > 0 && (
+              <span className="cue-header-warn">· ⚠ {needsReview} need review</span>
+            )}
+            {unassigned > 0 && (
+              <span className="cue-header-muted">· {unassigned} unassigned</span>
+            )}
+            {needsReview === 0 && unassigned === 0 && total > 0 && (
+              <span className="cue-header-ready">· ✓ Ready to call</span>
+            )}
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap justify-end">
-          {cueSheet.cues.length > 0 && (
-            <button
-              type="button"
-              onClick={() => { setCallingMode(true); setCurrentCueIdx(0); }}
-              className="btn-call-show"
-            >
-              ▶ Call Show
-            </button>
-          )}
+        <div className="flex gap-2 flex-wrap justify-end items-center">
           <div className="view-toggle">
             <button type="button" className={`view-toggle-btn ${viewMode === 'scene' ? 'active' : ''}`} onClick={() => setViewMode('scene')}>
               By Scene
@@ -426,10 +460,22 @@ const CueSheetBuilder = ({ production, userRole }) => {
           {canEdit && (
             <>
               <button type="button" onClick={handleAutoGenerate} className="px-3 py-2 rounded-lg text-sm btn-secondary">
-                ↗ Import from Scene Builder
+                ↗ Import
               </button>
               <button type="button" onClick={() => setShowAddForm(true)} className="px-3 py-2 rounded-lg text-sm btn-primary">
                 + Add Cue
+              </button>
+            </>
+          )}
+          {cueSheet.cues.length > 0 && (
+            <>
+              <div className="cue-call-divider" />
+              <button
+                type="button"
+                onClick={() => { setCallingMode(true); setCurrentCueIdx(0); }}
+                className="btn-call-show"
+              >
+                ▶ Call Show
               </button>
             </>
           )}
@@ -495,18 +541,19 @@ const CueSheetBuilder = ({ production, userRole }) => {
       {cueSheet.cues.length === 0 && (
         <div className="text-center py-16">
           <div className="text-5xl mb-4">📋</div>
-          <p className="text-lg font-semibold mb-2 cue-empty-text">No cues yet</p>
+          <p className="text-lg font-semibold mb-2 cue-empty-text">Build your cue sheet</p>
           <p className="text-sm mb-6 cue-empty-sub">
-            Import cues from Scene Builder to get started, or add cues manually
+            Import lighting, sound, and entrance cues automatically from Scene Builder — then add fly, deck, and spot cues manually.
           </p>
           {canEdit && (
-            <div className="flex gap-3 justify-center">
-              <button type="button" onClick={handleAutoGenerate} className="px-4 py-2 rounded-lg btn-secondary">
+            <div className="flex flex-col items-center gap-3">
+              <button type="button" onClick={handleAutoGenerate} className="px-5 py-2.5 rounded-lg btn-primary font-medium">
                 ↗ Import from Scene Builder
               </button>
-              <button type="button" onClick={() => setShowAddForm(true)} className="px-4 py-2 rounded-lg btn-primary">
-                + Add First Cue
+              <button type="button" onClick={() => setShowAddForm(true)} className="px-4 py-2 rounded-lg btn-secondary text-sm">
+                + Add Cue Manually
               </button>
+              <p className="text-xs cue-header-muted mt-1">You can edit all imported cues after importing</p>
             </div>
           )}
         </div>

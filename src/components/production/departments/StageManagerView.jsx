@@ -3,7 +3,7 @@ const { useState, useEffect } = React;
 // Stage Manager Department View - collaboration hub and show bible
 function StageManagerView({ production, onUpdateScene, onUpdateProduction }) {
   const [expandedActs, setExpandedActs] = useState({});
-  const [activeSection, setActiveSection] = useState('runsheet');
+  const [activeSection, setActiveSection] = useState('cuesheet');
   const [preShowChecklist, setPreShowChecklist] = useState(production?.smPreShowChecklist || []);
   const [intermissionChecklist, setIntermissionChecklist] = useState(production?.smIntermissionChecklist || []);
   const [newPreShowItem, setNewPreShowItem] = useState('');
@@ -104,9 +104,9 @@ function StageManagerView({ production, onUpdateScene, onUpdateProduction }) {
     'div',
     { className: 'flex gap-2 mb-6' },
     [
+      { id: 'cuesheet', label: '📋 Cue Sheet', desc: 'Cue-to-cue builder' },
       { id: 'runsheet', label: '📄 Run Sheet', desc: 'Scene-by-scene overview' },
-      { id: 'checklists', label: '✅ Checklists', desc: 'Pre-show & intermission' },
-      { id: 'cuesheet', label: '📋 Cue Sheet', desc: 'Cue-to-cue builder' }
+      { id: 'checklists', label: '✅ Checklists', desc: 'Pre-show & intermission' }
     ].map(section =>
       React.createElement(
         'button',

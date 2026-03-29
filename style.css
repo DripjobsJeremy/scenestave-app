@@ -582,8 +582,8 @@ select:focus {
 .btn-call-show {
   background: #065f46;
   color: #34d399;
-  border: 1px solid #34d399;
-  padding: 8px 16px;
+  border: 2px solid #34d399;
+  padding: 8px 20px;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 700;
@@ -593,6 +593,13 @@ select:focus {
   transition: background 0.15s;
 }
 .btn-call-show:hover { background: #047857; }
+
+/* Vertical divider before Call Show button */
+.cue-call-divider {
+  width: 1px; height: 24px;
+  background-color: var(--color-border);
+  margin: 0 4px; flex-shrink: 0;
+}
 
 /* Cue type badge — build mode (light themed) */
 .cue-type-badge {
@@ -800,8 +807,8 @@ select:focus {
 .cs-go-btn {
   flex-shrink: 0;
   background: #065f46; color: #34d399; border: 2px solid #34d399;
-  padding: 0 28px; border-radius: 8px; font-size: 18px; font-weight: 900;
-  cursor: pointer; letter-spacing: 2px; min-width: 80px; min-height: 64px;
+  padding: 14px 24px; border-radius: 8px; font-size: 16px; font-weight: 900;
+  cursor: pointer; letter-spacing: 2px; min-width: 88px; min-height: 64px;
   display: flex; align-items: center; justify-content: center;
 }
 .cs-go-btn:active { transform: scale(0.97); }
@@ -878,4 +885,26 @@ select:focus {
 .reset-dialog-cancel {
   width: 100%; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 0.875rem;
   color: var(--color-text-muted); background: none; border: none; cursor: pointer;
+}
+
+/* ── Cue Sheet build mode — completion summary spans ───────────────────────── */
+.cue-header-warn  { color: var(--color-warning, #d97706); margin-left: 8px; }
+.cue-header-ready { color: var(--color-success, #059669); margin-left: 8px; }
+.cue-header-muted { color: var(--color-text-muted); margin-left: 8px; }
+
+/* Needs-review badge on auto-generated cue rows */
+.cue-needs-review {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 4px; padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 500;
+  background-color: var(--color-warning-surface, #fef3c7);
+  color: var(--color-warning, #d97706);
+  border: 1px solid var(--color-warning, #d97706);
+}
+
+/* Jump-to-scene select in CallingScreen footer */
+.cs-jump-select {
+  background: #1a1a1a; color: #888; border: 1px solid #333;
+  padding: 6px 12px; border-radius: 6px; font-size: 12px;
+  cursor: pointer; max-width: 200px;
 }
