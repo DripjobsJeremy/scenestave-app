@@ -398,13 +398,17 @@ function StageManagerView({ production, onUpdateScene, onUpdateProduction }) {
 
   return React.createElement(
     'div',
-    null,
+    { className: 'sm-view-root' },
     sectionTabs,
-    activeSection === 'runsheet' ? runSheetContent :
-    activeSection === 'checklists' ? checklistsContent :
-    (window.CueSheetBuilder
-      ? React.createElement(window.CueSheetBuilder, { production, userRole: 'stage_manager' })
-      : React.createElement('div', { className: 'text-center py-12 text-gray-400' }, 'Loading cue sheet...')
+    React.createElement(
+      'div',
+      { className: 'sm-view-content' },
+      activeSection === 'runsheet' ? runSheetContent :
+      activeSection === 'checklists' ? checklistsContent :
+      (window.CueSheetBuilder
+        ? React.createElement(window.CueSheetBuilder, { production, userRole: 'stage_manager' })
+        : React.createElement('div', { className: 'text-center py-12 text-gray-400' }, 'Loading cue sheet...')
+      )
     )
   );
 }

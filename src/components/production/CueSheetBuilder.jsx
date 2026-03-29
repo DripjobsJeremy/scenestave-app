@@ -344,14 +344,16 @@ const CueSheetBuilder = ({ production, userRole }) => {
   // ─── CALLING MODE: early return ────────────────────────────────────────────
   if (callingMode) {
     return (
-      <CallingScreen
-        cues={cueSheet.cues}
-        currentIdx={currentCueIdx}
-        onAdvance={handleAdvance}
-        onBack={handleBack}
-        onExit={handleExitCalling}
-        onJumpTo={(idx) => setCurrentCueIdx(idx)}
-      />
+      <div className="cs-calling-wrapper">
+        <CallingScreen
+          cues={cueSheet.cues}
+          currentIdx={currentCueIdx}
+          onAdvance={handleAdvance}
+          onBack={handleBack}
+          onExit={handleExitCalling}
+          onJumpTo={(idx) => setCurrentCueIdx(idx)}
+        />
+      </div>
     );
   }
 
