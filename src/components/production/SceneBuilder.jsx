@@ -383,7 +383,13 @@ function SceneBuilder({ productionId: propId }) {
     scene.songTitle || scene.artist || scene.soundType
   );
 
-  const hasNotes = (scene) => !!(scene.notes || scene.stageNotes || scene.blocking || scene.directorNotes);
+  const hasDirectorNotes = (scene) => !!(
+    scene.blocking || scene.directorNotes || scene.notes ||
+    scene.rehearsal?.rehearsalNotes ||
+    (scene.sceneStatus && scene.sceneStatus !== 'not-started')
+  );
+
+  const hasSmNotes = (scene) => !!(scene.smNotes || scene.hazards);
 
   const allActsCollapsed = (production.acts || []).length > 0 &&
     (production.acts || []).every((_, i) => isActCollapsed(i));
@@ -758,17 +764,12 @@ function SceneBuilder({ productionId: propId }) {
                 // Completion summary
                 React.createElement(
                   'div',
-                  { className: 'flex gap-3 text-xs mb-3' },
-                  React.createElement(
-                    'span',
-                    { className: hasCueData(scene) ? 'text-green-600' : 'text-gray-400' },
-                    hasCueData(scene) ? '✓' : '○', ' Cues'
-                  ),
-                  React.createElement(
-                    'span',
-                    { className: hasNotes(scene) ? 'text-green-600' : 'text-gray-400' },
-                    hasNotes(scene) ? '✓' : '○', ' Notes'
-                  )
+                  { className: 'flex flex-wrap gap-1.5 mb-3' },
+                  React.createElement('span', { className: 'inline-flex items-center text-xs ' + (hasCueData(scene) ? 'text-green-600' : 'text-gray-400') }, hasCueData(scene) ? '✓' : '○', ' Cues'),
+                  React.createElement('span', { className: 'inline-flex items-center text-xs ' + (hasDirectorNotes(scene) ? 'text-green-600' : 'text-gray-400') }, hasDirectorNotes(scene) ? '✓' : '○', ' Director'),
+                  React.createElement('span', { className: 'inline-flex items-center text-xs ' + (hasSmNotes(scene) ? 'text-violet-600' : 'text-gray-400') }, hasSmNotes(scene) ? '✓' : '○', ' SM'),
+                  scene.sceneStatus === 'frozen' && React.createElement('span', { className: 'inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800' }, '❄️ Frozen'),
+                  scene.hazards && React.createElement('span', { className: 'inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800' }, '⚠️ Hazard')
                 ),
                 // Scene number and label row
                 React.createElement(
@@ -993,7 +994,7 @@ function SceneBuilder({ productionId: propId }) {
                     { className: 'text-gray-400 text-xs transition-transform duration-150 ' + (isSectionOpen(`${actIndex}-${sceneIndex}`, 'cues') ? 'rotate-90' : '') },
                     '▶'
                   ),
-                  React.createElement('span', { className: 'text-xs font-semibold tracking-wide text-gray-500 uppercase' }, 'Department Cues'),
+                  React.createElement('span', { className: 'text-xs font-semibold tracking-wide text-gray-500 uppercase' }, '🎭 Dept Cues'),
                   hasCueData(scene)
                     ? React.createElement('span', { className: 'w-2 h-2 rounded-full bg-green-500 ml-1 shrink-0', title: 'Has cue data' })
                     : React.createElement('span', { className: 'ml-auto text-gray-400 text-xs italic font-normal normal-case tracking-normal' }, 'not set')
@@ -1260,34 +1261,151 @@ function SceneBuilder({ productionId: propId }) {
                       : null
                   )
                 ),
-                // ── Production Notes (collapsible by default) ─────────────────────────────────
+                // ── Director's Notes (collapsible by default) ─────────────────────────────────
                 React.createElement(
                   'button',
                   {
                     type: 'button',
-                    onClick: () => toggleSection(`${actIndex}-${sceneIndex}`, 'notes'),
+                    onClick: () => toggleSection(`${actIndex}-${sceneIndex}`, 'director'),
                     className: 'flex items-center gap-2 w-full py-2 text-left select-none border-t border-gray-200 mt-1 hover:text-gray-700 transition-colors'
                   },
-                  React.createElement(
-                    'span',
-                    { className: 'text-gray-400 text-xs transition-transform duration-150 ' + (isSectionOpen(`${actIndex}-${sceneIndex}`, 'notes') ? 'rotate-90' : '') },
-                    '▶'
-                  ),
-                  React.createElement('span', { className: 'text-xs font-semibold tracking-wide text-gray-500 uppercase' }, 'Production Notes'),
-                  hasNotes(scene)
-                    ? React.createElement('span', { className: 'w-2 h-2 rounded-full bg-green-500 ml-1 shrink-0', title: 'Has notes' })
+                  React.createElement('span', { className: 'text-gray-400 text-xs transition-transform duration-150 ' + (isSectionOpen(`${actIndex}-${sceneIndex}`, 'director') ? 'rotate-90' : '') }, '▶'),
+                  React.createElement('span', { className: 'text-xs font-semibold tracking-wide text-gray-500 uppercase' }, '🎬 Director\'s Notes'),
+                  hasDirectorNotes(scene)
+                    ? React.createElement('span', { className: 'w-2 h-2 rounded-full bg-green-500 ml-1 shrink-0', title: 'Has director notes' })
                     : React.createElement('span', { className: 'ml-auto text-gray-400 text-xs italic font-normal normal-case tracking-normal' }, 'not set')
                 ),
-                isSectionOpen(`${actIndex}-${sceneIndex}`, 'notes') && React.createElement(
+                isSectionOpen(`${actIndex}-${sceneIndex}`, 'director') && React.createElement(
                   'div',
-                  { className: 'pb-2' },
-                  React.createElement('textarea', {
-                    value: scene.notes || '',
-                    onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'notes', e.target.value),
-                    className: 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors resize-y',
-                    rows: 3,
-                    placeholder: 'Enter blocking notes, stage directions, choreography cues, or other production notes…'
-                  })
+                  { className: 'pb-3 space-y-3' },
+                  React.createElement(
+                    'div', null,
+                    React.createElement('label', { className: 'block text-xs font-medium text-gray-600 mb-1' }, 'Scene Status'),
+                    React.createElement(
+                      'select',
+                      {
+                        value: scene.sceneStatus || 'not-started',
+                        onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'sceneStatus', e.target.value),
+                        className: 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors'
+                      },
+                      React.createElement('option', { value: 'not-started' }, 'Not Started'),
+                      React.createElement('option', { value: 'in-rehearsal' }, 'In Rehearsal'),
+                      React.createElement('option', { value: 'blocked' }, 'Blocked'),
+                      React.createElement('option', { value: 'stumble-through' }, 'Stumble Through'),
+                      React.createElement('option', { value: 'run-through' }, 'Run Through'),
+                      React.createElement('option', { value: 'frozen' }, '❄️ Frozen ✓')
+                    )
+                  ),
+                  React.createElement(
+                    'div', null,
+                    React.createElement('label', { className: 'block text-xs font-medium text-gray-600 mb-1' }, '📐 Blocking / Staging'),
+                    React.createElement('textarea', {
+                      value: scene.blocking || scene.notes || '',
+                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'blocking', e.target.value),
+                      className: 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors resize-y',
+                      rows: 3,
+                      placeholder: 'Blocking notes, staging directions, choreography cues...'
+                    })
+                  ),
+                  React.createElement(
+                    'div', null,
+                    React.createElement('label', { className: 'block text-xs font-medium text-gray-600 mb-1' }, '🎬 Director\'s Notes'),
+                    React.createElement('textarea', {
+                      value: scene.directorNotes || '',
+                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'directorNotes', e.target.value),
+                      className: 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors resize-y',
+                      rows: 3,
+                      placeholder: 'Creative intent, tone, concept notes for this scene...'
+                    })
+                  ),
+                  React.createElement(
+                    'div', null,
+                    React.createElement('label', { className: 'block text-xs font-medium text-gray-600 mb-1' }, '📋 Rehearsal Notes'),
+                    React.createElement('textarea', {
+                      value: scene.rehearsal?.rehearsalNotes || '',
+                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'rehearsal', { ...(scene.rehearsal || {}), rehearsalNotes: e.target.value }),
+                      className: 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors resize-y',
+                      rows: 3,
+                      placeholder: 'Notes from rehearsal, adjustments, reminders...'
+                    })
+                  ),
+                  React.createElement(
+                    'div', { className: 'grid grid-cols-2 gap-3' },
+                    React.createElement(
+                      'div', null,
+                      React.createElement('label', { className: 'block text-xs font-medium text-gray-600 mb-1' }, 'Priority'),
+                      React.createElement(
+                        'select',
+                        {
+                          value: scene.rehearsal?.priority || 'normal',
+                          onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'rehearsal', { ...(scene.rehearsal || {}), priority: e.target.value }),
+                          className: 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors'
+                        },
+                        React.createElement('option', { value: 'normal' }, 'Normal'),
+                        React.createElement('option', { value: 'high' }, 'High'),
+                        React.createElement('option', { value: 'critical' }, 'Critical')
+                      )
+                    ),
+                    React.createElement(
+                      'div', null,
+                      React.createElement('label', { className: 'block text-xs font-medium text-gray-600 mb-1' }, 'Complexity'),
+                      React.createElement(
+                        'select',
+                        {
+                          value: scene.rehearsal?.complexity || 'low',
+                          onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'rehearsal', { ...(scene.rehearsal || {}), complexity: e.target.value }),
+                          className: 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors'
+                        },
+                        React.createElement('option', { value: 'low' }, 'Low'),
+                        React.createElement('option', { value: 'medium' }, 'Medium'),
+                        React.createElement('option', { value: 'high' }, 'High')
+                      )
+                    )
+                  )
+                ),
+                // ── SM Notes (collapsible by default) ─────────────────────────────────────────
+                React.createElement(
+                  'button',
+                  {
+                    type: 'button',
+                    onClick: () => toggleSection(`${actIndex}-${sceneIndex}`, 'smNotes'),
+                    className: 'flex items-center gap-2 w-full py-2 text-left select-none border-t border-gray-200 mt-1 hover:text-gray-700 transition-colors'
+                  },
+                  React.createElement('span', { className: 'text-gray-400 text-xs transition-transform duration-150 ' + (isSectionOpen(`${actIndex}-${sceneIndex}`, 'smNotes') ? 'rotate-90' : '') }, '▶'),
+                  React.createElement('span', { className: 'text-xs font-semibold tracking-wide text-gray-500 uppercase' }, '📋 SM Notes'),
+                  hasSmNotes(scene)
+                    ? React.createElement(
+                        React.Fragment, null,
+                        React.createElement('span', { className: 'w-2 h-2 rounded-full bg-green-500 ml-1 shrink-0', title: 'Has SM notes' }),
+                        scene.hazards ? React.createElement('span', { className: 'w-2 h-2 rounded-full bg-amber-500 ml-1 shrink-0', title: 'Has hazards' }) : null
+                      )
+                    : React.createElement('span', { className: 'ml-auto text-gray-400 text-xs italic font-normal normal-case tracking-normal' }, 'not set')
+                ),
+                isSectionOpen(`${actIndex}-${sceneIndex}`, 'smNotes') && React.createElement(
+                  'div',
+                  { className: 'pb-3 space-y-3' },
+                  React.createElement(
+                    'div', null,
+                    React.createElement('label', { className: 'block text-xs font-medium text-gray-600 mb-1' }, 'SM Calling Note'),
+                    React.createElement('textarea', {
+                      value: scene.smNotes || '',
+                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'smNotes', e.target.value),
+                      className: 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors resize-y',
+                      rows: 2,
+                      placeholder: 'SM notes for calling this scene — standby cues, special calls...'
+                    })
+                  ),
+                  React.createElement(
+                    'div', null,
+                    React.createElement('label', { className: 'block text-xs font-medium text-gray-600 mb-1' }, '⚠️ Hazards / Warnings'),
+                    React.createElement('input', {
+                      type: 'text',
+                      value: scene.hazards || '',
+                      onChange: (e) => handleUpdateScene(actIndex, sceneIndex, 'hazards', e.target.value),
+                      className: 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors',
+                      placeholder: 'e.g., Pyro, flying, quick change, live flame...'
+                    })
+                  )
                 )
               )
             )
