@@ -121,10 +121,6 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
         setBudget(updated);
     };
 
-    if (!budget) return <div className="p-6">Loading budget...</div>;
-
-    const summary = window.budgetService.calculateBudgetSummary(production.id);
-
     const royaltyCalc = React.useMemo(() => {
         const r = royalties;
         const perfs = r.numberOfPerformances;
@@ -178,6 +174,10 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
 
         return { rows, subtotal, afterCap, afterDiscount, total, grossRev, seatsUsed };
     }, [royalties]);
+
+    if (!budget) return <div className="p-6">Loading budget...</div>;
+
+    const summary = window.budgetService.calculateBudgetSummary(production.id);
 
     const DEPARTMENTS = [
         { id: 'lighting', name: 'Lighting', icon: '💡' },
