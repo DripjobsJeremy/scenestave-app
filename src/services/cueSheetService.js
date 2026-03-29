@@ -71,10 +71,10 @@
           cues.push(newCue({
             type: 'lighting',
             number: scene.lighting?.cues || '',
-            sceneId: scene.id,
-            actId: act.id || act.name,
+            sceneId: scene.name,
+            actId: act.name,
             description: [scene.lighting?.mood, scene.lighting?.intent].filter(Boolean).join(' — '),
-            triggerLine: scene.sceneLabel || scene.title || 'Scene start',
+            triggerLine: scene.name || 'Scene start',
             order: order++,
             autoFromScene: true,
           }));
@@ -85,12 +85,12 @@
           cues.push(newCue({
             type: 'sound',
             number: '',
-            sceneId: scene.id,
-            actId: act.id || act.name,
+            sceneId: scene.name,
+            actId: act.name,
             description: isMusical
               ? `${scene.sound.title || 'Musical Number'} — ${scene.sound.fullCompany ? 'Full Company' : (scene.sound.performers || []).join(', ')}`
               : scene.sound.title || '',
-            triggerLine: scene.sceneLabel || scene.title || 'Scene start',
+            triggerLine: scene.name || 'Scene start',
             order: order++,
             autoFromScene: true,
           }));
@@ -100,8 +100,8 @@
           cues.push(newCue({
             type: 'entrance',
             number: '',
-            sceneId: scene.id,
-            actId: act.id || act.name,
+            sceneId: scene.name,
+            actId: act.name,
             description: `Standby: ${scene.characters.slice(0, 3).join(', ')}${scene.characters.length > 3 ? ` +${scene.characters.length - 3} more` : ''}`,
             triggerLine: scene.smNotes || '',
             order: order++,
@@ -113,8 +113,8 @@
           cues.push(newCue({
             type: 'other',
             number: 'HAZARD',
-            sceneId: scene.id,
-            actId: act.id || act.name,
+            sceneId: scene.name,
+            actId: act.name,
             description: `⚠️ ${scene.hazards}`,
             triggerLine: '',
             order: order++,

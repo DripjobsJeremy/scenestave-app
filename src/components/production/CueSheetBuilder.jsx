@@ -66,10 +66,10 @@ const CueSheetBuilder = ({ production, userRole }) => {
     return groups;
   }, [cueSheet.cues, filterType]);
 
-  const getSceneLabel = (sceneId) => {
-    if (!sceneId) return 'Unassigned Cues';
-    const scene = flatScenes.find(s => s.id === sceneId);
-    return scene ? `${scene._actName ? scene._actName + ' — ' : ''}${scene.sceneLabel || scene.title || 'Untitled Scene'}` : 'Unknown Scene';
+  const getSceneLabel = (sceneName) => {
+    if (!sceneName || sceneName === '__unassigned__') return 'Unassigned Cues';
+    const scene = flatScenes.find(s => s.name === sceneName);
+    return scene ? `${scene._actName ? scene._actName + ' — ' : ''}${scene.name}` : sceneName;
   };
 
   const getCueTypeConfig = (typeId) => CUE_TYPES.find(t => t.id === typeId) || CUE_TYPES[CUE_TYPES.length - 1];
@@ -82,8 +82,8 @@ const CueSheetBuilder = ({ production, userRole }) => {
     const sceneOptions = React.useMemo(() =>
       (production.acts || []).flatMap(act =>
         (act.scenes || []).map(scene => ({
-          label: `${act.name || act.title || 'Act'} — ${scene.sceneLabel || scene.title || 'Scene'}`,
-          sceneId: scene.id,
+          label: `${act.name || 'Act'} — ${scene.name || 'Scene'}`,
+          sceneKey: scene.name,
         }))
       ),
       [production.acts]
@@ -121,18 +121,16 @@ const CueSheetBuilder = ({ production, userRole }) => {
     const getCueLabel = (typeId) => getCueTypeConfig(typeId).label;
 
     // Scene label traverses production.acts[].scenes[]
-    const getSceneContext = (sceneId) => {
-      if (!sceneId) return null;
+    const getSceneContext = (sceneName) => {
+      if (!sceneName) return null;
       for (const act of (production.acts || [])) {
         for (const scene of (act.scenes || [])) {
-          if (scene.id === sceneId) {
-            const actName = act.name || act.title || '';
-            const sceneName = scene.sceneLabel || scene.title || 'Scene';
-            return actName ? `${actName} — ${sceneName}` : sceneName;
+          if (scene.name === sceneName) {
+            return act.name ? `${act.name} — ${scene.name}` : scene.name;
           }
         }
       }
-      return null;
+      return sceneName;
     };
 
     // Dark type badge — colors driven by CSS .cs-dark-badge[data-cue-type]
@@ -270,7 +268,7 @@ const CueSheetBuilder = ({ production, userRole }) => {
           >
             <option value="">⏭ Jump to scene...</option>
             {sceneOptions.map(s => (
-              <option key={s.sceneId} value={s.sceneId}>{s.label}</option>
+              <option key={s.sceneKey} value={s.sceneKey}>{s.label}</option>
             ))}
           </select>
           <button
@@ -393,8 +391,8 @@ const CueSheetBuilder = ({ production, userRole }) => {
               className="w-full px-3 py-2 rounded-lg text-sm bg-surface border-theme text-primary-color">
               <option value="">— Unassigned —</option>
               {flatScenes.map(s => (
-                <option key={s.id} value={s.id}>
-                  {s._actName ? s._actName + ' — ' : ''}{s.sceneLabel || s.title || 'Untitled'}
+                <option key={s.name} value={s.name}>
+                  {s._actName ? s._actName + ' — ' : ''}{s.name || 'Untitled'}
                 </option>
               ))}
             </select>
@@ -564,14 +562,14 @@ const CueSheetBuilder = ({ production, userRole }) => {
         <div className="space-y-6">
           {(production.acts || []).map(act =>
             (act.scenes || []).map(scene => {
-              const sceneCues = cueSheet.cues.filter(c => c.sceneId === scene.id &&
+              const sceneCues = cueSheet.cues.filter(c => c.sceneId === scene.name &&
                 (filterType === 'all' || c.type === filterType));
               if (sceneCues.length === 0) return null;
               return (
-                <div key={scene.id}>
+                <div key={scene.name}>
                   <div className="flex items-center gap-2 mb-2">
                     {act.name && <span className="cue-act-label">{act.name}</span>}
-                    <span className="cue-scene-title">{scene.sceneLabel || scene.title || 'Untitled Scene'}</span>
+                    <span className="cue-scene-title">{scene.name || 'Untitled Scene'}</span>
                     {scene.hazards && <span className="cue-scene-hazard">⚠️ {scene.hazards}</span>}
                     <span className="cue-scene-count">({sceneCues.length} cues)</span>
                   </div>
