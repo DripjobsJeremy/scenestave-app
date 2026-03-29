@@ -48,6 +48,7 @@ const ProductionsView = () => {
   const [showBudgetManager, setShowBudgetManager] = useState(false);
   const [budgetProduction, setBudgetProduction] = useState(null);
 
+  const [cardMode, setCardMode] = useState(() => localStorage.getItem('scenestave_prod_card_mode') || 'thumbnail');
   const [staffContactId, setStaffContactId] = useState(() => localStorage.getItem('showsuite_staff_contact_id') || '');
 
   const BUDGET_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin', 'board_member', 'accounting_manager'];
@@ -122,6 +123,36 @@ const ProductionsView = () => {
     }
   };
 
+  const getPosterUrl = (production) =>
+    (production.images || []).find(img => img.category === 'poster' || img.isPrimary)?.url || null;
+
+  const handleCardMode = (mode) => {
+    setCardMode(mode);
+    localStorage.setItem('scenestave_prod_card_mode', mode);
+  };
+
+  const cardModeToggle = React.createElement(
+    'div',
+    { className: 'prod-card-mode-toggle' },
+    [
+      { id: 'poster',    icon: '🖼️', title: 'Poster view' },
+      { id: 'thumbnail', icon: '⊞',  title: 'Card view' },
+      { id: 'list',      icon: '☰',  title: 'List view' },
+    ].map(({ id, icon, title }) =>
+      React.createElement(
+        'button',
+        {
+          key: id,
+          type: 'button',
+          className: 'prod-card-mode-btn' + (cardMode === id ? ' prod-card-mode-btn--active' : ''),
+          onClick: () => handleCardMode(id),
+          title,
+        },
+        icon
+      )
+    )
+  );
+
   const header = React.createElement(
     'div',
     { className: 'flex justify-between items-center mb-6' },
@@ -132,13 +163,18 @@ const ProductionsView = () => {
       React.createElement('p', { className: 'text-gray-600 mt-1' }, 'Manage your theatre productions')
     ),
     React.createElement(
-      'button',
-      {
-        onClick: () => setShowCreateModal(true),
-        className: 'px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 flex items-center gap-2'
-      },
-      React.createElement('span', { className: 'text-xl leading-none' }, '+'),
-      'Create New Production'
+      'div',
+      { className: 'flex items-center gap-3' },
+      cardModeToggle,
+      React.createElement(
+        'button',
+        {
+          onClick: () => setShowCreateModal(true),
+          className: 'px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 flex items-center gap-2'
+        },
+        React.createElement('span', { className: 'text-xl leading-none' }, '+'),
+        'Create New Production'
+      )
     )
   );
 
@@ -185,14 +221,6 @@ const ProductionsView = () => {
     )
   );
 
-  const descriptionStyle = {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    display: '-webkit-box',
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical'
-  };
-
   const noAssignmentState = React.createElement(
     'div',
     { className: 'text-center py-12 bg-amber-50 rounded-lg border-2 border-dashed border-amber-200' },
@@ -200,146 +228,157 @@ const ProductionsView = () => {
     React.createElement('p', { className: 'text-amber-600 text-sm' }, 'You have no productions assigned to this staff member yet. Add assignments in Contacts → Staff & Crew.')
   );
 
-  const grid = React.createElement(
-    'div',
-    { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' },
-    visibleProductions.map((production) => {
-      const isActive = production.id === activeProductionId;
+  const renderCardActions = (production) => {
+    const editButton = React.createElement(
+      Link,
+      {
+        to: '/productions/' + production.id,
+        onClick: (e) => e.stopPropagation(),
+        className: 'flex-1 px-3 py-2 bg-violet-600 text-white text-sm rounded hover:bg-violet-700 block text-center'
+      },
+      'Edit Scenes'
+    );
+    const editDetailsButton = React.createElement(
+      'button',
+      {
+        onClick: (e) => { e.stopPropagation(); setEditingProduction(production); setShowEditModal(true); },
+        className: 'px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded border border-gray-300',
+        title: 'Edit production title and dates'
+      },
+      '✏️ Details'
+    );
+    const budgetButton = React.createElement(
+      'button',
+      {
+        onClick: (e) => {
+          e.stopPropagation();
+          setBudgetProduction(production);
+          setShowBudgetManager(true);
+        },
+        className: 'px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm rounded transition-colors'
+      },
+      '💰 Budget'
+    );
+    return React.createElement(
+      'div',
+      { className: 'flex gap-2 mt-3' },
+      editDetailsButton, editButton, canEditBudget ? budgetButton : null
+    );
+  };
 
-      const title = React.createElement(
-        'h3',
-        { className: 'text-xl font-bold text-gray-900 mb-2' },
-        production.title
+  const renderPosterCard = (production) => {
+    const isActive = production.id === activeProductionId;
+    const posterUrl = getPosterUrl(production);
+    return React.createElement(
+      'div',
+      {
+        key: production.id,
+        onClick: () => handleSetActive(production.id),
+        className: 'prod-poster-card' + (isActive ? ' prod-poster-card--active' : ''),
+      },
+      posterUrl
+        ? React.createElement('img', { src: posterUrl, alt: production.title, className: 'prod-poster-img' })
+        : React.createElement('div', { className: 'prod-poster-placeholder' }, '🎭'),
+      React.createElement(
+        'div',
+        { className: 'prod-poster-overlay' },
+        isActive && React.createElement('span', { className: 'prod-poster-active-badge' }, 'ACTIVE'),
+        React.createElement('h3', { className: 'prod-poster-title' }, production.title),
+        React.createElement(
+          'span',
+          { className: 'px-2 py-0.5 text-xs font-semibold rounded ' + getStatusColor(production.status) },
+          production.status
+        )
+      ),
+      React.createElement('div', { className: 'prod-poster-actions' }, renderCardActions(production))
+    );
+  };
+
+  const renderThumbnailCard = (production) => {
+    const isActive = production.id === activeProductionId;
+    const posterUrl = getPosterUrl(production);
+    const staffDirector = (() => {
+      const staff = window.contactsService?.getProductionStaff?.(production.id) || [];
+      const d = staff.find(c =>
+        (c.staffProfile?.productions || []).some(p => p.productionId === production.id && p.role === 'Director')
       );
+      return d ? (`${d.firstName || ''} ${d.lastName || ''}`).trim() || d.email || null : null;
+    })();
+    const directorName = staffDirector || production.director;
 
-      const staffDirector = (() => {
-        const staff = window.contactsService?.getProductionStaff?.(production.id) || [];
-        const d = staff.find(c =>
-          (c.staffProfile?.productions || []).some(p =>
-            p.productionId === production.id && p.role === 'Director'
-          )
-        );
-        if (!d) return null;
-        return (`${d.firstName || ''} ${d.lastName || ''}`).trim() || d.email || null;
-      })();
-      const directorName = staffDirector || production.director;
-      const director = directorName
-        ? React.createElement(
-            'p',
-            { className: 'text-gray-600 mb-3' },
-            '🎬 ',
-            directorName
-          )
-        : null;
-
-      const dates = React.createElement(
+    return React.createElement(
+      'div',
+      {
+        key: production.id,
+        onClick: () => handleSetActive(production.id),
+        className: 'bg-white rounded-lg border-2 p-6 cursor-pointer transition-all hover:shadow-lg ' +
+          (isActive ? 'border-violet-500 shadow-md' : 'border-gray-200 hover:border-gray-300'),
+      },
+      isActive && React.createElement(
+        'div',
+        { className: 'mb-3' },
+        React.createElement('span', { className: 'inline-block px-2 py-1 bg-violet-100 text-violet-700 text-xs font-semibold rounded' }, 'ACTIVE PRODUCTION')
+      ),
+      posterUrl && React.createElement('img', { src: posterUrl, alt: production.title, className: 'prod-thumb-img' }),
+      React.createElement('h3', { className: 'text-xl font-bold text-gray-900 mb-2' }, production.title),
+      directorName && React.createElement('p', { className: 'text-gray-600 mb-3' }, '🎬 ', directorName),
+      React.createElement(
         'div',
         { className: 'text-sm text-gray-500 mb-3 space-y-1' },
         React.createElement('p', null, '🎭 Rehearsals: ', getRehearsalDatesDisplay(production)),
         React.createElement('p', null, '🎬 Shows: ', getPerformanceDatesDisplay(production))
-      );
-
-      const venue = production.venue
-        ? React.createElement(
-            'p',
-            { className: 'text-sm text-gray-600 mb-3' },
-            '📍 ',
-            production.venue
-          )
-        : null;
-
-      const description = production.description
-        ? React.createElement(
-            'p',
-            { className: 'text-sm text-gray-600 mb-4', style: descriptionStyle },
-            production.description
-          )
-        : null;
-
-      const footer = React.createElement(
+      ),
+      production.venue && React.createElement('p', { className: 'text-sm text-gray-600 mb-3' }, '📍 ', production.venue),
+      React.createElement(
         'div',
         { className: 'flex items-center justify-between pt-4 border-t border-gray-200' },
-        React.createElement(
-          'span',
-          { className: 'px-2 py-1 text-xs font-semibold rounded ' + getStatusColor(production.status) },
-          production.status
-        ),
+        React.createElement('span', { className: 'px-2 py-1 text-xs font-semibold rounded ' + getStatusColor(production.status) }, production.status),
         React.createElement('span', { className: 'text-xs text-gray-500' }, 'Updated ', getTimeAgo(production.updatedAt))
-      );
+      ),
+      renderCardActions(production)
+    );
+  };
 
-      const activeBadge = isActive
-        ? React.createElement(
-            'div',
-            { className: 'mb-3' },
-            React.createElement(
-              'span',
-              { className: 'inline-block px-2 py-1 bg-violet-100 text-violet-700 text-xs font-semibold rounded' },
-              'ACTIVE PRODUCTION'
-            )
-          )
-        : null;
-      
-      const editButton = React.createElement(
-        Link,
-        {
-          to: '/productions/' + production.id,
-          onClick: (e) => e.stopPropagation(),
-          className: 'flex-1 px-3 py-2 bg-violet-600 text-white text-sm rounded hover:bg-violet-700 block text-center'
-        },
-        'Edit Scenes'
-      );
-
-      const editDetailsButton = React.createElement(
-        'button',
-        {
-          onClick: (e) => {
-            e.stopPropagation();
-            setEditingProduction(production);
-            setShowEditModal(true);
-          },
-          className: 'px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded border border-gray-300',
-          title: 'Edit production title and dates'
-        },
-        '✏️ Details'
-      );
-
-      const budgetButton = React.createElement(
-        'button',
-        {
-          onClick: (e) => {
-            e.stopPropagation();
-            console.log('🔘 Budget button clicked for:', production.id, production.title);
-            console.log('🔘 window.ProductionBudgetManager:', window.ProductionBudgetManager);
-            setBudgetProduction(production);
-            console.log('🔘 Setting showBudgetManager: true');
-            setShowBudgetManager(true);
-            console.log('🔘 State should be updated');
-          },
-          className: 'px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm rounded transition-colors'
-        },
-        '💰 Budget'
-      );
-
-      return React.createElement(
+  const renderListRow = (production) => {
+    const isActive = production.id === activeProductionId;
+    const posterUrl = getPosterUrl(production);
+    return React.createElement(
+      'div',
+      {
+        key: production.id,
+        onClick: () => handleSetActive(production.id),
+        className: 'prod-list-row' + (isActive ? ' prod-list-row--active' : ''),
+      },
+      posterUrl
+        ? React.createElement('img', { src: posterUrl, alt: production.title, className: 'prod-list-thumb' })
+        : React.createElement('div', { className: 'prod-list-thumb-placeholder' }, '🎭'),
+      React.createElement(
         'div',
-        {
-          key: production.id,
-          onClick: () => handleSetActive(production.id),
-          className:
-            'bg-white rounded-lg border-2 p-6 cursor-pointer transition-all hover:shadow-lg ' +
-            (isActive ? 'border-violet-500 shadow-md' : 'border-gray-200 hover:border-gray-300')
-        },
-        activeBadge,
-        title,
-        director,
-        dates,
-        venue,
-        description,
-        footer,
-        React.createElement('div', { className: 'flex gap-2 mt-3' }, editDetailsButton, editButton, canEditBudget ? budgetButton : null)
-      );
-    })
-  );
+        { className: 'prod-list-info' },
+        React.createElement(
+          'div',
+          { className: 'prod-list-title-row' },
+          React.createElement('span', { className: 'prod-list-title' }, production.title),
+          isActive && React.createElement('span', { className: 'prod-list-active-badge' }, 'ACTIVE'),
+          React.createElement('span', { className: 'px-2 py-0.5 text-xs font-semibold rounded ' + getStatusColor(production.status) }, production.status)
+        ),
+        React.createElement(
+          'div',
+          { className: 'prod-list-meta' },
+          production.venue && React.createElement('span', null, '📍 ', production.venue, ' · '),
+          React.createElement('span', null, '🎬 ', getPerformanceDatesDisplay(production)),
+          React.createElement('span', { className: 'prod-list-updated' }, 'Updated ', getTimeAgo(production.updatedAt))
+        )
+      ),
+      React.createElement('div', { className: 'prod-list-actions', onClick: e => e.stopPropagation() }, renderCardActions(production))
+    );
+  };
+
+  const grid = cardMode === 'poster'
+    ? React.createElement('div', { className: 'prod-poster-grid' }, visibleProductions.map(renderPosterCard))
+    : cardMode === 'list'
+    ? React.createElement('div', { className: 'prod-list-grid' }, visibleProductions.map(renderListRow))
+    : React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' }, visibleProductions.map(renderThumbnailCard));
 
   const createModal = showCreateModal
     ? React.createElement(CreateProductionModal, {

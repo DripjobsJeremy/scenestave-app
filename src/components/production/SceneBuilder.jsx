@@ -484,7 +484,8 @@ function SceneBuilder({ productionId: propId }) {
     { id: 'props', label: 'Props', icon: '🎭' },
     { id: 'set', label: 'Set', icon: '🏗️' },
     { id: 'stage_manager', label: 'Stage Manager', icon: '📋' },
-    { id: 'calendar', label: 'Calendar', icon: '📅' }
+    { id: 'calendar', label: 'Calendar', icon: '📅' },
+    { id: 'images',   label: 'Images',   icon: '🖼️' }
   ];
 
   const handleTabChange = (newTab) => {
@@ -1541,7 +1542,19 @@ function SceneBuilder({ productionId: propId }) {
       production: production,
       onSave: saveProduction,
       userRole: currentRole.id
-    })
+    }),
+    effectiveTab === 'images' && (
+      typeof ProductionImagesManager !== 'undefined'
+        ? React.createElement(ProductionImagesManager, {
+            production: production,
+            onSave: saveProduction,
+          })
+        : React.createElement(
+            'div',
+            { className: 'p-8 text-center text-gray-500' },
+            'Image management coming soon...'
+          )
+    )
   );
 }
 
