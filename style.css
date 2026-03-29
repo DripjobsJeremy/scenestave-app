@@ -1180,6 +1180,8 @@ select:focus {
 .prod-images-add-btn { padding: 8px 16px; background: #7c3aed; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .prod-images-add-btn:hover { background: #6d28d9; }
 .prod-images-add-error { margin-top: 8px; font-size: 12px; color: #ef4444; }
+.prod-images-url-hint { margin-top: 6px; font-size: 11px; color: #6b7280; }
+.prod-images-url-hint--ok { color: #16a34a; }
 
 .prod-images-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .prod-images-chip { padding: 4px 12px; border: 1px solid #d1d5db; border-radius: 20px; background: #fff; font-size: 12px; color: #374151; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.12s, border-color 0.12s; }

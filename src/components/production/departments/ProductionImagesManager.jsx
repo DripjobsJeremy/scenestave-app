@@ -11,6 +11,27 @@ const IMAGE_CATEGORIES = [
   { id: 'misc',        label: 'Misc' },
 ];
 
+const normalizeImageUrl = (raw) => {
+  if (!raw) return raw;
+  const url = raw.trim();
+
+  // Dropbox: strip dl param then append raw=1
+  if (url.includes('dropbox.com')) {
+    const stripped = url.replace(/([?&])dl=\d(&|$)/, (_, pre, post) => post ? pre : '').replace(/[?&]$/, '');
+    return stripped + (stripped.includes('?') ? '&raw=1' : '?raw=1');
+  }
+
+  // Google Drive: /file/d/ID/view  →  uc?export=view&id=ID
+  const driveFile = url.match(/drive\.google\.com\/file\/d\/([^/?#]+)/);
+  if (driveFile) return `https://drive.google.com/uc?export=view&id=${driveFile[1]}`;
+
+  // Google Drive: open?id=ID  →  uc?export=view&id=ID
+  const driveOpen = url.match(/drive\.google\.com\/open\?id=([^&]+)/);
+  if (driveOpen) return `https://drive.google.com/uc?export=view&id=${driveOpen[1]}`;
+
+  return url;
+};
+
 function ProductionImagesManager({ production, onSave }) {
   const [images, setImages] = React.useState(() => production.images || []);
   const [filterCat, setFilterCat] = React.useState('all');
@@ -31,10 +52,11 @@ function ProductionImagesManager({ production, onSave }) {
   };
 
   const handleAdd = () => {
-    const url = urlInput.trim();
-    if (!url) { setAddError('Please enter an image URL.'); return; }
-    try { new URL(url); } catch (_) { setAddError('Please enter a valid URL (must start with https://).'); return; }
+    const raw = urlInput.trim();
+    if (!raw) { setAddError('Please enter an image URL.'); return; }
+    try { new URL(raw); } catch (_) { setAddError('Please enter a valid URL (must start with https://).'); return; }
     setAddError('');
+    const url = normalizeImageUrl(raw);
     const newImg = {
       id: Date.now().toString(),
       url,
@@ -77,7 +99,7 @@ function ProductionImagesManager({ production, onSave }) {
           <input
             type="url"
             className="prod-images-url-input"
-            placeholder="https://example.com/image.jpg"
+            placeholder="https://example.com/image.jpg or a Dropbox / Google Drive share link"
             value={urlInput}
             onChange={e => setUrlInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
@@ -108,6 +130,15 @@ function ProductionImagesManager({ production, onSave }) {
           </button>
         </div>
         {addError && <p className="prod-images-add-error">{addError}</p>}
+        {(() => {
+          const isCloud = urlInput.includes('dropbox.com') || urlInput.includes('drive.google.com');
+          if (!isCloud) return null;
+          const converted = normalizeImageUrl(urlInput);
+          const changed = converted !== urlInput.trim();
+          return changed
+            ? <p className="prod-images-url-hint prod-images-url-hint--ok">✓ URL will be auto-converted for direct image display</p>
+            : <p className="prod-images-url-hint">Detected cloud link — converting to direct image URL…</p>;
+        })()}
       </div>
 
       {/* Category filter chips */}
