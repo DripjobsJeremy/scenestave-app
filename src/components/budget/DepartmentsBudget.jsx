@@ -22,6 +22,9 @@ function DepartmentsBudget({ budget, summary, departments, productionId, canEdit
     };
 
     const AddBudgetItemModalComponent = window.AddBudgetItemModal;
+    const totalBudget = parseFloat(budget.totalBudget || 0);
+    const totalAllocated = summary.totalAllocated || 0;
+    const totalPct = totalBudget > 0 ? Math.round((totalAllocated / totalBudget) * 100) : 0;
 
     return (
         <div className="space-y-6">
@@ -49,6 +52,8 @@ function DepartmentsBudget({ budget, summary, departments, productionId, canEdit
                 {departments.map(dept => {
                     const deptData = budget.departments[dept.id];
                     const deptSummary = summary.departments.find(d => d.name === dept.id);
+                    const deptAmount = parseFloat(deptData.allocated || 0);
+                    const currentPct = totalBudget > 0 ? Math.round((deptAmount / totalBudget) * 100) : 0;
 
                     return (
                         <div
@@ -75,9 +80,28 @@ function DepartmentsBudget({ budget, summary, departments, productionId, canEdit
                                 )}
                             </div>
 
-                            {/* Allocation Input */}
+                            {/* Allocation: % slider + dollar input */}
                             <div className="mb-2">
-                                <label className="block text-xs text-gray-600 mb-1">Allocated Budget</label>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="text-xs text-gray-600">Allocated Budget</label>
+                                    <span className="text-xs font-semibold text-gray-500">{currentPct}%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    step="1"
+                                    value={currentPct}
+                                    disabled={!canEditBudget || totalBudget === 0}
+                                    onChange={(e) => {
+                                        const newPct = parseInt(e.target.value);
+                                        const newAmount = parseFloat(((newPct / 100) * totalBudget).toFixed(2));
+                                        onUpdateAllocation(dept.id, newAmount);
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className={`w-full mb-2 accent-green-600 ${!canEditBudget || totalBudget === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                    title={`${dept.name}: ${currentPct}% of total budget`}
+                                />
                                 <div className="relative">
                                     <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
                                     <input
@@ -119,6 +143,20 @@ function DepartmentsBudget({ budget, summary, departments, productionId, canEdit
                     );
                 })}
             </div>
+
+            {/* Total allocated % summary */}
+            {totalBudget > 0 && (
+                <div className={`text-right text-xs font-medium ${
+                    totalPct > 100 ? 'text-red-600' :
+                    totalPct === 100 ? 'text-green-600' :
+                    'text-gray-500'
+                }`}>
+                    {totalPct}% allocated
+                    {totalPct > 100 ? ' — over budget' :
+                     totalPct === 100 ? ' — fully allocated ✓' :
+                     ` — ${100 - totalPct}% unallocated`}
+                </div>
+            )}
 
             {/* Department Detail View */}
             {selectedDept && (

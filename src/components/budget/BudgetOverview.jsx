@@ -1,4 +1,4 @@
-function BudgetOverview({ budget, summary, canEditBudget = true, onUpdateTotalBudget, onSyncCosts }) {
+function BudgetOverview({ budget, summary, canEditBudget = true, onUpdateTotalBudget, onSyncCosts, royaltiesTotal = 0 }) {
     const [totalBudget, setTotalBudget] = React.useState(budget.totalBudget);
 
     return (
@@ -52,12 +52,28 @@ function BudgetOverview({ budget, summary, canEditBudget = true, onUpdateTotalBu
                                 ${summary.totalSpent.toLocaleString()}
                             </span>
                         </div>
+                        {royaltiesTotal > 0 && (
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-600">Royalties &amp; Licensing:</span>
+                                <span className="font-semibold text-yellow-600">
+                                    ${royaltiesTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                </span>
+                            </div>
+                        )}
                         <div className="flex justify-between items-center pt-3 border-t border-gray-200">
                             <span className="text-gray-900 font-medium">Remaining:</span>
                             <span className={`font-bold text-lg ${summary.remaining < 0 ? 'text-red-600' : 'text-green-600'}`}>
                                 ${summary.remaining.toLocaleString()}
                             </span>
                         </div>
+                        {royaltiesTotal > 0 && (
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-600 text-sm">Total incl. Royalties:</span>
+                                <span className="font-semibold text-gray-900">
+                                    ${(summary.totalSpent + royaltiesTotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Progress Bar */}
