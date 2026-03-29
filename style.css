@@ -1002,3 +1002,56 @@ select:focus {
 }
 .royalties-breakdown-total-amount { color: var(--color-warning); }
 .royalties-footer-note { font-size: 11px; color: var(--color-text-muted); margin-top: 8px; }
+
+/* ── DepartmentsBudget allocation upgrades ──────────────────────────────────── */
+.alloc-mode-wrap {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+  padding: 12px; border-radius: 8px; border: 1px solid var(--color-border);
+  background-color: var(--color-bg-elevated);
+}
+.alloc-mode-label { font-size: 14px; font-weight: 500; color: var(--color-text-secondary); min-width: 120px; }
+.alloc-mode-btns { display: flex; gap: 4px; }
+.alloc-mode-btn {
+  padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500;
+  border: 1px solid var(--color-border); background: var(--color-bg-surface);
+  color: var(--color-text-muted); cursor: pointer; transition: all 0.15s;
+}
+.alloc-mode-btn--active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.alloc-mode-hint { font-size: 12px; color: var(--color-text-muted); }
+.alloc-progress-wrap {
+  margin-bottom: 16px; padding: 12px; border-radius: 8px;
+  border: 1px solid var(--color-border); background-color: var(--color-bg-elevated);
+}
+.alloc-progress-wrap--over { border-color: var(--color-danger, #ef4444); }
+.alloc-progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.alloc-progress-label { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+.alloc-progress-status { font-size: 14px; font-weight: 500; color: var(--color-text-muted); }
+.alloc-progress-status--full { color: var(--color-success, #16a34a); }
+.alloc-progress-status--over { color: var(--color-danger, #ef4444); }
+.alloc-progress-track {
+  width: 100%; height: 8px; border-radius: 9999px; overflow: hidden;
+  background: var(--color-bg-surface, #f3f4f6);
+}
+.alloc-progress-bar { height: 100%; border-radius: 9999px; transition: width 0.2s; background: var(--color-primary, #16a34a); }
+.alloc-progress-bar--full { background: var(--color-success, #16a34a); }
+.alloc-progress-bar--over { background: var(--color-danger, #ef4444); }
+.dept-lock-btn {
+  font-size: 12px; padding: 2px 8px; border-radius: 4px;
+  border: 1px solid var(--color-border); background: var(--color-bg-elevated);
+  color: var(--color-text-muted); cursor: pointer; transition: all 0.15s; line-height: 1.5;
+}
+.dept-lock-btn--locked {
+  background: var(--color-warning-surface, #fef9c3);
+  color: var(--color-warning, #ca8a04);
+  border-color: var(--color-warning, #ca8a04);
+}
+.dept-pct-wrap { position: relative; min-width: 44px; text-align: right; }
+.dept-pct-tooltip {
+  position: absolute; bottom: 100%; right: 0; margin-bottom: 4px;
+  padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap;
+  pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 10;
+  background: var(--color-bg-overlay, #1a1a1a); color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+.dept-pct-wrap:hover .dept-pct-tooltip { opacity: 1; }
+.dept-lock-notice { font-size: 11px; color: var(--color-warning, #ca8a04); margin-top: 4px; }
