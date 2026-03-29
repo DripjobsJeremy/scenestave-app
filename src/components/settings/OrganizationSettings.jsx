@@ -11,6 +11,7 @@ function OrganizationSettings(props) {
   const [showClientOrgModal, setShowClientOrgModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [btnTheme, setBtnTheme] = useState(null);
+  const [resetDialog, setResetDialog] = useState(null); // null | 'theme' | 'buttons'
 
   useEffect(() => {
     loadOrganization();
@@ -23,10 +24,15 @@ function OrganizationSettings(props) {
     window.organizationService?.saveButtonTheme(updated);
   };
 
-  const resetBtnTheme = () => {
+  const handleResetTheme = () => {
+    const updated = window.organizationService?.resetBrandingToDefault();
+    if (updated) setOrganization(updated);
+    if (window.showToast) window.showToast('💾 Custom theme saved. Reset to defaults.', 'success');
+  };
+
+  const handleResetButtons = () => {
     const def = window.organizationService?.DEFAULT_BTN_THEME;
-    // Write defaults explicitly (not removeItem) — so applyButtonTheme() on next mount
-    // always finds a value and wins over applyBrandingToDOM's --color-primary
+    // Write defaults explicitly so applyButtonTheme() on next mount wins over applyBrandingToDOM
     localStorage.setItem('scenestave_button_theme', JSON.stringify(def));
     window.organizationService?.applyButtonTheme?.(def);
     setBtnTheme({ ...def });
@@ -822,13 +828,7 @@ function OrganizationSettings(props) {
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (confirm('Reset to default SceneStave theme?\n\nYour custom theme will be saved and can be restored later.')) {
-                      const updated = window.organizationService?.resetBrandingToDefault();
-                      if (updated) setOrganization(updated);
-                      if (window.showToast) window.showToast('💾 Custom theme saved. Reset to defaults.', 'success');
-                    }
-                  }}
+                  onClick={() => setResetDialog('theme')}
                   className="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors font-medium text-sm mt-auto"
                 >
                   Reset to Default Theme
@@ -877,7 +877,7 @@ function OrganizationSettings(props) {
               <h4 className="font-medium text-gray-900">Button Styles</h4>
               <button
                 type="button"
-                onClick={resetBtnTheme}
+                onClick={() => setResetDialog('buttons')}
                 className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs font-medium transition-colors"
               >
                 Reset to Defaults
@@ -1115,6 +1115,48 @@ function OrganizationSettings(props) {
           }}
           onClose={() => { setShowClientOrgModal(false); setEditingClient(null); }}
         />
+      )}
+
+      {/* ── Reset confirmation dialog ────────────────────────────────────── */}
+      {resetDialog && (
+        <div className="reset-dialog-overlay" onClick={() => setResetDialog(null)}>
+          <div className="reset-dialog-panel" onClick={e => e.stopPropagation()}>
+            <h3 className="reset-dialog-title">Reset to Defaults</h3>
+            <p className="reset-dialog-body">
+              {resetDialog === 'theme'
+                ? "You're resetting the color theme. Would you also like to reset button styles to defaults?"
+                : "You're resetting button styles. Would you also like to reset the color theme to defaults?"
+              }
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => { handleResetTheme(); handleResetButtons(); setResetDialog(null); }}
+                className="w-full py-2 rounded-lg text-sm font-medium btn-primary"
+              >
+                Reset Both Theme &amp; Button Styles
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (resetDialog === 'theme') handleResetTheme();
+                  else handleResetButtons();
+                  setResetDialog(null);
+                }}
+                className="w-full py-2 rounded-lg text-sm font-medium btn-secondary"
+              >
+                {resetDialog === 'theme' ? 'Reset Theme Only' : 'Reset Button Styles Only'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setResetDialog(null)}
+                className="reset-dialog-cancel"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
