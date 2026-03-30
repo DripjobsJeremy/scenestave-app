@@ -54,7 +54,8 @@
         hashedPassword: null,
         passwordResetToken: null,
         emailVerified: false
-      }
+      },
+      rehearsalNotes: []
     };
   }
 
@@ -307,6 +308,53 @@
     };
   }
 
+  // ---------- Rehearsal Notes ----------
+  function addRehearsalNote(actorId, note) {
+    try {
+      const actors = loadActors();
+      const idx = actors.findIndex(a => a.id === actorId);
+      if (idx === -1) return false;
+      const existing = actors[idx].rehearsalNotes || [];
+      const existingIdx = existing.findIndex(
+        n => n.productionId === note.productionId && n.sceneName === note.sceneName
+      );
+      if (existingIdx !== -1) {
+        existing[existingIdx] = { ...existing[existingIdx], ...note, updatedAt: new Date().toISOString() };
+      } else {
+        existing.push({
+          ...note,
+          id: 'rn_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          addedAt: new Date().toISOString()
+        });
+      }
+      actors[idx].rehearsalNotes = existing;
+      saveActors(actors);
+      window.dispatchEvent(new CustomEvent('actorUpdated', { detail: { actorId } }));
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function getRehearsalNotes(actorId, productionId) {
+    if (productionId === undefined) productionId = null;
+    try {
+      const actor = getActorById(actorId);
+      if (!actor) return [];
+      const notes = actor.rehearsalNotes || [];
+      return productionId ? notes.filter(n => n.productionId === productionId) : notes;
+    } catch (e) { return []; }
+  }
+
+  function removeRehearsalNote(actorId, noteId) {
+    try {
+      const actors = loadActors();
+      const idx = actors.findIndex(a => a.id === actorId);
+      if (idx === -1) return false;
+      actors[idx].rehearsalNotes = (actors[idx].rehearsalNotes || []).filter(n => n.id !== noteId);
+      saveActors(actors);
+      return true;
+    } catch (e) { return false; }
+  }
+
   // ---------- Bulk Import ----------
   function importActorsFromCSV(csvData, mapping) {
     var imported = [];
@@ -348,6 +396,7 @@
   // ---------- Export ----------
   var ActorsService = {
     loadActors: loadActors,
+    getAllActors: loadActors,   // alias
     saveActors: saveActors,
     getActorById: getActorById,
     createActor: createActor,
@@ -362,7 +411,10 @@
     syncActorToContacts: syncActorToContacts,
     syncAllActorsToContacts: syncAllActorsToContacts,
     getActorStats: getActorStats,
-    importActorsFromCSV: importActorsFromCSV
+    importActorsFromCSV: importActorsFromCSV,
+    addRehearsalNote: addRehearsalNote,
+    getRehearsalNotes: getRehearsalNotes,
+    removeRehearsalNote: removeRehearsalNote
   };
 
   global.ActorsService = ActorsService;
