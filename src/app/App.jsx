@@ -36,11 +36,10 @@ function ActorPortalView() {
   })();
 
   const navItems = [
-    { id: 'dashboard',       label: 'Dashboard',        icon: '🏠' },
-    { id: 'productions',     label: 'Productions',      icon: '🎭', expandable: true },
-    { id: 'profile',         label: 'My Profile',       icon: '👤' },
-    { id: 'calendar',        label: 'Calendar',         icon: '📅' },
-    { id: 'rehearsal-notes', label: 'Rehearsal Notes',  icon: '📋' },
+    { id: 'dashboard',   label: 'Dashboard',    icon: '🏠' },
+    { id: 'productions', label: 'Productions',  icon: '🎭', expandable: true },
+    { id: 'profile',     label: 'Profile',      icon: '👤' },
+    { id: 'calendar',    label: 'Calendar',     icon: '📅' },
   ];
 
   const navigate = (viewId, prodId = null) => {
@@ -508,8 +507,8 @@ function App() {
         />
       )}
 
-      {/* Left Sidebar */}
-      <aside className={`
+      {/* Left Sidebar — hidden for actor portal (it renders its own sidebar) */}
+      {userRole !== 'actor' && <aside className={`
         flex flex-col flex-shrink-0
         sidebar-gradient text-white
         transition-all duration-300
@@ -589,13 +588,13 @@ function App() {
             </div>
           </div>
         )}
-      </aside>
+      </aside>}
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
 
-        {/* Mobile Header */}
-        <div className="lg:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between flex-shrink-0 shadow-sm">
+        {/* Mobile Header — hidden for actor portal */}
+        {userRole !== 'actor' && <div className="lg:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between flex-shrink-0 shadow-sm">
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
@@ -607,7 +606,7 @@ function App() {
           <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${roleInfo.cls}`}>
             {roleInfo.label}
           </span>
-        </div>
+        </div>}
 
         {/* Scrollable Content */}
         <main className="flex-1 overflow-y-auto">
