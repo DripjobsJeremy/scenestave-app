@@ -234,6 +234,7 @@ function getNavigationTabs(userRole) {
       { id: 'productions',  label: 'Productions',  icon: '🎬', path: '/productions' },
       { id: 'calendar',     label: 'Calendar',     icon: '📅', path: '/calendar' },
       { id: 'contacts',     label: 'Contacts',     icon: '📋', path: '/contacts' },
+      { id: 'messages',     label: 'Messages',     icon: '💬', path: '/messages' },
       { id: 'donor-portal', label: 'Donor Portal', icon: '💎', path: '/donor-portal' },
     ];
   }
@@ -246,6 +247,7 @@ function getNavigationTabs(userRole) {
       { id: 'productions', label: 'Productions', icon: '🎬', path: '/productions' },
       { id: 'calendar',    label: 'Calendar',    icon: '📅', path: '/calendar' },
       { id: 'contacts',    label: 'Contacts',    icon: '📋', path: '/contacts' },
+      { id: 'messages',    label: 'Messages',    icon: '💬', path: '/messages' },
     ];
   }
 
@@ -272,6 +274,7 @@ function getNavigationTabs(userRole) {
       { id: 'dept-dashboard', label: 'Dashboard',   icon: '📊', path: '/dept-dashboard' },
       { id: 'productions',    label: 'Productions', icon: '🎬', path: '/productions' },
       { id: 'dept-calendar',  label: 'Calendar',    icon: '📅', path: '/dept-calendar' },
+      { id: 'messages',       label: 'Messages',    icon: '💬', path: '/messages' },
     ];
   }
 
@@ -281,6 +284,7 @@ function getNavigationTabs(userRole) {
       { id: 'productions',    label: 'Productions', icon: '🎬', path: '/productions' },
       { id: 'calendar',       label: 'Calendar',    icon: '📅', path: '/calendar' },
       { id: 'contacts',       label: 'Contacts',    icon: '📋', path: '/contacts' },
+      { id: 'messages',       label: 'Messages',    icon: '💬', path: '/messages' },
     ];
   }
 
@@ -327,7 +331,7 @@ function App() {
     const path = pathname.split('/')[1] || 'dashboard';
     const validViews = [
       'dashboard', 'financial', 'contacts', 'donors', 'actors', 'productions', 'calendar',
-      'volunteers', 'settings', 'actor-portal',
+      'volunteers', 'settings', 'actor-portal', 'messages',
       'dept-dashboard', 'dept-calendar', 'volunteer-portal', 'donor-portal', 'donor-login'
     ];
     return validViews.includes(path) ? path : 'dashboard';
@@ -753,6 +757,18 @@ function App() {
                 {console.log('📍 Rendering /volunteer-portal route, userRole:', userRole) && null}
                 <VolunteerPortalView />
               </div>
+            </Route>
+
+            <Route path="/messages">
+              {window.MessagesView && React.createElement(window.MessagesView, {
+                currentUser: {
+                  id: staffContactId || `user_${userRole}`,
+                  name: staffName || userRole,
+                  role: userRole,
+                },
+                productions: JSON.parse(localStorage.getItem('showsuite_productions') || '[]'),
+                userRole,
+              })}
             </Route>
 
             <Route path="/settings">
