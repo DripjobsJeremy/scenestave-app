@@ -1,6 +1,6 @@
 const { useState, useEffect } = React;
 
-function ActorPortalView({ onExitToApp }) {
+function ActorPortalView({ onExitToApp, hasBanner }) {
   const [portalView, setPortalView] = useState('dashboard');
   const [activeProductionId, setActiveProductionId] = useState(null);
   const [navExpanded, setNavExpanded] = useState({ productions: true });
@@ -78,7 +78,7 @@ function ActorPortalView({ onExitToApp }) {
   const isNavActive = (itemId) => portalView === itemId && !activeProductionId;
 
   return (
-    <div className="ap-shell">
+    <div className={`ap-shell${hasBanner ? ' ap-shell--with-banner' : ''}`}>
       {/* ── Sidebar ── */}
       <aside className="ap-sidebar">
         {/* Exit to main app — only shown when an admin is previewing the actor portal */}
@@ -502,8 +502,26 @@ function App() {
     );
   };
 
+  // Show escape banner when an admin is viewing the actor portal
+  // (role is 'actor' but the stored role before switching was admin/super_admin)
+  const isAdminViewingActorPortal = userRole === 'actor';
+
   return (
     <div className="flex h-screen overflow-hidden bg-base">
+
+      {/* Admin escape banner — fixed at top when previewing actor portal */}
+      {isAdminViewingActorPortal && (
+        <div className="ap-admin-banner">
+          <span>You are previewing the Actor Portal.</span>
+          <button
+            type="button"
+            className="ap-admin-banner-btn"
+            onClick={() => handleRoleChange('admin')}
+          >
+            ← Exit to SceneStave
+          </button>
+        </div>
+      )}
 
       {/* Mobile overlay */}
       {mobileMenuOpen && (
@@ -631,7 +649,7 @@ function App() {
                   React.createElement(window.BoardDashboard)
                 )}
                 {userRole === 'volunteer' && <VolunteerPortalView />}
-                {userRole === 'actor' && <ActorPortalView onExitToApp={() => handleRoleChange('admin')} />}
+                {userRole === 'actor' && <ActorPortalView onExitToApp={() => handleRoleChange('admin')} hasBanner />}
                 {['director', 'lighting', 'sound', 'wardrobe', 'props', 'set', 'stage_manager'].includes(userRole) && (
                   <div className="text-center py-12 text-gray-400">
                     <div className="text-4xl mb-3">📊</div>
@@ -797,9 +815,7 @@ function App() {
             </Route>
 
             <Route path="/actor-portal">
-              <div className="p-6 max-w-7xl mx-auto">
-                <ActorPortalView onExitToApp={() => handleRoleChange('admin')} />
-              </div>
+              <ActorPortalView onExitToApp={() => handleRoleChange('admin')} hasBanner />
             </Route>
 
             <Route path="/donor-login">

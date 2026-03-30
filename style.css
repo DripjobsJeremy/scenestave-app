@@ -1312,7 +1312,11 @@ select:focus {
 
 /* ── Actor Portal: Sidebar nav ─────────────────────────────────────────────── */
 .ap-shell { display: flex; height: 100%; min-height: 100vh; overflow: hidden; }
+.ap-shell--with-banner { padding-top: 36px; }
 .ap-sidebar { width: 220px; flex-shrink: 0; background: linear-gradient(180deg, #7c3aed 0%, #4338ca 100%); color: #fff; display: flex; flex-direction: column; overflow: hidden; }
+.ap-admin-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 8px 16px; background: #7c3aed; color: #fff; font-size: 13px; }
+.ap-admin-banner-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: #fff; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.12s; }
+.ap-admin-banner-btn:hover { background: rgba(255,255,255,0.35); }
 .ap-exit-btn { display: flex; align-items: center; gap: 6px; padding: 10px 16px; width: 100%; border: none; border-bottom: 1px solid rgba(255,255,255,0.15); cursor: pointer; background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.75); font-size: 12px; text-align: left; transition: background 0.12s; }
 .ap-exit-btn:hover { background: rgba(0,0,0,0.35); color: #fff; }
 .ap-sidebar-actor { padding: 20px 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.15); }

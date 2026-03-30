@@ -383,8 +383,14 @@ function ActorLogin({ onLoginSuccess }) {
           <button
             type="button"
             onClick={() => {
+              // Clear actor session
               localStorage.removeItem('showsuite_actor_session');
-              window.location.href = '/#/';
+              // Reset role so App mount doesn't redirect back to /actor-portal
+              const storedRole = localStorage.getItem('showsuite_user_role');
+              if (storedRole === 'actor') {
+                localStorage.setItem('showsuite_user_role', 'admin');
+              }
+              window.location.replace(window.location.origin + '/');
             }}
             className="text-sm text-purple-600 hover:text-purple-700 font-medium bg-transparent border-0 cursor-pointer p-0"
           >
