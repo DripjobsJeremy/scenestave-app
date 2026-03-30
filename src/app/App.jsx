@@ -38,7 +38,6 @@ function ActorPortalView() {
   const navItems = [
     { id: 'dashboard',   label: 'Dashboard',    icon: '🏠' },
     { id: 'productions', label: 'Productions',  icon: '🎭', expandable: true },
-    { id: 'profile',     label: 'Profile',      icon: '👤' },
     { id: 'calendar',    label: 'Calendar',     icon: '📅' },
   ];
 

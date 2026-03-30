@@ -1259,7 +1259,7 @@ select:focus {
 .prod-images-action-btn--remove:hover { background: #fef2f2; }
 
 /* ── Actor Portal: RehearsalNotesView ──────────────────────────────────────── */
-.ap-rnv-wrap { padding: 24px; max-width: 720px; }
+.ap-rnv-wrap { padding: 24px; }
 .ap-rnv-title { font-size: 22px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
 .ap-rnv-subtitle { font-size: 13px; color: var(--color-text-muted); margin-bottom: 24px; }
 .ap-rnv-empty { text-align: center; padding: 48px 0; background-color: var(--color-bg-surface); border-radius: 10px; border: 1px solid var(--color-border); }
@@ -1280,7 +1280,7 @@ select:focus {
 .ap-rnv-note-meta { font-size: 11px; color: var(--color-text-muted); }
 
 /* ── Actor Portal: ActorProductionDashboard ────────────────────────────────── */
-.ap-pd-wrap { padding: 24px; max-width: 860px; }
+.ap-pd-wrap { padding: 24px; }
 .ap-pd-header { margin-bottom: 24px; }
 .ap-pd-title { font-size: 24px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 8px; }
 .ap-pd-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }

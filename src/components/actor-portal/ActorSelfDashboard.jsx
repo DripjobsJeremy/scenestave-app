@@ -65,8 +65,18 @@ function RehearsalNotesView({ actor }) {
 window.RehearsalNotesView = RehearsalNotesView;
 
 // ── ActorProductionDashboard ──────────────────────────────────────────────────
+function getDirectorName(production) {
+  const staff = window.contactsService?.getProductionStaff?.(production.id) || [];
+  const d = staff.find(c =>
+    (c.staffProfile?.productions || []).some(p => p.productionId === production.id && p.role === 'Director')
+  );
+  const fromStaff = d ? `${d.firstName || ''} ${d.lastName || ''}`.trim() || d.email || null : null;
+  return fromStaff || production.director || null;
+}
+
 function ActorProductionDashboard({ production, actor }) {
   const myCharacter = (production.characters || []).find(c => c.actorId === actor.id);
+  const directorName = getDirectorName(production);
 
   const now = new Date();
   const upcomingEvents = (production.calendar || [])
@@ -117,7 +127,7 @@ function ActorProductionDashboard({ production, actor }) {
         <h1 className="ap-pd-title">{production.title}</h1>
         <div className="ap-pd-meta">
           {myCharacter && <span className="ap-pd-char-pill">as {myCharacter.name}</span>}
-          {production.director && <span className="ap-pd-director">Director: {production.director}</span>}
+          {directorName && <span className="ap-pd-director">Director: {directorName}</span>}
           <span className="ap-pd-status">{production.status || 'Active'}</span>
         </div>
       </div>
@@ -355,8 +365,8 @@ function ActorSelfDashboard({ actor, onEditProfile, onViewRehearsalNotes }) {
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-xl font-bold text-gray-900">{production.title}</h3>
-                      {production.director && (
-                        <p className="text-sm text-gray-600">Director: {production.director}</p>
+                      {getDirectorName(production) && (
+                        <p className="text-sm text-gray-600">Director: {getDirectorName(production)}</p>
                       )}
                     </div>
                     {isActive && (
