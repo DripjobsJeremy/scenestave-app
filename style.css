@@ -1205,6 +1205,7 @@ select:focus {
 .mention-item-name { font-size: 13px; font-weight: 500; color: #111827; }
 .mention-item-role { font-size: 11px; color: #9ca3af; }
 .mention-item-uncast { font-size: 11px; color: #f59e0b; }
+.actor-note-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mention-dropdown-footer { font-size: 10px; color: #9ca3af; padding: 4px 8px; border-top: 1px solid #f3f4f6; margin-top: 2px; }
 .mention-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 .mention-pill { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: #ede9fe; color: #7c3aed; border: 1px solid #c4b5fd; }

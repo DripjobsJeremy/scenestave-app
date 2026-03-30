@@ -16,11 +16,19 @@ function ActorPortalView() {
     }) : null;
   }
 
-  // Set global navigation handler for calendar
+  // Set global navigation handlers
   window.onNavigateToCalendar = () => setPortalView('calendar');
+  window.onNavigateToRehearsalNotes = () => setPortalView('rehearsal-notes');
 
   if (portalView === 'calendar' && window.ActorPersonalCalendar) {
     return React.createElement(window.ActorPersonalCalendar, {
+      actor: currentActor,
+      onBack: () => setPortalView('dashboard')
+    });
+  }
+
+  if (portalView === 'rehearsal-notes' && window.RehearsalNotesView) {
+    return React.createElement(window.RehearsalNotesView, {
       actor: currentActor,
       onBack: () => setPortalView('dashboard')
     });
@@ -44,9 +52,8 @@ function ActorPortalView() {
   return window.ActorSelfDashboard ? React.createElement(window.ActorSelfDashboard, {
     key: refreshKey,
     actor: currentActor,
-    onEditProfile: () => {
-      setPortalView('edit-profile');
-    },
+    onEditProfile: () => setPortalView('edit-profile'),
+    onViewRehearsalNotes: () => setPortalView('rehearsal-notes'),
     onLogout: () => {
       window.actorAuthService.logout();
       window.location.reload();

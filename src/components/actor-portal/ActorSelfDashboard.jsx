@@ -1,6 +1,95 @@
 const { useState, useEffect } = React;
 
-function ActorSelfDashboard({ actor, onEditProfile, onLogout }) {
+// ── RehearsalNotesView ────────────────────────────────────────────────────────
+function RehearsalNotesView({ actor, onBack }) {
+  const notes = React.useMemo(() => {
+    const actors = JSON.parse(localStorage.getItem('showsuite_actors') || '[]');
+    const fresh = actors.find(a => a.id === actor.id);
+    return (fresh?.rehearsalNotes || []).sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
+  }, [actor.id]);
+
+  const byProduction = React.useMemo(() => {
+    const groups = {};
+    notes.forEach(note => {
+      const key = note.productionId;
+      if (!groups[key]) groups[key] = { title: note.productionTitle || 'Production', notes: [] };
+      groups[key].notes.push(note);
+    });
+    return groups;
+  }, [notes]);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6">
+        <div className="max-w-4xl mx-auto flex items-center gap-4">
+          <button
+            type="button"
+            onClick={onBack}
+            className="px-3 py-1.5 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg text-sm transition-colors"
+          >
+            ← Back
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold">Rehearsal Notes</h1>
+            <p className="text-purple-100 text-sm">Director notes tagged to you during rehearsal</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto p-6">
+        {notes.length === 0 ? (
+          <div className="bg-white rounded-lg shadow p-16 text-center">
+            <div className="text-5xl mb-4">📋</div>
+            <p className="text-lg font-semibold text-gray-900 mb-2">No rehearsal notes yet</p>
+            <p className="text-sm text-gray-500">Your director will add notes here during rehearsal</p>
+          </div>
+        ) : (
+          <div>
+            {Object.values(byProduction).map(group => (
+              <div key={group.title} className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-purple-600 text-lg">🎭</span>
+                  <h2 className="text-lg font-bold text-gray-900">{group.title}</h2>
+                  <span className="text-xs text-gray-400 font-normal ml-1">
+                    {group.notes.length} note{group.notes.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {group.notes.map(note => (
+                    <div key={note.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                      <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                        {note.sceneRef}
+                      </div>
+                      <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap mb-3">
+                        {note.note}
+                      </div>
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                        <span className="text-xs px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-medium">
+                          as {note.character}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {note.taggedBy} · {new Date(note.addedAt || note.updatedAt).toLocaleDateString([], {
+                            month: 'short', day: 'numeric', year: 'numeric'
+                          })}
+                          {note.updatedAt && note.updatedAt !== note.addedAt ? ' (updated)' : ''}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+window.RehearsalNotesView = RehearsalNotesView;
+
+function ActorSelfDashboard({ actor, onEditProfile, onLogout, onViewRehearsalNotes }) {
   const [productions, setProductions] = useState([]);
 
   useEffect(() => {
@@ -20,6 +109,12 @@ function ActorSelfDashboard({ actor, onEditProfile, onLogout }) {
   };
 
   const stats = window.actorsService?.getActorStats(actor.id);
+
+  const recentNotes = React.useMemo(() => {
+    const actors = JSON.parse(localStorage.getItem('showsuite_actors') || '[]');
+    const fresh = actors.find(a => a.id === actor.id);
+    return (fresh?.rehearsalNotes || []).sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
+  }, [actor.id]);
 
   // Profile completion checklist
   const checklistItems = [
@@ -265,11 +360,40 @@ function ActorSelfDashboard({ actor, onEditProfile, onLogout }) {
           )}
         </div>
 
+        {/* Recent Rehearsal Notes preview */}
+        {recentNotes.length > 0 && (
+          <div className="bg-white rounded-lg p-6 shadow">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">📋 Rehearsal Notes</h2>
+              <button
+                type="button"
+                onClick={onViewRehearsalNotes}
+                className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+              >
+                View all →
+              </button>
+            </div>
+            <div className="space-y-3">
+              {recentNotes.slice(0, 2).map(note => (
+                <div key={note.id} className="p-3 rounded-lg bg-gray-50 border border-gray-200">
+                  <div className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">
+                    {note.sceneRef}
+                  </div>
+                  <div className="text-sm text-gray-800 actor-note-preview">
+                    {note.note}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="bg-white rounded-lg p-6 shadow">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <button
+              type="button"
               onClick={onEditProfile}
               className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors text-left"
             >
@@ -279,15 +403,27 @@ function ActorSelfDashboard({ actor, onEditProfile, onLogout }) {
             </button>
 
             <button
+              type="button"
               onClick={() => { if (window.onNavigateToCalendar) window.onNavigateToCalendar(); }}
               className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors text-left"
             >
               <div className="text-2xl mb-2">📅</div>
               <div className="font-medium text-gray-900">My Calendar</div>
-              <div className="text-sm text-gray-600">View rehearsals & shows</div>
+              <div className="text-sm text-gray-600">View rehearsals &amp; shows</div>
             </button>
 
             <button
+              type="button"
+              onClick={onViewRehearsalNotes}
+              className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors text-left"
+            >
+              <div className="text-2xl mb-2">📋</div>
+              <div className="font-medium text-gray-900">Rehearsal Notes</div>
+              <div className="text-sm text-gray-600">Director notes &amp; blocking</div>
+            </button>
+
+            <button
+              type="button"
               onClick={() => alert('Need help? Contact your theatre administrator.')}
               className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors text-left"
             >
