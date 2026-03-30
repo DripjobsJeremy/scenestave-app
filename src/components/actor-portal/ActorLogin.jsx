@@ -380,12 +380,16 @@ function ActorLogin({ onLoginSuccess }) {
 
         {/* Footer */}
         <div className="bg-gray-50 p-4 text-center border-t border-gray-200">
-          <a
-            href="#/"
-            className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem('showsuite_actor_session');
+              window.location.href = '/#/';
+            }}
+            className="text-sm text-purple-600 hover:text-purple-700 font-medium bg-transparent border-0 cursor-pointer p-0"
           >
             ← Back to SceneStave
-          </a>
+          </button>
         </div>
       </div>
     </div>
