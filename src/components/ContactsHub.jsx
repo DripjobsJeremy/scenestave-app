@@ -11,7 +11,8 @@ function AllContactsList({ contacts, donations }) {
     try { return localStorage.getItem('scenestave_all_contacts_view') || 'table'; } catch { return 'table'; }
   });
   const [showAddForm, setShowAddForm] = React.useState(false);
-  const [form, setForm] = React.useState({ firstName: '', lastName: '', email: '', phone: '' });
+  const [form, setForm] = React.useState({ firstName: '', lastName: '', email: '', phone: '', type: '' });
+  const [editingTypeId, setEditingTypeId] = React.useState(null);
   const [saving, setSaving] = React.useState(false);
   const [localContacts, setLocalContacts] = React.useState(contacts);
   const [refreshKey, setRefreshKey] = React.useState(0);
@@ -117,9 +118,37 @@ function AllContactsList({ contacts, donations }) {
 
   const donationCountFor = (id) => (donations || []).filter(d => d.contactId === id).length;
 
+  const TYPE_OPTIONS = [
+    { value: 'donor',     label: 'Donor' },
+    { value: 'staff',     label: 'Staff & Crew' },
+    { value: 'board',     label: 'Board Member' },
+    { value: 'volunteer', label: 'Volunteer' },
+    { value: 'general',   label: 'General Contact' },
+  ];
+
+  const applyTypeFlags = (contact, type) => {
+    contact.isDonor    = type === 'donor';
+    contact.isStaff    = type === 'staff';
+    contact.isVolunteer = type === 'volunteer';
+    if (type === 'board') {
+      if (!Array.isArray(contact.tags)) contact.tags = [];
+      if (!contact.tags.includes('board')) contact.tags.push('board');
+    } else {
+      // Remove board tag if switching away from board
+      if (Array.isArray(contact.tags)) {
+        contact.tags = contact.tags.filter(t => !['board', 'board member', 'board of directors'].includes(String(t).toLowerCase()));
+      }
+    }
+    return contact;
+  };
+
   const handleCreate = () => {
     if (!form.firstName || !form.email) {
       window.showToast?.('First name and email are required', 'warning');
+      return;
+    }
+    if (!form.type) {
+      window.showToast?.('Please select a contact type', 'warning');
       return;
     }
     setSaving(true);
@@ -130,7 +159,7 @@ function AllContactsList({ contacts, donations }) {
         setSaving(false);
         return;
       }
-      const newContact = {
+      const newContact = applyTypeFlags({
         id: `contact_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         firstName: form.firstName,
         lastName: form.lastName,
@@ -138,22 +167,40 @@ function AllContactsList({ contacts, donations }) {
         phone: form.phone,
         isDonor: false,
         isStaff: false,
+        isVolunteer: false,
         status: 'active',
         tags: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      };
+      }, form.type);
       all.push(newContact);
       window.contactsService.saveContactsToLS(all);
       setLocalContacts(window.contactsService.loadContacts());
       setRefreshKey(k => k + 1);
-      setForm({ firstName: '', lastName: '', email: '', phone: '' });
+      setForm({ firstName: '', lastName: '', email: '', phone: '', type: '' });
       setShowAddForm(false);
       window.showToast?.('Contact created', 'success');
     } catch (e) {
       window.showToast?.('Error creating contact', 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangeType = (contactId, newType) => {
+    try {
+      const all = window.contactsService.loadContacts();
+      const idx = all.findIndex(c => c.id === contactId);
+      if (idx === -1) return;
+      applyTypeFlags(all[idx], newType);
+      all[idx].updatedAt = new Date().toISOString();
+      window.contactsService.saveContactsToLS(all);
+      setLocalContacts(window.contactsService.loadContacts());
+      setRefreshKey(k => k + 1);
+      setEditingTypeId(null);
+      window.showToast?.('Contact type updated', 'success');
+    } catch (e) {
+      window.showToast?.('Error updating contact type', 'error');
     }
   };
 
@@ -197,7 +244,7 @@ function AllContactsList({ contacts, donations }) {
       {showAddForm && (
         <div className="mb-5 p-4 bg-violet-50 border border-violet-200 rounded-xl">
           <h3 className="text-sm font-semibold text-violet-900 mb-3">New Contact</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">First Name *</label>
               <input title="First name" type="text" value={form.firstName} onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-400" />
@@ -213,6 +260,18 @@ function AllContactsList({ contacts, donations }) {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
               <input title="Phone number" type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-400" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Type *</label>
+              <select
+                title="Contact type"
+                value={form.type}
+                onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+                className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-violet-400 ${!form.type ? 'border-red-400' : 'border-gray-300'}`}
+              >
+                <option value="" disabled>— Select type —</option>
+                {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
             </div>
           </div>
           <div className="mt-3 flex justify-end">
@@ -269,7 +328,35 @@ function AllContactsList({ contacts, donations }) {
                     </td>
                     <td className="secondary hidden md:table-cell">{c.email || '—'}</td>
                     <td className="secondary hidden md:table-cell">{c.phone || '—'}</td>
-                    <td><TypeBadges contact={c} /></td>
+                    <td>
+                      <div className="flex items-center gap-1">
+                        <TypeBadges contact={c} />
+                        {c._source !== 'actors' && (
+                          editingTypeId === c.id ? (
+                            <select
+                              title="Change contact type"
+                              autoFocus
+                              className="ml-1 px-2 py-0.5 border border-violet-400 rounded text-xs"
+                              defaultValue=""
+                              onChange={e => { if (e.target.value) handleChangeType(c.id, e.target.value); }}
+                              onBlur={() => setEditingTypeId(null)}
+                            >
+                              <option value="" disabled>— Change type —</option>
+                              {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                            </select>
+                          ) : (
+                            <button
+                              type="button"
+                              title="Change type"
+                              onClick={() => setEditingTypeId(c.id)}
+                              className="text-gray-300 hover:text-violet-500 text-xs leading-none ml-1"
+                            >
+                              ✎
+                            </button>
+                          )
+                        )}
+                      </div>
+                    </td>
                     <td className="muted text-xs hidden lg:table-cell">
                       {dCount > 0 && <span className="mr-2">{dCount} donation{dCount !== 1 ? 's' : ''}</span>}
                       {prodCount > 0 && <span>{prodCount} production{prodCount !== 1 ? 's' : ''}</span>}
@@ -296,7 +383,33 @@ function AllContactsList({ contacts, donations }) {
                     {c.email && <div className="text-xs truncate text-secondary-color">{c.email}</div>}
                   </div>
                 </div>
-                <TypeBadges contact={c} />
+                <div className="flex items-center gap-1 flex-wrap">
+                  <TypeBadges contact={c} />
+                  {c._source !== 'actors' && (
+                    editingTypeId === c.id ? (
+                      <select
+                        title="Change contact type"
+                        autoFocus
+                        className="px-2 py-0.5 border border-violet-400 rounded text-xs"
+                        defaultValue=""
+                        onChange={e => { if (e.target.value) handleChangeType(c.id, e.target.value); }}
+                        onBlur={() => setEditingTypeId(null)}
+                      >
+                        <option value="" disabled>— Change type —</option>
+                        {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                    ) : (
+                      <button
+                        type="button"
+                        title="Change type"
+                        onClick={() => setEditingTypeId(c.id)}
+                        className="text-gray-300 hover:text-violet-500 text-xs leading-none"
+                      >
+                        ✎
+                      </button>
+                    )
+                  )}
+                </div>
                 {c.phone && <div className="text-xs mt-2 text-muted-color">{c.phone}</div>}
                 {dCount > 0 && <div className="text-xs mt-1 text-muted-color">{dCount} donation{dCount !== 1 ? 's' : ''}</div>}
               </div>
