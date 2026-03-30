@@ -170,9 +170,10 @@ const MentionTextarea = ({ value, onChange, onBlur, placeholder, rows, castMembe
     return () => document.removeEventListener('mousedown', close);
   }, [mentionOpen]);
 
-  const taggedNames = [...new Set(
-    [...((value || '').matchAll(/@([\w][^\s@,./!?]*)/g))].map(m => m[1]).filter(Boolean)
-  )].filter(name => castMembers.some(m => m.name.toLowerCase() === name.toLowerCase()));
+  // extractMentions + findActorByMention are defined later in this file but are
+  // safe to call here because they're only invoked at render time, not at parse time.
+  const taggedNames = extractMentions(value, castMembers)
+    .filter(name => findActorByMention(name, castMembers) !== null);
 
   return React.createElement(
     'div',
@@ -261,11 +262,43 @@ const getCastMembers = (production, scene) => {
   return results.filter(m => m.name);
 };
 
-// Extract unique @mentioned names from a blocking note string.
-const extractMentions = (text) => {
+// Extract @mentioned cast member names from blocking text.
+// Uses line-based parsing + longest-prefix matching against known cast names so
+// multi-word actor names (e.g. "Michael Tucker") are captured correctly.
+// castMembers must be passed so matching can happen; falls back to first-word only.
+const extractMentions = (text, castMembers) => {
   if (!text) return [];
-  const matches = [...text.matchAll(/@([\w][^\s@,./!?]*)/g)];
-  return [...new Set(matches.map(m => m[1].trim()).filter(Boolean))];
+  const members = castMembers || [];
+  const results = [];
+  text.split('\n').forEach(line => {
+    const atIdx = line.indexOf('@');
+    if (atIdx === -1) return;
+    const afterAt = line.slice(atIdx + 1).trim();
+    if (!afterAt) return;
+    // Longest cast member name that the text after @ starts with
+    const matched = members
+      .map(m => m.name)
+      .filter(name => afterAt.toLowerCase().startsWith(name.toLowerCase()))
+      .sort((a, b) => b.length - a.length)[0];
+    if (matched) {
+      results.push(matched);
+    } else {
+      // Fallback: capture first word (partial / first-name mention)
+      const firstWord = afterAt.split(/[\s,./!?]/)[0];
+      if (firstWord) results.push(firstWord);
+    }
+  });
+  return [...new Set(results)];
+};
+
+// Find a cast member whose name matches a mention string.
+// Tries exact match first, then first-name prefix as fallback.
+const findActorByMention = (mentionText, castMembers) => {
+  const lower = mentionText.toLowerCase();
+  const exact = castMembers.find(m => m.name.toLowerCase() === lower);
+  if (exact) return exact;
+  const firstWord = lower.split(/\s/)[0];
+  return castMembers.find(m => m.name.toLowerCase().startsWith(firstWord)) || null;
 };
 
 // Push the full blocking text as a rehearsal note to every @mentioned actor.
@@ -273,17 +306,17 @@ const extractMentions = (text) => {
 const pushRehearsalNotes = (production, scene, actIndex) => {
   if (!window.actorsService?.addRehearsalNote) return;
   const blockingText = scene.blocking || '';
-  const mentionedNames = extractMentions(blockingText);
+  const castMembers = getCastMembers(production, scene);
+  const mentionedNames = extractMentions(blockingText, castMembers);
   if (mentionedNames.length === 0) return;
 
-  const castMembers = getCastMembers(production, scene);
   const actEntry = production.acts?.[actIndex];
   const actName = actEntry?.name || actEntry?.title || `Act ${actIndex + 1}`;
   const sceneName = scene.name || scene.sceneLabel || scene.title || 'Scene';
   const sceneRef = `${actName} — ${sceneName}`;
 
   mentionedNames.forEach(mentionedName => {
-    const member = castMembers.find(m => m.name.toLowerCase() === mentionedName.toLowerCase());
+    const member = findActorByMention(mentionedName, castMembers);
     if (!member?.actorId) return;
     window.actorsService.addRehearsalNote(member.actorId, {
       productionId: production.id,
@@ -1511,12 +1544,9 @@ function SceneBuilder({ productionId: propId }) {
                       castMembers: getCastMembers(production, scene),
                     }),
                     (() => {
-                      const mentions = extractMentions(scene.blocking || '');
-                      if (mentions.length === 0) return null;
                       const castMems = getCastMembers(production, scene);
-                      const matched = mentions.filter(name =>
-                        castMems.some(m => m.name.toLowerCase() === name.toLowerCase() && m.actorId)
-                      );
+                      const matched = extractMentions(scene.blocking || '', castMems)
+                        .filter(name => findActorByMention(name, castMems)?.actorId);
                       if (matched.length === 0) return null;
                       return React.createElement(
                         'p',
