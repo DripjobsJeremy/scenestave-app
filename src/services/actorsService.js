@@ -60,9 +60,23 @@
   }
 
   // ---------- Core CRUD ----------
+  function migrateActors(actors) {
+    let changed = false;
+    const migrated = actors.map(actor => {
+      if (!Array.isArray(actor.rehearsalNotes)) {
+        changed = true;
+        return { ...actor, rehearsalNotes: [] };
+      }
+      return actor;
+    });
+    if (changed) safeWriteLS(LS_KEY, migrated);
+    return migrated;
+  }
+
   function loadActors() {
     const data = safeParseLS(LS_KEY);
-    return Array.isArray(data) ? data : [];
+    const actors = Array.isArray(data) ? data : [];
+    return migrateActors(actors);
   }
 
   function saveActors(actors) {

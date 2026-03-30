@@ -171,8 +171,8 @@ const MentionTextarea = ({ value, onChange, onBlur, placeholder, rows, castMembe
   }, [mentionOpen]);
 
   const taggedNames = [...new Set(
-    [...((value || '').matchAll(/@([\w][^\s@,.]*)(?=[\s,.]|$)/g))].map(m => m[1]).filter(Boolean)
-  )];
+    [...((value || '').matchAll(/@([\w][^\s@,./!?]*)/g))].map(m => m[1]).filter(Boolean)
+  )].filter(name => castMembers.some(m => m.name.toLowerCase() === name.toLowerCase()));
 
   return React.createElement(
     'div',
