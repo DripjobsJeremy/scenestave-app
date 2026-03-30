@@ -1,82 +1,43 @@
-const { useState, useEffect } = React;
+const { useState } = React;
 
 function ActorSelfProfileEditor({ actor, onSave, onCancel }) {
   const [activeTab, setActiveTab] = useState('contact');
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    actorProfile: {
+  const [formData, setFormData] = useState(() => {
+    // Initialise once from actor on mount — never reset by re-renders
+    const raw = actor?.actorProfile || {};
+
+    // Clean up corrupted union data
+    let cleanedUnion = raw.unionAffiliation;
+    if (typeof cleanedUnion === 'string') {
+      cleanedUnion = [];
+    } else if (Array.isArray(cleanedUnion)) {
+      cleanedUnion = cleanedUnion.filter(u => u && u.length > 1);
+    } else {
+      cleanedUnion = [];
+    }
+
+    const cleanedProfile = {
       experienceLevel: '',
       vocalRange: '',
       specialSkills: [],
-      unionAffiliation: [],
-      contractPreference: '',
       resume: null,
       headshots: [],
       auditionVideos: [],
       sizeCard: {
-        height: '',
-        weight: '',
-        shirtSize: '',
-        pantsSize: '',
-        shoeSize: '',
-        jacketSize: '',
-        dressSize: '',
-        chest: '',
-        waist: '',
-        inseam: ''
-      }
-    }
+        height: '', weight: '', shirtSize: '', pantsSize: '',
+        shoeSize: '', jacketSize: '', dressSize: '', chest: '', waist: '', inseam: ''
+      },
+      contractPreference: '',
+      ...raw,
+      unionAffiliation: cleanedUnion,
+      experienceLevel: (raw.experienceLevel || '').toLowerCase(),
+    };
+
+    return { ...actor, actorProfile: cleanedProfile };
   });
   const [newSkill, setNewSkill] = useState('');
   const [uploading, setUploading] = useState(false);
   const [saveError, setSaveError] = useState('');
-
-  useEffect(() => {
-    if (actor) {
-      // Clean up corrupted union data
-      let cleanedProfile = actor.actorProfile || {};
-
-      if (cleanedProfile.unionAffiliation && typeof cleanedProfile.unionAffiliation === 'string') {
-        cleanedProfile.unionAffiliation = [];
-      } else if (Array.isArray(cleanedProfile.unionAffiliation)) {
-        cleanedProfile.unionAffiliation = cleanedProfile.unionAffiliation.filter(u =>
-          u && u.length > 1
-        );
-      }
-
-      setFormData({
-        ...actor,
-        actorProfile: {
-          experienceLevel: '',
-          vocalRange: '',
-          specialSkills: [],
-          resume: null,
-          headshots: [],
-          auditionVideos: [],
-          sizeCard: {
-            height: '',
-            weight: '',
-            shirtSize: '',
-            pantsSize: '',
-            shoeSize: '',
-            jacketSize: '',
-            dressSize: '',
-            chest: '',
-            waist: '',
-            inseam: ''
-          },
-          unionAffiliation: [],
-          contractPreference: '',
-          ...cleanedProfile,
-          // Normalize experience level to lowercase for consistency
-          experienceLevel: (cleanedProfile.experienceLevel || '').toLowerCase()
-        }
-      });
-    }
-  }, [actor]);
 
   const handleFileUpload = async (file, type) => {
     if (!file) return;
