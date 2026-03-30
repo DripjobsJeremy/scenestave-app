@@ -225,9 +225,23 @@ const MentionTextarea = ({ value, onChange, onBlur, placeholder, rows, castMembe
 const getCastMembers = (production, scene) => {
   const allChars = production.characters || [];
   const casting = production.casting || {};
-  const actors = (() => {
+  const allActors = (() => {
     try { return JSON.parse(localStorage.getItem('showsuite_actors') || '[]'); } catch { return []; }
   })();
+
+  // Two-step actor lookup: ID first, then name-based fallback.
+  const resolveActor = (actorId, charName) => {
+    let actor = actorId ? allActors.find(a => a.id === actorId) : null;
+    if (!actor && charName) {
+      const charLower = charName.toLowerCase();
+      const charFirst = charName.split(/[\s/]/).map(w => w.trim()).filter(Boolean)[0]?.toLowerCase();
+      actor = allActors.find(a => {
+        const full = `${a.firstName} ${a.lastName}`.toLowerCase();
+        return full === charLower || a.firstName?.toLowerCase() === charFirst;
+      }) || null;
+    }
+    return actor;
+  };
 
   const results = [];
   const seen = new Set();
@@ -238,11 +252,12 @@ const getCastMembers = (production, scene) => {
     if (!char || seen.has(char.name)) return;
     seen.add(char.name);
     const actorId = casting[char.name] || char.actorId;
-    const actor = actorId ? actors.find(a => a.id === actorId) : null;
+    const actor = resolveActor(actorId, char.name);
     results.push({
-      id: actorId || char.id,
+      id: actor?.id || char.id,
       name: actor ? `${actor.firstName} ${actor.lastName}`.trim() : char.name,
       character: char.name,
+      actorId: actor?.id || null,
     });
   });
 
@@ -251,16 +266,18 @@ const getCastMembers = (production, scene) => {
     if (seen.has(charName)) return;
     seen.add(charName);
     const actorId = casting[charName];
-    const actor = actorId ? actors.find(a => a.id === actorId) : null;
+    const actor = resolveActor(actorId, charName);
     results.push({
-      id: actorId || charName,
+      id: actor?.id || charName,
       name: actor ? `${actor.firstName} ${actor.lastName}`.trim() : charName,
       character: charName,
+      actorId: actor?.id || null,
     });
   });
 
   return results.filter(m => m.name);
 };
+window.getCastMembers = getCastMembers;
 
 // Extract @mentioned cast member names from blocking text.
 // Uses line-based parsing + longest-prefix matching against known cast names so
