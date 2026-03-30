@@ -1,17 +1,18 @@
+const fmtSlot = (slot) => {
+  if (!slot?.date || !slot?.time) return 'Unknown time';
+  try {
+    const d = new Date(`${slot.date}T${slot.time}`);
+    return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
+      + ' at ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+      + ` (${slot.duration} min)`;
+  } catch { return `${slot.date} ${slot.time} (${slot.duration} min)`; }
+};
+
 const InvitationCard = ({ msg, me, onRespond }) => {
   const inv = msg.invitation;
   const isPending = inv.status === 'pending';
   const isRecipient = msg.senderId !== me.id;
   const [selectedSlot, setSelectedSlot] = React.useState(null);
-
-  const fmtSlot = (slot) => {
-    try {
-      const d = new Date(`${slot.date}T${slot.time}`);
-      return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
-        + ' at ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-        + ` (${slot.duration} min)`;
-    } catch { return `${slot.date} ${slot.time} (${slot.duration} min)`; }
-  };
 
   return (
     <div style={{ maxWidth: '420px', borderRadius: '12px', overflow: 'hidden',
@@ -168,15 +169,62 @@ const MessagesView = ({ currentUser, contacts, productions, userRole }) => {
   }, [threads, searchQuery]);
 
   const handleInvitationResponse = (msg, thread, status, slot) => {
+    // 1. Update invitation status in the message
     window.messagesService.updateMessageInvitation(thread.id, msg.id, {
       status,
-      acceptedSlot: slot,
+      acceptedSlot: slot || null,
       respondedAt: new Date().toISOString(),
     });
-    const responseText = status === 'accepted'
-      ? `I'd like to accept my audition${slot ? ` on ${slot.date} at ${slot.time}` : ''}.`
-      : 'I\'m unable to make it to the audition. Thank you for the invitation.';
-    window.messagesService.sendMessage({ threadId: thread.id, senderUser: me, body: responseText });
+
+    // 2. Send auto-reply in thread (notifies sender via unread badge)
+    const replyText = status === 'accepted'
+      ? `${me.name} accepted the audition invitation${slot ? ` for ${fmtSlot(slot)}` : ''}.`
+      : `${me.name} declined the audition invitation.`;
+    window.messagesService.sendMessage({ threadId: thread.id, senderUser: me, body: replyText });
+
+    // 3. If accepted — write event to production calendar
+    if (status === 'accepted' && slot) {
+      const inv = msg.invitation;
+      try {
+        const prods = JSON.parse(localStorage.getItem('showsuite_productions') || '[]');
+        const prodIdx = prods.findIndex(p => p.id === inv.productionId);
+        if (prodIdx !== -1) {
+          const calendar = prods[prodIdx].calendar || [];
+          const alreadyExists = calendar.some(
+            e => e.invitationThreadId === thread.id && e.attendees?.some(a => a.id === me.id)
+          );
+          if (!alreadyExists) {
+            const startDateTime = `${slot.date}T${slot.time}:00`;
+            const endMs = new Date(startDateTime).getTime() + slot.duration * 60 * 1000;
+            prods[prodIdx].calendar = [...calendar, {
+              id: 'cal_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+              type: 'audition',
+              title: `Audition — ${me.name}`,
+              start: startDateTime,
+              end: new Date(endMs).toISOString().slice(0, 16),
+              location: inv.location || '',
+              notes: inv.notes || '',
+              attendees: [{ id: me.id, name: me.name, role: 'actor' }],
+              invitationThreadId: thread.id,
+              createdAt: new Date().toISOString(),
+            }];
+            localStorage.setItem('showsuite_productions', JSON.stringify(prods));
+            window.dispatchEvent(new CustomEvent('productionUpdated', { detail: { id: inv.productionId } }));
+          }
+        }
+      } catch (e) {
+        console.error('Failed to write audition event to calendar:', e);
+      }
+
+      const d = new Date(`${slot.date}T${slot.time}`);
+      window.showToast?.(
+        `Audition confirmed for ${d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} at ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`,
+        'success'
+      );
+    } else if (status === 'declined') {
+      window.showToast?.('Audition invitation declined', 'success');
+    }
+
     loadThreads();
   };
 
