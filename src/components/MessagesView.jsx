@@ -1,3 +1,113 @@
+const InvitationCard = ({ msg, me, onRespond }) => {
+  const inv = msg.invitation;
+  const isPending = inv.status === 'pending';
+  const isRecipient = msg.senderId !== me.id;
+  const [selectedSlot, setSelectedSlot] = React.useState(null);
+
+  const fmtSlot = (slot) => {
+    try {
+      const d = new Date(`${slot.date}T${slot.time}`);
+      return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
+        + ' at ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+        + ` (${slot.duration} min)`;
+    } catch { return `${slot.date} ${slot.time} (${slot.duration} min)`; }
+  };
+
+  return (
+    <div style={{ maxWidth: '420px', borderRadius: '12px', overflow: 'hidden',
+      border: '2px solid var(--color-primary)', backgroundColor: 'var(--color-bg-surface)' }}>
+      {/* Header */}
+      <div style={{ backgroundColor: 'var(--color-primary)', padding: '12px 16px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', marginBottom: '2px' }}>
+          🎭 Audition Invitation
+        </div>
+        <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>
+          {inv.productionTitle}
+        </div>
+      </div>
+
+      <div style={{ padding: '14px 16px' }}>
+        {/* Status badge */}
+        {!isPending && (
+          <div style={{ marginBottom: '10px', padding: '4px 10px', borderRadius: '99px',
+            display: 'inline-block', fontSize: '12px', fontWeight: 600,
+            backgroundColor: inv.status === 'accepted' ? '#d1fae5' : '#fee2e2',
+            color: inv.status === 'accepted' ? '#065f46' : '#991b1b' }}>
+            {inv.status === 'accepted' ? '✓ Accepted' : '✗ Declined'}
+            {inv.acceptedSlot && ` — ${fmtSlot(inv.acceptedSlot)}`}
+          </div>
+        )}
+
+        {/* Slots */}
+        <div style={{ marginBottom: '12px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)',
+            textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
+            Available Times
+          </div>
+          {inv.slots.map((slot, i) => (
+            <div key={i}
+              onClick={() => isRecipient && isPending && setSelectedSlot(i)}
+              style={{ padding: '8px 10px', borderRadius: '6px', marginBottom: '4px',
+                cursor: isRecipient && isPending ? 'pointer' : 'default',
+                border: `1px solid ${selectedSlot === i ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                backgroundColor: selectedSlot === i ? 'var(--color-primary-surface)' : 'var(--color-bg-elevated)',
+                display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '16px', height: '16px', borderRadius: '50%', flexShrink: 0,
+                border: `2px solid ${selectedSlot === i ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                backgroundColor: selectedSlot === i ? 'var(--color-primary)' : 'transparent' }} />
+              <span style={{ fontSize: '13px', color: 'var(--color-text-primary)' }}>
+                {fmtSlot(slot)}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Location */}
+        {inv.location && (
+          <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
+            📍 {inv.location}
+          </div>
+        )}
+
+        {/* Notes */}
+        {inv.notes && (
+          <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)',
+            padding: '8px 10px', borderRadius: '6px', backgroundColor: 'var(--color-bg-elevated)',
+            marginBottom: '12px', lineHeight: '1.5' }}>
+            {inv.notes}
+          </div>
+        )}
+
+        {/* Accept / Decline — only for recipient when pending */}
+        {isRecipient && isPending && (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button type="button"
+              onClick={() => {
+                if (inv.slots.length > 1 && selectedSlot === null) {
+                  window.showToast?.('Please select a time slot first', 'warning');
+                  return;
+                }
+                onRespond('accepted', inv.slots.length === 1 ? inv.slots[0] : inv.slots[selectedSlot]);
+              }}
+              style={{ flex: 1, padding: '9px', borderRadius: '6px', fontSize: '13px',
+                fontWeight: 600, cursor: 'pointer', border: 'none',
+                backgroundColor: '#065f46', color: '#34d399' }}>
+              ✓ Accept
+            </button>
+            <button type="button"
+              onClick={() => onRespond('declined', null)}
+              style={{ flex: 1, padding: '9px', borderRadius: '6px', fontSize: '13px',
+                fontWeight: 600, cursor: 'pointer', border: '1px solid #ef4444',
+                backgroundColor: '#fee2e2', color: '#991b1b' }}>
+              ✗ Decline
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const MessagesView = ({ currentUser, contacts, productions, userRole }) => {
   const [threads, setThreads] = React.useState([]);
   const [activeThreadId, setActiveThreadId] = React.useState(null);
@@ -56,6 +166,19 @@ const MessagesView = ({ currentUser, contacts, productions, userRole }) => {
       t.participants.some(p => p.name.toLowerCase().includes(q))
     );
   }, [threads, searchQuery]);
+
+  const handleInvitationResponse = (msg, thread, status, slot) => {
+    window.messagesService.updateMessageInvitation(thread.id, msg.id, {
+      status,
+      acceptedSlot: slot,
+      respondedAt: new Date().toISOString(),
+    });
+    const responseText = status === 'accepted'
+      ? `I'd like to accept my audition${slot ? ` on ${slot.date} at ${slot.time}` : ''}.`
+      : 'I\'m unable to make it to the audition. Thank you for the invitation.';
+    window.messagesService.sendMessage({ threadId: thread.id, senderUser: me, body: responseText });
+    loadThreads();
+  };
 
   const handleSendReply = () => {
     if (!replyBody.trim() || !activeThreadId) return;
@@ -246,14 +369,22 @@ const MessagesView = ({ currentUser, contacts, productions, userRole }) => {
                         {msg.senderName}
                       </span>
                     )}
-                    <div style={{
-                      maxWidth: '68%', padding: '10px 14px', borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                      backgroundColor: isMe ? 'var(--color-primary)' : 'var(--color-bg-elevated)',
-                      color: isMe ? '#ffffff' : 'var(--color-text-primary)',
-                      fontSize: '13px', lineHeight: '1.5',
-                    }}>
-                      {msg.body}
-                    </div>
+                    {msg.messageType === 'audition_invitation' && msg.invitation ? (
+                      <InvitationCard
+                        msg={msg}
+                        me={me}
+                        onRespond={(status, slot) => handleInvitationResponse(msg, activeThread, status, slot)}
+                      />
+                    ) : (
+                      <div style={{
+                        maxWidth: '68%', padding: '10px 14px', borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                        backgroundColor: isMe ? 'var(--color-primary)' : 'var(--color-bg-elevated)',
+                        color: isMe ? '#ffffff' : 'var(--color-text-primary)',
+                        fontSize: '13px', lineHeight: '1.5',
+                      }}>
+                        {msg.body}
+                      </div>
+                    )}
                     <span style={{ fontSize: '10px', color: 'var(--color-text-muted)',
                       marginTop: '3px', marginLeft: isMe ? 0 : '4px', marginRight: isMe ? '4px' : 0 }}>
                       {fmtTime(msg.sentAt)}
@@ -317,12 +448,16 @@ const MessagesView = ({ currentUser, contacts, productions, userRole }) => {
 };
 
 const ComposeModal = ({ me, contacts, productions, onSend, onClose }) => {
+  const [messageType, setMessageType] = React.useState('message');
   const [recipients, setRecipients] = React.useState([]);
   const [subject, setSubject] = React.useState('');
   const [body, setBody] = React.useState('');
   const [productionId, setProductionId] = React.useState('');
   const [recipientSearch, setRecipientSearch] = React.useState('');
   const [showRecipientDropdown, setShowRecipientDropdown] = React.useState(false);
+  const [auditionSlots, setAuditionSlots] = React.useState([{ date: '', time: '', duration: 30 }]);
+  const [auditionLocation, setAuditionLocation] = React.useState('');
+  const [auditionNotes, setAuditionNotes] = React.useState('');
 
   const messagableRoles = window.messagesService.getMessagableRoles(me.role);
 
@@ -361,15 +496,37 @@ const ComposeModal = ({ me, contacts, productions, onSend, onClose }) => {
   const removeRecipient = (id) => setRecipients(prev => prev.filter(r => r.id !== id));
 
   const handleSend = () => {
-    if (!recipients.length || !body.trim()) return;
+    if (!recipients.length) return;
+    if (messageType === 'audition_invitation') {
+      if (!productionId) { window.showToast?.('Please select a production', 'warning'); return; }
+      if (!auditionSlots.some(s => s.date && s.time)) { window.showToast?.('Please add at least one date and time', 'warning'); return; }
+    } else {
+      if (!body.trim()) return;
+    }
     const prod = productions?.find(p => p.id === productionId);
+    const validSlots = auditionSlots.filter(s => s.date && s.time);
     onSend({
       senderUser: me,
       recipientUsers: recipients,
-      subject: subject || `Message from ${me.name}`,
-      body: body.trim(),
+      subject: messageType === 'audition_invitation'
+        ? `Audition Invitation — ${prod?.title || 'Production'}`
+        : (subject || `Message from ${me.name}`),
+      body: messageType === 'audition_invitation'
+        ? (body.trim() || `You have been invited to audition for ${prod?.title || 'this production'}.`)
+        : body.trim(),
       productionId: productionId || null,
       productionTitle: prod?.title || null,
+      messageType,
+      invitation: messageType === 'audition_invitation' ? {
+        productionId,
+        productionTitle: prod?.title || null,
+        slots: validSlots,
+        location: auditionLocation,
+        notes: auditionNotes,
+        status: 'pending',
+        respondedAt: null,
+        acceptedSlot: null,
+      } : null,
     });
   };
 
@@ -380,7 +537,7 @@ const ComposeModal = ({ me, contacts, productions, onSend, onClose }) => {
         padding: '24px', width: '520px', maxWidth: '90vw',
         border: '1px solid var(--color-border)', maxHeight: '90vh', overflowY: 'auto' }}>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
             New Message
           </h3>
@@ -389,6 +546,25 @@ const ComposeModal = ({ me, contacts, productions, onSend, onClose }) => {
               color: 'var(--color-text-muted)', lineHeight: 1 }}>
             ×
           </button>
+        </div>
+
+        {/* Message type toggle */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          {[
+            { id: 'message', label: '💬 Message' },
+            { id: 'audition_invitation', label: '🎭 Audition Invitation' },
+          ].map(t => (
+            <button key={t.id} type="button"
+              onClick={() => setMessageType(t.id)}
+              style={{
+                padding: '6px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: 500,
+                cursor: 'pointer', border: '1px solid var(--color-border)',
+                backgroundColor: messageType === t.id ? 'var(--color-primary)' : 'var(--color-bg-elevated)',
+                color: messageType === t.id ? '#fff' : 'var(--color-text-secondary)',
+              }}>
+              {t.label}
+            </button>
+          ))}
         </div>
 
         {/* Recipients */}
@@ -443,20 +619,118 @@ const ComposeModal = ({ me, contacts, productions, onSend, onClose }) => {
           </div>
         </div>
 
-        {/* Subject */}
-        <div style={{ marginBottom: '12px' }}>
-          <label style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block', marginBottom: '6px' }}>
-            Subject
-          </label>
-          <input type="text" value={subject} onChange={e => setSubject(e.target.value)}
-            placeholder="Subject (optional)"
-            style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', fontSize: '13px',
-              border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-elevated)',
-              color: 'var(--color-text-primary)' }} />
-        </div>
+        {/* Subject — hidden for audition invitations (auto-generated) */}
+        {messageType === 'message' && (
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block', marginBottom: '6px' }}>
+              Subject
+            </label>
+            <input type="text" value={subject} onChange={e => setSubject(e.target.value)}
+              placeholder="Subject (optional)"
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', fontSize: '13px',
+                border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-elevated)',
+                color: 'var(--color-text-primary)' }} />
+          </div>
+        )}
 
-        {/* Production context (optional) */}
-        {productions?.length > 0 && (
+        {/* Audition invitation fields */}
+        {messageType === 'audition_invitation' && (
+          <div style={{ marginBottom: '16px', padding: '14px', borderRadius: '8px',
+            backgroundColor: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '12px' }}>
+              🗓 Audition Details
+            </div>
+
+            {/* Production — required */}
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block', marginBottom: '4px' }}>
+                Production *
+              </label>
+              <select value={productionId} onChange={e => setProductionId(e.target.value)}
+                title="Select production"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', fontSize: '13px',
+                  border: `1px solid ${!productionId ? '#ef4444' : 'var(--color-border)'}`,
+                  backgroundColor: 'var(--color-bg-surface)', color: 'var(--color-text-primary)' }}>
+                <option value="">— Select production —</option>
+                {(productions || []).map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+              </select>
+            </div>
+
+            {/* Time slots */}
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Available Time Slots *</label>
+                <button type="button"
+                  onClick={() => setAuditionSlots(s => [...s, { date: '', time: '', duration: 30 }])}
+                  style={{ fontSize: '11px', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                  + Add Slot
+                </button>
+              </div>
+              {auditionSlots.map((slot, i) => (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 80px 24px',
+                  gap: '6px', marginBottom: '6px', alignItems: 'center' }}>
+                  <input type="date" title="Audition date" value={slot.date}
+                    onChange={e => setAuditionSlots(s => s.map((sl, idx) => idx === i ? { ...sl, date: e.target.value } : sl))}
+                    style={{ padding: '7px 8px', borderRadius: '6px', fontSize: '12px',
+                      border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-surface)',
+                      color: 'var(--color-text-primary)' }} />
+                  <input type="time" title="Audition time" value={slot.time}
+                    onChange={e => setAuditionSlots(s => s.map((sl, idx) => idx === i ? { ...sl, time: e.target.value } : sl))}
+                    style={{ padding: '7px 8px', borderRadius: '6px', fontSize: '12px',
+                      border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-surface)',
+                      color: 'var(--color-text-primary)' }} />
+                  <select value={slot.duration} title="Duration"
+                    onChange={e => setAuditionSlots(s => s.map((sl, idx) => idx === i ? { ...sl, duration: parseInt(e.target.value) } : sl))}
+                    style={{ padding: '7px 4px', borderRadius: '6px', fontSize: '12px',
+                      border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-surface)',
+                      color: 'var(--color-text-primary)' }}>
+                    <option value={15}>15 min</option>
+                    <option value={30}>30 min</option>
+                    <option value={45}>45 min</option>
+                    <option value={60}>60 min</option>
+                    <option value={90}>90 min</option>
+                  </select>
+                  {auditionSlots.length > 1 && (
+                    <button type="button"
+                      onClick={() => setAuditionSlots(s => s.filter((_, idx) => idx !== i))}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer',
+                        color: 'var(--color-danger, #ef4444)', fontSize: '18px', lineHeight: 1, padding: 0 }}>
+                      ×
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Location */}
+            <div style={{ marginBottom: '8px' }}>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block', marginBottom: '4px' }}>
+                Location
+              </label>
+              <input type="text" value={auditionLocation} onChange={e => setAuditionLocation(e.target.value)}
+                placeholder="e.g. Main Stage, Room 204..."
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', fontSize: '13px',
+                  border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-surface)',
+                  color: 'var(--color-text-primary)' }} />
+            </div>
+
+            {/* Audition notes */}
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block', marginBottom: '4px' }}>
+                Notes (preparation instructions, sides, etc.)
+              </label>
+              <textarea value={auditionNotes} onChange={e => setAuditionNotes(e.target.value)}
+                placeholder="Please prepare 16 bars of an uptempo number..."
+                rows={3}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', fontSize: '13px',
+                  border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-surface)',
+                  color: 'var(--color-text-primary)', resize: 'vertical' }} />
+            </div>
+          </div>
+        )}
+
+        {/* Production context — message mode only (optional) */}
+        {messageType === 'message' && productions?.length > 0 && (
           <div style={{ marginBottom: '12px' }}>
             <label style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block', marginBottom: '6px' }}>
               Related Production (optional)
@@ -467,9 +741,7 @@ const ComposeModal = ({ me, contacts, productions, onSend, onClose }) => {
                 border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-elevated)',
                 color: 'var(--color-text-primary)' }}>
               <option value="">— No production —</option>
-              {productions.map(p => (
-                <option key={p.id} value={p.id}>{p.title}</option>
-              ))}
+              {productions.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
             </select>
           </div>
         )}
@@ -477,11 +749,13 @@ const ComposeModal = ({ me, contacts, productions, onSend, onClose }) => {
         {/* Body */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block', marginBottom: '6px' }}>
-            Message
+            {messageType === 'audition_invitation' ? 'Personal Note (optional)' : 'Message'}
           </label>
           <textarea value={body} onChange={e => setBody(e.target.value)}
-            placeholder="Write your message..."
-            rows={5}
+            placeholder={messageType === 'audition_invitation'
+              ? 'Add a personal note to the invitation...'
+              : 'Write your message...'}
+            rows={messageType === 'audition_invitation' ? 3 : 5}
             style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', fontSize: '13px',
               border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-elevated)',
               color: 'var(--color-text-primary)', resize: 'vertical', lineHeight: '1.5' }} />
@@ -492,10 +766,10 @@ const ComposeModal = ({ me, contacts, productions, onSend, onClose }) => {
             Cancel
           </button>
           <button type="button" onClick={handleSend}
-            disabled={!recipients.length || !body.trim()}
+            disabled={!recipients.length || (messageType === 'message' && !body.trim())}
             className="btn-primary px-4 py-2 rounded-lg text-sm"
-            style={{ opacity: recipients.length && body.trim() ? 1 : 0.5 }}>
-            Send Message
+            style={{ opacity: (recipients.length && (messageType !== 'message' || body.trim())) ? 1 : 0.5 }}>
+            {messageType === 'audition_invitation' ? 'Send Invitation' : 'Send Message'}
           </button>
         </div>
       </div>

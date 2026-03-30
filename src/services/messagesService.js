@@ -41,7 +41,7 @@
   const uid = (prefix) => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
   // Create a new thread
-  const createThread = ({ senderUser, recipientUsers, subject, body, productionId = null, productionTitle = null }) => {
+  const createThread = ({ senderUser, recipientUsers, subject, body, productionId = null, productionTitle = null, messageType = 'message', invitation = null }) => {
     const data = load();
     const threadId = uid('thread');
     const msgId = uid('msg');
@@ -70,6 +70,8 @@
         body,
         sentAt: now,
         readBy: [senderUser.id],
+        messageType,
+        invitation,
       }],
     };
 
@@ -150,6 +152,18 @@
     save(data);
   };
 
+  // Update invitation status on a specific message
+  const updateMessageInvitation = (threadId, messageId, invitationUpdate) => {
+    const data = load();
+    const thread = data.threads[threadId];
+    if (!thread) return;
+    const msg = thread.messages.find(m => m.id === messageId);
+    if (!msg || !msg.invitation) return;
+    msg.invitation = { ...msg.invitation, ...invitationUpdate };
+    data.threads[threadId] = thread;
+    save(data);
+  };
+
   // Check if a sender role can message a recipient role
   const canMessage = (senderRole, recipientRole) => {
     return (CAN_MESSAGE[senderRole] || []).includes(recipientRole);
@@ -171,6 +185,7 @@
     deleteThread,
     canMessage,
     getMessagableRoles,
+    updateMessageInvitation,
     load,
   };
 
