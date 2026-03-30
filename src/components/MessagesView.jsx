@@ -6,14 +6,6 @@ const MessagesView = ({ currentUser, contacts, productions, userRole }) => {
   const [replyBody, setReplyBody] = React.useState('');
   const replyRef = React.useRef(null);
 
-  // Auto-resize textarea as content grows
-  React.useEffect(() => {
-    if (replyRef.current) {
-      replyRef.current.style.height = 'auto';
-      replyRef.current.style.height = Math.min(replyRef.current.scrollHeight, 150) + 'px';
-    }
-  }, [replyBody]);
-
   // currentUser shape: { id, name, role }
   // Derive from props or localStorage if not passed
   const me = React.useMemo(() => {
@@ -66,6 +58,7 @@ const MessagesView = ({ currentUser, contacts, productions, userRole }) => {
 
   const handleSendReply = () => {
     if (!replyBody.trim() || !activeThreadId) return;
+    if (replyRef.current) replyRef.current.style.height = '40px';
     window.messagesService.sendMessage({
       threadId: activeThreadId,
       senderUser: me,
@@ -275,10 +268,15 @@ const MessagesView = ({ currentUser, contacts, productions, userRole }) => {
               <textarea
                 ref={replyRef}
                 value={replyBody}
-                onChange={e => setReplyBody(e.target.value)}
+                onChange={e => {
+                  setReplyBody(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px';
+                }}
                 onKeyDown={e => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
+                    if (replyRef.current) replyRef.current.style.height = '40px';
                     handleSendReply();
                   }
                 }}
