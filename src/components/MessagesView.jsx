@@ -185,40 +185,63 @@ const MessagesView = ({ currentUser, contacts, productions, userRole }) => {
     // 3. If accepted — write event to production calendar
     if (status === 'accepted' && slot) {
       const inv = msg.invitation;
-      try {
-        const prods = JSON.parse(localStorage.getItem('showsuite_productions') || '[]');
-        const prodIdx = prods.findIndex(p => p.id === inv.productionId);
-        if (prodIdx !== -1) {
-          const calendar = prods[prodIdx].calendar || [];
-          const alreadyExists = calendar.some(
+      console.log('[handleInvitationResponse] inv:', inv, 'status:', status, 'slot:', slot);
+
+      if (!inv?.productionId) {
+        console.error('[handleInvitationResponse] inv.productionId is missing — cannot write calendar event', inv);
+      } else {
+        try {
+          const calKey = `calendar_events_${inv.productionId}`;
+          const existingEvents = JSON.parse(localStorage.getItem(calKey) || '[]');
+          const alreadyExists = existingEvents.some(
             e => e.invitationThreadId === thread.id && e.attendees?.some(a => a.id === me.id)
           );
           if (!alreadyExists) {
             const startDateTime = `${slot.date}T${slot.time}:00`;
             const endMs = new Date(startDateTime).getTime() + slot.duration * 60 * 1000;
-            prods[prodIdx].calendar = [...calendar, {
+            const auditionEvent = {
               id: 'cal_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
               type: 'audition',
               title: `Audition — ${me.name}`,
               start: startDateTime,
               end: new Date(endMs).toISOString().slice(0, 16),
+              date: slot.date,
               location: inv.location || '',
               notes: inv.notes || '',
+              status: 'scheduled',
+              productionId: inv.productionId,
+              scenes: [],
+              charactersNeeded: [],
+              propsNeeded: [],
+              costumesNeeded: [],
               attendees: [{ id: me.id, name: me.name, role: 'actor' }],
+              attendance: {},
               invitationThreadId: thread.id,
               createdAt: new Date().toISOString(),
-            }];
-            localStorage.setItem('showsuite_productions', JSON.stringify(prods));
+            };
+            localStorage.setItem(calKey, JSON.stringify([...existingEvents, auditionEvent]));
+            console.log('[handleInvitationResponse] wrote audition event to', calKey, auditionEvent);
             window.dispatchEvent(new CustomEvent('productionUpdated', { detail: { id: inv.productionId } }));
+          } else {
+            console.log('[handleInvitationResponse] duplicate — event already exists in', calKey);
           }
+        } catch (e) {
+          console.error('Failed to write audition event to calendar:', e);
         }
-      } catch (e) {
-        console.error('Failed to write audition event to calendar:', e);
+      }
+
+      // Resolve production title for toast (inv.productionTitle stored at compose time; fallback to localStorage)
+      let prodTitle = inv?.productionTitle || '';
+      if (!prodTitle && inv?.productionId) {
+        try {
+          const allProds = JSON.parse(localStorage.getItem('showsuite_productions') || '[]');
+          prodTitle = allProds.find(p => p.id === inv.productionId)?.title || '';
+        } catch {}
       }
 
       const d = new Date(`${slot.date}T${slot.time}`);
       window.showToast?.(
-        `Audition confirmed for ${d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} at ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`,
+        `Audition confirmed${prodTitle ? ` for ${prodTitle}` : ''} — ${d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} at ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`,
         'success'
       );
     } else if (status === 'declined') {
