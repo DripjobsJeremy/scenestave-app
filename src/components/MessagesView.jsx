@@ -250,6 +250,37 @@ const MessagesView = ({ currentUser, contacts, productions, userRole }) => {
         } catch (e) {
           console.error('[handleInvitationResponse] calendar write failed:', e);
         }
+
+        // Also write to actor's personal calendar key (visible even if not yet cast)
+        try {
+          const actorCalKey = `actor_calendar_${me.id}`;
+          const actorEvents = JSON.parse(localStorage.getItem(actorCalKey) || '[]');
+          const actorAlreadyExists = actorEvents.some(e => e.invitationThreadId === thread.id);
+          if (!actorAlreadyExists) {
+            const startDateTime = `${slot.date}T${slot.time}:00`;
+            const actorEvent = {
+              id: 'actor_evt_' + Date.now(),
+              type: 'audition',
+              title: `Audition — ${inv.productionTitle}`,
+              productionId: inv.productionId,
+              productionTitle: inv.productionTitle,
+              start: startDateTime,
+              end: new Date(new Date(startDateTime).getTime() + slot.duration * 60000).toISOString().slice(0, 16),
+              date: slot.date,
+              time: slot.time,
+              duration: slot.duration,
+              location: inv.location || '',
+              notes: inv.notes || '',
+              invitationThreadId: thread.id,
+              createdAt: new Date().toISOString(),
+            };
+            localStorage.setItem(actorCalKey, JSON.stringify([...actorEvents, actorEvent]));
+            window.dispatchEvent(new CustomEvent('actorCalendarUpdated', { detail: { actorId: me.id } }));
+            console.log('[handleInvitationResponse] wrote to actor calendar:', actorCalKey);
+          }
+        } catch (e) {
+          console.error('[handleInvitationResponse] actor calendar write failed:', e);
+        }
       }
 
       // Resolve production title for toast

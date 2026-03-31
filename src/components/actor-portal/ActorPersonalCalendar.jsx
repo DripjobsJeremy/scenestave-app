@@ -13,6 +13,16 @@ function ActorPersonalCalendar({ actor, onBack }) {
     loadActorEvents();
   }, [actor, selectedProduction, refreshKey]);
 
+  useEffect(() => {
+    const handler = (e) => {
+      if (!e.detail?.actorId || e.detail.actorId === actor.id) {
+        setRefreshKey(k => k + 1);
+      }
+    };
+    window.addEventListener('actorCalendarUpdated', handler);
+    return () => window.removeEventListener('actorCalendarUpdated', handler);
+  }, [actor.id]);
+
   // Helper: look up a scene by its ID (format "actIndex-sceneIndex") from production.acts
   const getSceneFromId = (production, sceneId) => {
     if (!production.acts || !Array.isArray(production.acts)) return null;
@@ -185,6 +195,42 @@ function ActorPersonalCalendar({ actor, onBack }) {
             console.error('Error processing conflict:', conflictError, conflict);
           }
         });
+      }
+
+      // Load actor-specific calendar events (e.g. accepted auditions before cast)
+      try {
+        const actorCalKey = `actor_calendar_${actor.id}`;
+        const actorPersonalEvents = JSON.parse(localStorage.getItem(actorCalKey) || '[]');
+        actorPersonalEvents.forEach(ev => {
+          // Avoid duplication if actor is now cast and event also appears via production calendar
+          const alreadyAdded = allEvents.some(e => e.invitationThreadId && e.invitationThreadId === ev.invitationThreadId);
+          if (!alreadyAdded) {
+            const startDate = ev.date || (ev.start ? ev.start.split('T')[0] : null);
+            const startTime = ev.time || (ev.start && ev.start.includes('T') ? ev.start.split('T')[1].substring(0, 5) : null);
+            const endTime = ev.end && ev.end.includes('T') ? ev.end.split('T')[1].substring(0, 5) : null;
+            if (startDate) {
+              allEvents.push({
+                id: ev.id,
+                type: ev.type,
+                title: ev.title,
+                production: ev.productionTitle || '',
+                productionId: ev.productionId,
+                location: ev.location,
+                startDate: startDate,
+                endDate: startDate,
+                startTime: startTime,
+                endTime: endTime,
+                roles: [],
+                color: getProductionColor(ev.productionId || 'audition'),
+                allDay: false,
+                notes: ev.notes,
+                invitationThreadId: ev.invitationThreadId,
+              });
+            }
+          }
+        });
+      } catch (e) {
+        console.error('Error loading actor personal calendar events:', e);
       }
 
       // Filter by selected production
