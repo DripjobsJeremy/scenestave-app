@@ -380,35 +380,42 @@ const MessagesView = ({ currentUser, contacts, productions, userRole }) => {
                       {fmtTime(thread.updatedAt)}
                     </span>
                     {/* ⋮ menu button */}
-                    <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+                    <div style={{ position: 'relative' }}
+                      onMouseDown={e => e.stopPropagation()}
+                      onClick={e => e.stopPropagation()}>
                       <button type="button"
-                        onClick={e => { e.stopPropagation(); setThreadMenuId(threadMenuId === thread.id ? null : thread.id); }}
+                        onMouseDown={e => e.stopPropagation()}
+                        onClick={e => { e.stopPropagation(); e.preventDefault(); setThreadMenuId(threadMenuId === thread.id ? null : thread.id); }}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 5px',
                           color: 'var(--color-text-muted)', fontSize: '15px', borderRadius: '4px',
                           lineHeight: 1 }}>
                         ⋮
                       </button>
                       {threadMenuId === thread.id && (
-                        <div style={{ position: 'absolute', right: 0, top: '100%', zIndex: 30,
+                        <div style={{ position: 'absolute', right: 0, top: '100%', zIndex: 9999,
+                          pointerEvents: 'all',
                           backgroundColor: 'var(--color-bg-surface)', border: '1px solid var(--color-border)',
                           borderRadius: '6px', padding: '4px', minWidth: '168px',
                           boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                           <button type="button"
-                            onClick={() => { window.messagesService.markThreadUnread(thread.id, me.id); setThreadMenuId(null); loadThreads(); }}
+                            onMouseDown={e => e.stopPropagation()}
+                            onClick={e => { e.stopPropagation(); e.preventDefault(); window.messagesService.markThreadUnread(thread.id, me.id); setThreadMenuId(null); loadThreads(); }}
                             style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 12px',
                               background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px',
                               color: 'var(--color-text-primary)', borderRadius: '4px' }}>
                             Mark as unread
                           </button>
                           <button type="button"
-                            onClick={() => { window.messagesService.markThreadRead(thread.id, me.id); setThreadMenuId(null); loadThreads(); }}
+                            onMouseDown={e => e.stopPropagation()}
+                            onClick={e => { e.stopPropagation(); e.preventDefault(); window.messagesService.markThreadRead(thread.id, me.id); setThreadMenuId(null); loadThreads(); }}
                             style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 12px',
                               background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px',
                               color: 'var(--color-text-primary)', borderRadius: '4px' }}>
                             Mark as read
                           </button>
                           <button type="button"
-                            onClick={() => { if (window.confirm('Delete this conversation?')) { window.messagesService.deleteThread(thread.id); if (activeThreadId === thread.id) setActiveThreadId(null); setThreadMenuId(null); loadThreads(); } }}
+                            onMouseDown={e => e.stopPropagation()}
+                            onClick={e => { e.stopPropagation(); e.preventDefault(); if (window.confirm('Delete this conversation?')) { window.messagesService.deleteThread(thread.id); if (activeThreadId === thread.id) setActiveThreadId(null); setThreadMenuId(null); loadThreads(); } }}
                             style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 12px',
                               background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px',
                               color: 'var(--color-danger)', borderRadius: '4px' }}>
