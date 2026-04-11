@@ -256,7 +256,7 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
                                     : 'border-transparent text-gray-600 hover:text-gray-900'
                             }`}
                         >
-                            {tab.id === 'ghost_light' ? <img src="assets/ghostlight/ghostlight-purple.png" alt="GhostLight" style={{ height: '20px', objectFit: 'contain' }} /> : tab.label}
+                            {tab.id === 'ghost_light' ? <span style={{ display: 'inline-flex', alignItems: 'center', background: '#5b21b6', padding: '6px 12px', borderRadius: '6px' }}><img src="assets/ghostlight/ghostlight-button.png" alt="GhostLight" style={{ height: '22px', objectFit: 'contain' }} /></span> : tab.label}
                         </button>
                     ))}
                 </div>
@@ -562,13 +562,13 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
                             <div style={{ background: '#1a1a2e', borderRadius: '12px', padding: '32px', minHeight: '400px', position: 'relative', overflow: 'hidden' }}>
                                 <div style={{ position: 'absolute', right: '24px', bottom: '24px', fontSize: '120px', opacity: 0.05, userSelect: 'none', lineHeight: 1, pointerEvents: 'none' }}>🕯️</div>
                                 <div style={{ marginBottom: '32px' }}>
-                                    <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#f5f0e8', marginBottom: '8px', marginTop: '0' }}><img src="assets/ghostlight/ghostlight-purple.png" alt="GhostLight" style={{ height: '48px', objectFit: 'contain' }} /></h2>
+                                    <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#f5f0e8', marginBottom: '8px', marginTop: '0' }}><img src="assets/ghostlight/ghostlight-button.png" alt="GhostLight" style={{ height: '64px', objectFit: 'contain' }} /></h2>
                                     <p style={{ color: '#9b8fa8', fontSize: '14px', margin: '0' }}>AI-powered tools for theatre professionals — coming soon</p>
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
                                     {features.map((feature, i) => (
                                         <div key={i} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '24px', position: 'relative' }}>
-                                            <div style={{ position: 'absolute', top: '12px', right: '16px', fontSize: '24px' }}><img src="assets/ghostlight/ghostlight-black.png" alt="GhostLight" style={{ height: '24px', objectFit: 'contain', opacity: 0.15 }} /></div>
+                                            <img src="assets/ghostlight/ghostlight-purple.png" alt="" style={{ height: '32px', objectFit: 'contain', opacity: 0.25, position: 'absolute', bottom: '12px', right: '12px' }} />
                                             <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#f5f0e8', marginBottom: '8px', marginTop: '0', paddingRight: '32px' }}>{feature.title}</h3>
                                             <p style={{ fontSize: '13px', color: '#9b8fa8', lineHeight: '1.5', marginBottom: '16px', marginTop: '0' }}>{feature.desc}</p>
                                             <span style={{ display: 'inline-block', padding: '3px 10px', background: 'rgba(147,97,255,0.15)', border: '1px solid rgba(147,97,255,0.35)', borderRadius: '20px', fontSize: '11px', fontWeight: '500', color: '#b78aff', letterSpacing: '0.5px' }}>Coming Soon</span>
