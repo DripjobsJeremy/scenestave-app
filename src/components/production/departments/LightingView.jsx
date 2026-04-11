@@ -305,7 +305,7 @@ function LightingView({ production, onUpdateScene }) {
     { style: { background: '#1a1a2e', borderRadius: '12px', padding: '32px', minHeight: '400px', position: 'relative', overflow: 'hidden' } },
     React.createElement('div', { style: { position: 'absolute', right: '24px', bottom: '24px', fontSize: '120px', opacity: 0.05, userSelect: 'none', lineHeight: 1, pointerEvents: 'none' } }, '🕯️'),
     React.createElement('div', { style: { marginBottom: '32px' } },
-      React.createElement('h2', { style: { fontSize: '22px', fontWeight: '700', color: '#f5f0e8', marginBottom: '8px', marginTop: '0' } }, '🕯️ The Ghost Light'),
+      React.createElement('h2', { style: { fontSize: '22px', fontWeight: '700', color: '#f5f0e8', marginBottom: '8px', marginTop: '0' } }, React.createElement('img', { src: 'assets/ghostlight/ghostlight-purple.png', alt: 'GhostLight', style: { height: '48px', objectFit: 'contain' } })),
       React.createElement('p', { style: { color: '#9b8fa8', fontSize: '14px', margin: '0' } }, 'AI-powered tools for theatre professionals — coming soon')
     ),
     React.createElement(
@@ -313,7 +313,7 @@ function LightingView({ production, onUpdateScene }) {
       { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' } },
       ghostLightFeatures.map((feature, i) =>
         React.createElement('div', { key: i, style: { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '24px', position: 'relative' } },
-          React.createElement('div', { style: { position: 'absolute', top: '12px', right: '16px', fontSize: '24px' } }, '🕯️'),
+          React.createElement('div', { style: { position: 'absolute', top: '12px', right: '16px', fontSize: '24px' } }, React.createElement('img', { src: 'assets/ghostlight/ghostlight-black.png', alt: 'GhostLight', style: { height: '24px', objectFit: 'contain', opacity: 0.15 } })),
           React.createElement('h3', { style: { fontSize: '15px', fontWeight: '600', color: '#f5f0e8', marginBottom: '8px', marginTop: '0', paddingRight: '32px' } }, feature.title),
           React.createElement('p', { style: { fontSize: '13px', color: '#9b8fa8', lineHeight: '1.5', marginBottom: '16px', marginTop: '0' } }, feature.desc),
           React.createElement('span', { style: { display: 'inline-block', padding: '3px 10px', background: 'rgba(147,97,255,0.15)', border: '1px solid rgba(147,97,255,0.35)', borderRadius: '20px', fontSize: '11px', fontWeight: '500', color: '#b78aff', letterSpacing: '0.5px' } }, 'Coming Soon')
@@ -326,7 +326,7 @@ function LightingView({ production, onUpdateScene }) {
     'div',
     { style: { display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: '2px solid #e5e7eb' } },
     React.createElement('button', { onClick: () => setActiveTab('lighting'), style: { padding: '8px 16px', fontSize: '14px', fontWeight: '500', borderRadius: '6px 6px 0 0', border: 'none', cursor: 'pointer', background: 'transparent', color: activeTab === 'lighting' ? '#d97706' : '#6b7280', borderBottom: activeTab === 'lighting' ? '2px solid #d97706' : '2px solid transparent', marginBottom: '-2px' } }, '💡 Lighting Design'),
-    React.createElement('button', { onClick: () => setActiveTab('ghost_light'), style: { padding: '8px 16px', fontSize: '14px', fontWeight: '500', borderRadius: '6px 6px 0 0', border: 'none', cursor: 'pointer', background: 'transparent', color: activeTab === 'ghost_light' ? '#b78aff' : '#6b7280', borderBottom: activeTab === 'ghost_light' ? '2px solid #9361ff' : '2px solid transparent', marginBottom: '-2px' } }, '🕯️ Ghost Light')
+    React.createElement('button', { onClick: () => setActiveTab('ghost_light'), style: { padding: '8px 16px', fontSize: '14px', fontWeight: '500', borderRadius: '6px 6px 0 0', border: 'none', cursor: 'pointer', background: 'transparent', color: activeTab === 'ghost_light' ? '#b78aff' : '#6b7280', borderBottom: activeTab === 'ghost_light' ? '2px solid #9361ff' : '2px solid transparent', marginBottom: '-2px' } }, React.createElement('img', { src: 'assets/ghostlight/ghostlight-purple.png', alt: 'GhostLight', style: { height: '20px', objectFit: 'contain' } }))
   );
 
   return React.createElement(
