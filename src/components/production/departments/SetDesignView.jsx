@@ -814,7 +814,7 @@ function SetDesignView({ production, onSave }) {
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`
           },
-          '🕯️ GhostLight'
+          React.createElement('img', { src: 'assets/ghostlight/ghostlight-full-button-new.png', alt: 'GhostLight', style: { height: '28px', objectFit: 'contain' } })
         )
       )
     ),
@@ -832,7 +832,10 @@ function SetDesignView({ production, onSave }) {
           { style: { background: '#1a1a2e', borderRadius: '12px', padding: '32px', minHeight: '400px', position: 'relative', overflow: 'hidden' } },
           React.createElement('div', { style: { position: 'absolute', right: '24px', bottom: '24px', fontSize: '120px', opacity: 0.05, userSelect: 'none', lineHeight: 1, pointerEvents: 'none' } }, '🕯️'),
           React.createElement('div', { style: { marginBottom: '32px' } },
-            React.createElement('h2', { style: { fontSize: '22px', fontWeight: '700', color: '#f5f0e8', marginBottom: '8px', marginTop: '0' } }, '🕯️ GhostLight'),
+            React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '8px' } },
+              React.createElement('img', { src: 'assets/ghostlight/ghostlight-new-assests.png', alt: 'GhostLight', style: { height: '80px', objectFit: 'contain' } }),
+              React.createElement('img', { src: 'assets/ghostlight/ghostlight-full-button-new.png', alt: 'GhostLight', style: { height: '48px', objectFit: 'contain' } })
+            ),
             React.createElement('p', { style: { color: '#9b8fa8', fontSize: '14px', margin: '0' } }, 'AI-powered tools for theatre professionals — coming soon')
           ),
           React.createElement(
@@ -842,7 +845,8 @@ function SetDesignView({ production, onSave }) {
               React.createElement('div', { key: i, style: { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '24px', position: 'relative' } },
                 React.createElement('h3', { style: { fontSize: '15px', fontWeight: '600', color: '#f5f0e8', marginBottom: '8px', marginTop: '0', paddingRight: '32px' } }, feature.title),
                 React.createElement('p', { style: { fontSize: '13px', color: '#9b8fa8', lineHeight: '1.5', marginBottom: '16px', marginTop: '0' } }, feature.desc),
-                React.createElement('span', { style: { display: 'inline-block', padding: '3px 10px', background: 'rgba(147,97,255,0.15)', border: '1px solid rgba(147,97,255,0.35)', borderRadius: '20px', fontSize: '11px', fontWeight: '500', color: '#b78aff', letterSpacing: '0.5px' } }, 'Coming Soon')
+                React.createElement('span', { style: { display: 'inline-block', padding: '3px 10px', background: 'rgba(147,97,255,0.15)', border: '1px solid rgba(147,97,255,0.35)', borderRadius: '20px', fontSize: '11px', fontWeight: '500', color: '#b78aff', letterSpacing: '0.5px' } }, 'Coming Soon'),
+                React.createElement('img', { src: 'assets/ghostlight/ghostlight-button-new_1.1_transparent.png', alt: '', style: { position: 'absolute', bottom: '12px', right: '12px', height: '36px', objectFit: 'contain', opacity: 0.3 } })
               )
             )
           )
