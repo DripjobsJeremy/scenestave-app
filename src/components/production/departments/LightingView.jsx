@@ -303,7 +303,7 @@ function LightingView({ production, onUpdateScene }) {
   const ghostLightPanel = React.createElement(
     'div',
     { style: { background: '#1a1a2e', borderRadius: '12px', padding: '32px', minHeight: '400px', position: 'relative', overflow: 'hidden' } },
-    React.createElement('div', { style: { position: 'absolute', right: '24px', bottom: '24px', fontSize: '120px', opacity: 0.05, userSelect: 'none', lineHeight: 1, pointerEvents: 'none' } }, '🕯️'),
+    React.createElement('img', { src: 'assets/ghostlight/ghostlight-brand.png', alt: '', style: { position: 'absolute', right: '24px', bottom: '24px', height: '40px', objectFit: 'contain', opacity: 0.25, pointerEvents: 'none' } }),
     React.createElement('div', { style: { marginBottom: '32px' } },
       React.createElement('img', { src: 'assets/ghostlight/ghostlight-brand.png', alt: 'GhostLight', style: { height: '72px', objectFit: 'contain', marginBottom: '8px' } }),
       React.createElement('p', { style: { color: '#9b8fa8', fontSize: '14px', margin: '0' } }, 'AI-powered tools for theatre professionals — coming soon')
@@ -316,7 +316,7 @@ function LightingView({ production, onUpdateScene }) {
           React.createElement('h3', { style: { fontSize: '15px', fontWeight: '600', color: '#f5f0e8', marginBottom: '8px', marginTop: '0', paddingRight: '32px' } }, feature.title),
           React.createElement('p', { style: { fontSize: '13px', color: '#9b8fa8', lineHeight: '1.5', marginBottom: '16px', marginTop: '0' } }, feature.desc),
           React.createElement('span', { style: { display: 'inline-block', padding: '3px 10px', background: 'rgba(147,97,255,0.15)', border: '1px solid rgba(147,97,255,0.35)', borderRadius: '20px', fontSize: '11px', fontWeight: '500', color: '#b78aff', letterSpacing: '0.5px' } }, 'Coming Soon'),
-          React.createElement('img', { src: 'assets/ghostlight/ghostlight-brand.png', alt: '', style: { position: 'absolute', bottom: '10px', right: '10px', height: '28px', objectFit: 'contain', opacity: 0.12 } })
+          React.createElement('img', { src: 'assets/ghostlight/ghostlight-brand.png', alt: '', style: { position: 'absolute', bottom: '10px', right: '10px', height: '28px', objectFit: 'contain', opacity: 0.25 } })
         )
       )
     )
