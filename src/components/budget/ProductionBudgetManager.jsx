@@ -256,7 +256,7 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
                                     : 'border-transparent text-gray-600 hover:text-gray-900'
                             }`}
                         >
-                            {tab.id === 'ghost_light' ? <img src="assets/ghostlight/ghostlight-full-button-new.png" alt="GhostLight" style={{ height: '28px', objectFit: 'contain' }} /> : tab.label}
+                            {tab.id === 'ghost_light' ? <span style={{ background: '#0d0d0d', padding: '4px 10px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center' }}><img src="assets/ghostlight/ghostlight-brand.png" alt="GhostLight" style={{ height: '24px', objectFit: 'contain', filter: 'brightness(1)' }} /></span> : tab.label}
                         </button>
                     ))}
                 </div>
@@ -562,10 +562,7 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
                             <div style={{ background: '#1a1a2e', borderRadius: '12px', padding: '32px', minHeight: '400px', position: 'relative', overflow: 'hidden' }}>
                                 <div style={{ position: 'absolute', right: '24px', bottom: '24px', fontSize: '120px', opacity: 0.05, userSelect: 'none', lineHeight: 1, pointerEvents: 'none' }}>🕯️</div>
                                 <div style={{ marginBottom: '32px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '8px' }}>
-                                        <img src="assets/ghostlight/ghostlight-new-assests.png" alt="GhostLight" style={{ height: '80px', objectFit: 'contain' }} />
-                                        <img src="assets/ghostlight/ghostlight-full-button-new.png" alt="GhostLight" style={{ height: '48px', objectFit: 'contain' }} />
-                                    </div>
+                                    <img src="assets/ghostlight/ghostlight-brand.png" alt="GhostLight" style={{ height: '72px', objectFit: 'contain', marginBottom: '8px' }} />
                                     <p style={{ color: '#9b8fa8', fontSize: '14px', margin: '0' }}>AI-powered tools for theatre professionals — coming soon</p>
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
@@ -574,7 +571,7 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
                                             <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#f5f0e8', marginBottom: '8px', marginTop: '0', paddingRight: '32px' }}>{feature.title}</h3>
                                             <p style={{ fontSize: '13px', color: '#9b8fa8', lineHeight: '1.5', marginBottom: '16px', marginTop: '0' }}>{feature.desc}</p>
                                             <span style={{ display: 'inline-block', padding: '3px 10px', background: 'rgba(147,97,255,0.15)', border: '1px solid rgba(147,97,255,0.35)', borderRadius: '20px', fontSize: '11px', fontWeight: '500', color: '#b78aff', letterSpacing: '0.5px' }}>Coming Soon</span>
-                                            <img src="assets/ghostlight/ghostlight-button-new_1.1_transparent.png" alt="" style={{ position: 'absolute', bottom: '12px', right: '12px', height: '36px', objectFit: 'contain', opacity: 0.3 }} />
+                                            <img src="assets/ghostlight/ghostlight-brand.png" alt="" style={{ position: 'absolute', bottom: '10px', right: '10px', height: '28px', objectFit: 'contain', opacity: 0.12 }} />
                                         </div>
                                     ))}
                                 </div>
