@@ -348,7 +348,7 @@ function LightingView({ production, onUpdateScene }) {
             React.createElement('img', {
               src: 'assets/ghostlight/ghostlight-logo.png',
               alt: 'GhostLight AI',
-              style: { height: '28px', width: '28px', objectFit: 'contain' }
+              style: { height: '36px', width: '36px', objectFit: 'contain' }
             })
           )
         )

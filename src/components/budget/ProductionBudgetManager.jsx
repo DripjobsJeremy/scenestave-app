@@ -256,7 +256,7 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
                                     : 'border-transparent text-gray-600 hover:text-gray-900'
                             }`}
                         >
-                            {tab.id === 'ghost_light' ? <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }} title="Get assistance from GhostLight AI"><img src="assets/ghostlight/ghostlight-logo.png" alt="GhostLight AI" style={{ height: '28px', width: '28px', objectFit: 'contain' }} /></span> : tab.label}
+                            {tab.id === 'ghost_light' ? <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }} title="Get assistance from GhostLight AI"><img src="assets/ghostlight/ghostlight-logo.png" alt="GhostLight AI" style={{ height: '36px', width: '36px', objectFit: 'contain' }} /></span> : tab.label}
                         </button>
                     ))}
                 </div>
