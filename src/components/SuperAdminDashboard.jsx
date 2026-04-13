@@ -443,7 +443,7 @@ function SuperAdminDashboard({ userRole = 'admin' }) {
           <div style={{ background: '#1a1a2e', borderRadius: '12px', padding: '32px', position: 'relative', overflow: 'hidden' }}>
             <img src="assets/ghostlight/ghostlight-brand.png" alt="" style={{ position: 'absolute', right: '24px', bottom: '24px', height: '40px', objectFit: 'contain', opacity: 0.25, pointerEvents: 'none' }} />
             <div style={{ marginBottom: '32px' }}>
-              <img src="assets/ghostlight/ghostlight-brand.png" alt="GhostLight" style={{ height: '72px', objectFit: 'contain', marginBottom: '8px' }} />
+              <img src="assets/ghostlight/ghostlight-brand.png" alt="GhostLight" style={{ height: '56px', objectFit: 'contain', marginBottom: '8px' }} />
               <p style={{ color: '#9b8fa8', fontSize: '14px', margin: '0' }}>AI-powered tools for theatre professionals — coming soon</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>

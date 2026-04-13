@@ -305,7 +305,7 @@ function LightingView({ production, onUpdateScene }) {
     { style: { background: '#1a1a2e', borderRadius: '12px', padding: '32px', minHeight: '400px', position: 'relative', overflow: 'hidden' } },
     React.createElement('img', { src: 'assets/ghostlight/ghostlight-brand.png', alt: '', style: { position: 'absolute', right: '24px', bottom: '24px', height: '40px', objectFit: 'contain', opacity: 0.25, pointerEvents: 'none' } }),
     React.createElement('div', { style: { marginBottom: '32px' } },
-      React.createElement('img', { src: 'assets/ghostlight/ghostlight-brand.png', alt: 'GhostLight', style: { height: '72px', objectFit: 'contain', marginBottom: '8px' } }),
+      React.createElement('img', { src: 'assets/ghostlight/ghostlight-brand.png', alt: 'GhostLight', style: { height: '56px', objectFit: 'contain', marginBottom: '8px' } }),
       React.createElement('p', { style: { color: '#9b8fa8', fontSize: '14px', margin: '0' } }, 'AI-powered tools for theatre professionals — coming soon')
     ),
     React.createElement(
@@ -326,7 +326,16 @@ function LightingView({ production, onUpdateScene }) {
     'div',
     { style: { display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: '2px solid #e5e7eb' } },
     React.createElement('button', { onClick: () => setActiveTab('lighting'), style: { padding: '8px 16px', fontSize: '14px', fontWeight: '500', borderRadius: '6px 6px 0 0', border: 'none', cursor: 'pointer', background: 'transparent', color: activeTab === 'lighting' ? '#d97706' : '#6b7280', borderBottom: activeTab === 'lighting' ? '2px solid #d97706' : '2px solid transparent', marginBottom: '-2px' } }, '💡 Lighting Design'),
-    React.createElement('button', { onClick: () => setActiveTab('ghost_light'), style: { padding: '8px 16px', fontSize: '14px', fontWeight: '500', borderRadius: '6px 6px 0 0', border: 'none', cursor: 'pointer', background: 'transparent', color: activeTab === 'ghost_light' ? '#b78aff' : '#6b7280', borderBottom: activeTab === 'ghost_light' ? '2px solid #9361ff' : '2px solid transparent', marginBottom: '-2px' } }, React.createElement('span', { style: { background: '#0d0d0d', padding: '4px 10px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center' } }, React.createElement('img', { src: 'assets/ghostlight/ghostlight-brand.png', alt: 'GhostLight', style: { height: '24px', objectFit: 'contain', filter: 'brightness(1)' } })))
+    React.createElement('button', { onClick: () => setActiveTab('ghost_light'), style: { padding: '8px 16px', fontSize: '14px', fontWeight: '500', borderRadius: '6px 6px 0 0', border: 'none', cursor: 'pointer', background: 'transparent', color: activeTab === 'ghost_light' ? '#b78aff' : '#6b7280', borderBottom: activeTab === 'ghost_light' ? '2px solid #9361ff' : '2px solid transparent', marginBottom: '-2px' } }, React.createElement('span', {
+  style: { position: 'relative', display: 'inline-flex', alignItems: 'center' },
+  title: 'Get assistance from GhostLight AI'
+},
+  React.createElement('img', {
+    src: 'assets/ghostlight/ghostlight-logo.png',
+    alt: 'GhostLight AI',
+    style: { height: '28px', width: '28px', objectFit: 'contain' }
+  })
+))
   );
 
   return React.createElement(

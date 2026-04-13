@@ -256,7 +256,7 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
                                     : 'border-transparent text-gray-600 hover:text-gray-900'
                             }`}
                         >
-                            {tab.id === 'ghost_light' ? <span style={{ background: '#0d0d0d', padding: '4px 10px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center' }}><img src="assets/ghostlight/ghostlight-brand.png" alt="GhostLight" style={{ height: '24px', objectFit: 'contain', filter: 'brightness(1)' }} /></span> : tab.label}
+                            {tab.id === 'ghost_light' ? <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }} title="Get assistance from GhostLight AI"><img src="assets/ghostlight/ghostlight-logo.png" alt="GhostLight AI" style={{ height: '28px', width: '28px', objectFit: 'contain' }} /></span> : tab.label}
                         </button>
                     ))}
                 </div>
@@ -562,7 +562,7 @@ function ProductionBudgetManager({ production, onClose, onSave }) {
                             <div style={{ background: '#1a1a2e', borderRadius: '12px', padding: '32px', minHeight: '400px', position: 'relative', overflow: 'hidden' }}>
                                 <img src="assets/ghostlight/ghostlight-brand.png" alt="" style={{ position: 'absolute', right: '24px', bottom: '24px', height: '40px', objectFit: 'contain', opacity: 0.25, pointerEvents: 'none' }} />
                                 <div style={{ marginBottom: '32px' }}>
-                                    <img src="assets/ghostlight/ghostlight-brand.png" alt="GhostLight" style={{ height: '72px', objectFit: 'contain', marginBottom: '8px' }} />
+                                    <img src="assets/ghostlight/ghostlight-brand.png" alt="GhostLight" style={{ height: '56px', objectFit: 'contain', marginBottom: '8px' }} />
                                     <p style={{ color: '#9b8fa8', fontSize: '14px', margin: '0' }}>AI-powered tools for theatre professionals — coming soon</p>
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
