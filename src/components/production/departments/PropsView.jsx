@@ -840,7 +840,7 @@ function PropsView({ production, onSave, onUpdateScene }) {
             style: ghostLightMode
               ? { background: '#1a1a2e', color: '#b78aff', border: '1px solid rgba(147,97,255,0.4)' }
               : { background: '', color: '' },
-            className: `px-4 py-2 text-sm font-medium rounded transition-colors ${
+            className: `ghostlight-btn px-4 py-2 text-sm font-medium rounded transition-colors ${
               ghostLightMode
                 ? ''
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'

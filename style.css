@@ -1343,3 +1343,25 @@ select:focus {
 .ap-content { flex: 1; overflow-y: auto; background-color: var(--color-bg-page, #f9fafb); }
 .ap-progress-wrap { --progress-pct: 0%; }
 .ap-progress-fill { width: var(--progress-pct); }
+
+/* ── GhostLight AI button shimmer ─────────────────────────────────────── */
+@keyframes ghostlight-shimmer {
+  0%   { box-shadow: 0 0 0px rgba(96, 165, 250, 0);   border-color: rgba(96, 165, 250, 0); }
+  50%  { box-shadow: 0 0 12px rgba(96, 165, 250, 0.8); border-color: rgba(96, 165, 250, 0.9); }
+  100% { box-shadow: 0 0 0px rgba(96, 165, 250, 0);   border-color: rgba(96, 165, 250, 0); }
+}
+
+.ghostlight-btn {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  background: transparent;
+}
+
+.ghostlight-btn:hover {
+  animation: ghostlight-shimmer 1.2s ease-in-out infinite;
+  border-color: rgba(96, 165, 250, 0.9);
+  box-shadow: 0 0 12px rgba(96, 165, 250, 0.6);
+}

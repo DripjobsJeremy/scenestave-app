@@ -2,7 +2,7 @@ const { useState, useEffect } = React;
 
 function SoundDepartmentView({ production, onUpdateScene, userRole }) {
   const [expandedActs, setExpandedActs] = useState({});
-  const [activeTab, setActiveTab] = useState('sound');
+  const [ghostLightMode, setGhostLightMode] = useState(false);
   const [localProduction, setLocalProduction] = useState(production);
 
   const EDIT_ROLES = ['super_admin', 'venue_manager', 'admin', 'client_admin', 'sound', 'sound_designer', 'director'];
@@ -122,24 +122,6 @@ function SoundDepartmentView({ production, onUpdateScene, userRole }) {
     );
   }
 
-  const header = React.createElement(
-    'div',
-    { className: 'flex items-center justify-between mb-6' },
-    React.createElement(
-      'div',
-      null,
-      React.createElement('h3', { className: 'text-lg font-semibold text-gray-900' }, '🔊 Sound Design'),
-      React.createElement('p', { className: 'text-sm text-gray-500' }, 'Manage song cues, artists, durations, and sound types')
-    ),
-    React.createElement(
-      'div',
-      { className: 'text-right' },
-      React.createElement('p', { className: 'text-sm font-medium text-gray-700' },
-        (localProduction.acts.reduce((sum, act) => sum + (act.scenes?.filter(s => s.songTitle || s.artist || s.duration || s.soundType)?.length || 0), 0))
-        + ' scenes have sound data'
-      )
-    )
-  );
 
   const actsList = React.createElement(
     'div',
@@ -433,29 +415,60 @@ function SoundDepartmentView({ production, onUpdateScene, userRole }) {
     )
   );
 
-  const tabNav = React.createElement(
-    'div',
-    { style: { display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: '2px solid #e5e7eb' } },
-    React.createElement('button', { onClick: () => setActiveTab('sound'), style: { padding: '8px 16px', fontSize: '14px', fontWeight: '500', borderRadius: '6px 6px 0 0', border: 'none', cursor: 'pointer', background: 'transparent', color: activeTab === 'sound' ? '#7c3aed' : '#6b7280', borderBottom: activeTab === 'sound' ? '2px solid #7c3aed' : '2px solid transparent', marginBottom: '-2px' } }, '🔊 Sound Design'),
-    React.createElement('button', { onClick: () => setActiveTab('ghost_light'), style: { padding: '8px 16px', fontSize: '14px', fontWeight: '500', borderRadius: '6px 6px 0 0', border: 'none', cursor: 'pointer', background: 'transparent', color: activeTab === 'ghost_light' ? '#b78aff' : '#6b7280', borderBottom: activeTab === 'ghost_light' ? '2px solid #9361ff' : '2px solid transparent', marginBottom: '-2px' } }, React.createElement('span', {
-  style: { position: 'relative', display: 'inline-flex', alignItems: 'center' },
-  title: 'Get assistance from GhostLight AI'
-},
-  React.createElement('img', {
-    src: 'assets/ghostlight/ghostlight-logo.png',
-    alt: 'GhostLight AI',
-    style: { height: '28px', width: '28px', objectFit: 'contain' }
-  })
-))
-  );
+  const totalScenes = localProduction.acts.reduce((sum, act) => sum + (act.scenes?.length || 0), 0);
+  const scenesWithSound = localProduction.acts.reduce((sum, act) => sum + (act.scenes?.filter(s => s.songTitle || s.artist || s.duration || s.soundType)?.length || 0), 0);
 
   return React.createElement(
     'div',
-    null,
-    tabNav,
-    activeTab === 'ghost_light'
+    { className: 'space-y-4' },
+    React.createElement(
+      'div',
+      { className: 'flex items-center justify-between mb-4' },
+      React.createElement('div', { className: 'flex items-baseline gap-2' },
+        React.createElement('h3', { className: 'text-lg font-semibold text-gray-900' }, '🔊 Sound Design'),
+        React.createElement('span', { className: 'text-xs text-gray-500 font-normal' },
+          scenesWithSound + ' / ' + totalScenes + ' scenes with data'
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'flex gap-2' },
+        React.createElement(
+          'button',
+          {
+            onClick: () => setGhostLightMode(false),
+            style: !ghostLightMode
+              ? { background: '#1a1a2e', color: 'white', border: '1px solid rgba(147,97,255,0.4)' }
+              : { background: 'transparent', color: '#6b7280', border: '1px solid #e5e7eb' },
+            className: 'px-4 py-2 text-sm font-medium rounded transition-colors'
+          },
+          '🎵 Scene View'
+        ),
+        React.createElement(
+          'button',
+          {
+            onClick: () => setGhostLightMode(true),
+            className: 'ghostlight-btn px-4 py-2 text-sm font-medium rounded transition-colors',
+            style: ghostLightMode
+              ? { background: '#1a1a2e', color: '#b78aff', border: '1px solid rgba(147,97,255,0.4)' }
+              : {}
+          },
+          React.createElement('span', {
+            style: { position: 'relative', display: 'inline-flex', alignItems: 'center' },
+            title: 'Get assistance from GhostLight AI'
+          },
+            React.createElement('img', {
+              src: 'assets/ghostlight/ghostlight-logo.png',
+              alt: 'GhostLight AI',
+              style: { height: '28px', width: '28px', objectFit: 'contain' }
+            })
+          )
+        )
+      )
+    ),
+    ghostLightMode
       ? ghostLightPanel
-      : React.createElement('div', null, budgetPanel, header, actsList)
+      : React.createElement('div', null, budgetPanel, actsList)
   );
 }
 
