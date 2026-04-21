@@ -1,5 +1,7 @@
 /* SceneStave — global styles */
 
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;0,9..144,900;1,9..144,400&display=swap');
+
 /* ══════════════════════════════════════════════════════════════════════════
    CSS CUSTOM PROPERTY THEME SYSTEM
    Foundation layer — components use these variables instead of hard-coded
@@ -18,6 +20,12 @@
   --color-accent:          #05a9fe;
   --color-accent-dark:     #0284c7;
   --color-accent-surface:  rgba(5, 169, 254, 0.15);
+  --color-accent-gold:     #C9A961;
+  --color-accent-crimson:  #8B1A2B;
+
+  /* ── Semantic aliases for Royalties tab ── */
+  --color-bg-panel:        var(--color-bg-surface);
+  --color-text:            var(--color-text-primary);
 
   --color-secondary:       #5e6467;
 
@@ -126,6 +134,93 @@
 .text-muted-color     { color: var(--color-text-muted); }
 .text-brand           { color: var(--color-primary); }
 .text-accent          { color: var(--color-accent); }
+.text-accent-gold     { color: var(--color-accent-gold); }
+.text-accent-crimson  { color: var(--color-accent-crimson); }
+.bg-accent-crimson    { background-color: var(--color-accent-crimson); }
+
+/* Royalties & Licensing tab layout helpers */
+.font-fraunces        { font-family: 'Fraunces', serif; }
+.font-cormorant       { font-family: 'Cormorant Garamond', serif; }
+.rl-outer-grid        { display: grid; grid-template-columns: 1fr 380px; }
+.rl-rail-shadow       { box-shadow: inset 0 1px 0 rgba(201, 169, 97, 0.2); }
+
+/* Royalties select */
+.rl-select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: var(--color-bg-base);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A961' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 18px center;
+  background-size: 12px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 1rem;
+  min-height: 52px;
+  outline: none;
+  padding: 14px 48px 14px 18px;
+  transition: border-color 0.15s ease;
+  width: 100%;
+}
+.rl-select:hover,
+.rl-select:focus { border-color: var(--color-accent-gold); }
+.rl-select:disabled { cursor: not-allowed; opacity: 0.5; }
+.rl-select option {
+  background-color: var(--color-bg-panel);
+  color: var(--color-text);
+  padding: 8px;
+}
+
+/* Royalties contract type dropdown */
+.rl-dropdown-list {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+.rl-option-selected {
+  background-color: rgba(201, 169, 97, 0.12);
+  border-left: 2px solid var(--color-accent-gold);
+}
+
+/* Royalties number input — hide spin buttons */
+.rl-number-input::-webkit-inner-spin-button,
+.rl-number-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.rl-number-input { -moz-appearance: textfield; appearance: textfield; }
+
+/* Royalties range slider */
+.rl-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to right, var(--color-accent-gold) 0%, var(--color-accent-gold) var(--rl-progress, 0%), var(--color-border) var(--rl-progress, 0%), var(--color-border) 100%);
+  border-radius: 20px;
+  cursor: pointer;
+  height: 4px;
+  outline: none;
+  width: 100%;
+}
+.rl-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--color-accent-gold);
+  border: 2px solid var(--color-bg-base);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--color-accent-gold);
+  cursor: pointer;
+  height: 18px;
+  width: 18px;
+}
+.rl-slider::-moz-range-thumb {
+  background: var(--color-accent-gold);
+  border: 2px solid var(--color-bg-base);
+  border-radius: 50%;
+  cursor: pointer;
+  height: 18px;
+  width: 18px;
+}
+.rl-slider:disabled { cursor: not-allowed; opacity: 0.4; }
 
 /* Borders */
 .border-theme         { border-color: var(--color-border); }
