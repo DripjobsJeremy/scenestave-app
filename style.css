@@ -1507,3 +1507,28 @@ h1 em, h2 em, h3 em, h4 em {
   font-family: 'Cormorant Garamond', ui-serif, Georgia, serif;
   color: var(--color-accent-gold, #C9A961);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BANQUO BODY BACKGROUND — override Tailwind's bg-gray-50 on <body>
+   The index.html <body> element has class="bg-gray-50" which Tailwind paints
+   rgb(249, 250, 251). Retheme it to the Banquo ink surface so the whole app
+   sits on the warm dark base instead of cream.
+   ══════════════════════════════════════════════════════════════════════════ */
+body.bg-gray-50 {
+  background-color: var(--color-bg-base) !important;
+  color: var(--color-text-primary);
+}
+
+/* Also catch pages that explicitly paint their wrapper bg-gray-50 / bg-white
+   (e.g. the main content column, various route shells). These read as light
+   cream on the old theme; retint to warm ink so content sits on the base. */
+.bg-gray-50:not(body),
+.bg-white:not(input):not(textarea):not(select) {
+  background-color: var(--color-bg-surface) !important;
+}
+
+/* Ensure text inside those remapped surfaces stays readable */
+.bg-gray-50:not(body) *:not([class*="text-"]),
+.bg-white:not(input):not(textarea):not(select) *:not([class*="text-"]) {
+  color: var(--color-text-primary);
+}

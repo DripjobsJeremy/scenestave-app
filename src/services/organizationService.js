@@ -108,6 +108,25 @@ const OrganizationService = (() => {
             (b.secondaryColor || '').toUpperCase() === SCENESTAVE_DEFAULTS.secondaryColor;
 
         if (isOnOldDefaults) {
+            // Also clear any stored button theme that still references the old purple
+            // palette. applyButtonTheme() will then fall back to the new DEFAULT_BTN_THEME
+            // on next load instead of restoring purple over our crimson branding.
+            try {
+                const storedTheme = localStorage.getItem('scenestave_button_theme');
+                if (storedTheme) {
+                    const parsed = JSON.parse(storedTheme);
+                    const primaryBg = (parsed?.primary?.bg || '').toUpperCase();
+                    // Only clear if the stored theme is still on the old purple — users
+                    // who customized their button theme should keep their choice.
+                    if (primaryBg === '#7C3AED' || primaryBg === SCENESTAVE_DEFAULTS.primaryColor.toUpperCase()) {
+                        localStorage.removeItem('scenestave_button_theme');
+                        console.log('OrganizationService: Cleared stale SceneStave button theme.');
+                    }
+                }
+            } catch (e) {
+                console.warn('OrganizationService: Could not check stored button theme:', e);
+            }
+
             return {
                 ...org,
                 branding: { ...b, ...DEFAULT_BRANDING, logoUrl: b.logoUrl || DEFAULT_BRANDING.logoUrl },
@@ -407,10 +426,14 @@ const OrganizationService = (() => {
     // ── Button theming ──────────────────────────────────────────────────────
     const BTN_THEME_KEY = 'scenestave_button_theme';
 
+    // Banquo ghost-candle button theme — paired with DEFAULT_BRANDING.
+    // applyButtonTheme() writes these to --color-primary / --color-primary-dark /
+    // --btn-*-* variables, so any component that uses var(--color-primary) picks
+    // up the crimson palette even if it renders before applyBrandingToDOM() runs.
     const DEFAULT_BTN_THEME = {
-        primary:   { bg: '#7C3AED', hover: '#6D28D9', active: '#5B21B6', text: '#FFFFFF', hoverText: '#FFFFFF' },
-        secondary: { bg: '#374151', hover: '#4B5563', active: '#1F2937', text: '#FFFFFF', hoverText: '#FFFFFF', border: '#6B7280' },
-        success:   { bg: '#059669', hover: '#047857', active: '#065F46', text: '#FFFFFF', hoverText: '#FFFFFF' },
+        primary:   { bg: '#7a1f24', hover: '#a6282f', active: '#611a1e', text: '#f4ede2', hoverText: '#f4ede2' },
+        secondary: { bg: '#2f2a26', hover: '#4a443c', active: '#1c1413', text: '#f4ede2', hoverText: '#f4ede2', border: '#8e8778' },
+        success:   { bg: '#6b8e4e', hover: '#557239', active: '#3f5629', text: '#f4ede2', hoverText: '#f4ede2' },
     };
 
     const applyButtonTheme = (overrideTheme) => {
