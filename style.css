@@ -1,6 +1,6 @@
 /* SceneStave — global styles */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;0,9..144,900;1,9..144,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;0,9..144,900;1,9..144,400&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ══════════════════════════════════════════════════════════════════════════
    CSS CUSTOM PROPERTY THEME SYSTEM
@@ -29,22 +29,22 @@
 
   --color-secondary:       #5e6467;
 
-  /* ── Surface colors — dark mode default ── */
-  --color-bg-base:         #111827;
-  --color-bg-surface:      #1F2937;
-  --color-bg-elevated:     #374151;
-  --color-bg-overlay:      #4B5563;
+  /* ── Surface colors — Banquo dark theatre base ── */
+  --color-bg-base:         #0a0706;  /* ink */
+  --color-bg-surface:      #120d0c;  /* stage */
+  --color-bg-elevated:     #1c1413;  /* velvet */
+  --color-bg-overlay:      #2f2a26;  /* raised velvet */
 
   /* ── Border colors ── */
   --color-border:          #374151;
   --color-border-subtle:   #1F2937;
   --color-border-strong:   #6B7280;
 
-  /* ── Text colors ── */
-  --color-text-primary:    #FFFFFF;
-  --color-text-secondary:  #9CA3AF;
-  --color-text-muted:      #6B7280;
-  --color-text-disabled:   #4B5563;
+  /* ── Text colors — Banquo parchment scale ── */
+  --color-text-primary:    #f4ede2;  /* parchment */
+  --color-text-secondary:  #cfc6b3;  /* parchment-dim */
+  --color-text-muted:      #8e8778;  /* parchment-mute */
+  --color-text-disabled:   #4a443c;
 
   /* ── Status colors (not brand-dependent) ── */
   --color-success:         #10B981;
@@ -56,12 +56,12 @@
   --color-info:            #3B82F6;
   --color-info-surface:    rgba(59, 130, 246, 0.15);
 
-  /* ── Sidebar ── */
-  --color-sidebar-bg:          #111827;
-  --color-sidebar-text:        #D1D5DB;
+  /* ── Sidebar — Banquo ── */
+  --color-sidebar-bg:          #120d0c;  /* stage */
+  --color-sidebar-text:        #cfc6b3;  /* parchment-dim */
   --color-sidebar-active-bg:   var(--color-primary);
-  --color-sidebar-active-text: #FFFFFF;
-  --color-sidebar-hover-bg:    rgba(255, 255, 255, 0.1);
+  --color-sidebar-active-text: #f4ede2;  /* parchment */
+  --color-sidebar-hover-bg:    rgba(201, 161, 74, 0.08);  /* subtle gold wash */
 
   /* ── Shadows ── */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -258,11 +258,11 @@
    window.organizationService.applyBrandingToDOM() overrides these at runtime.
    ─────────────────────────────────────────────────────────────────────────── */
 :root {
-  --brand-primary:    #7C3AED;
-  --brand-secondary:  #4F46E5;
-  --brand-accent:     #10B981;
-  --brand-background: #F9FAFB;
-  --brand-text:       #111827;
+  --brand-primary:    #7a1f24;  /* crimson */
+  --brand-secondary:  #a6282f;  /* crimson-bright */
+  --brand-accent:     #c9a14a;  /* gold */
+  --brand-background: #0a0706;  /* ink */
+  --brand-text:       #f4ede2;  /* parchment */
 }
 
 /* ── Brand utility classes ──────────────────────────────────────────────── */
@@ -1459,4 +1459,51 @@ select:focus {
   animation: ghostlight-pulse 1.8s ease-in-out 1 forwards;
   border-color: rgba(96, 165, 250, 0.8);
   box-shadow: 0 0 8px rgba(96, 165, 250, 0.6);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BANQUO TYPOGRAPHY BASE — ghost-candle identity
+   Adds Fraunces on display headings, Cormorant Garamond on italic voice,
+   and JetBrains Mono for wide-letter-spaced gold labels.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Display headings in Fraunces serif */
+h1, h2, h3, h4, h5 {
+  font-family: 'Fraunces', ui-serif, Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+h1 { font-size: 2.25rem; letter-spacing: -0.025em; font-weight: 400; }
+h2 { font-size: 1.75rem; letter-spacing: -0.02em;  font-weight: 400; }
+h3 { font-size: 1.375rem; font-weight: 500; }
+h4 { font-size: 1.125rem; font-weight: 500; }
+h5 { font-size: 1rem;     font-weight: 500; }
+
+/* Italic voice — Cormorant Garamond for editorial italics */
+em, i, .italic-voice {
+  font-family: 'Cormorant Garamond', ui-serif, Georgia, serif;
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+/* Monospace labels — opt-in via .label or .eyebrow classes, never all uppercase text */
+.label, .eyebrow, .banquo-label {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-accent-gold, #C9A961);
+  font-weight: 500;
+}
+
+/* Body base — ensure Inter is the default UI font */
+body, input, select, textarea, button {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* Ghost-glow accent for italics inside headings (matches landing page em treatment) */
+h1 em, h2 em, h3 em, h4 em {
+  font-family: 'Cormorant Garamond', ui-serif, Georgia, serif;
+  color: var(--color-accent-gold, #C9A961);
 }

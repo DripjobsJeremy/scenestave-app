@@ -30,13 +30,17 @@ const OrganizationService = (() => {
         '</svg>'
     );
 
+    // Banquo ghost-candle palette — matches banquo-wizard landing page identity.
+    // primaryColor drives --brand-primary (sidebar gradient start, buttons, all
+    // purple Tailwind utility overrides). secondaryColor drives gradient end and
+    // --color-secondary. accentColor is reserved for success/confirmation states.
     const DEFAULT_BRANDING = {
         logoUrl:         SHOWSUITE_LOGO_SVG,
-        primaryColor:    '#7C3AED',
-        secondaryColor:  '#4F46E5',
-        accentColor:     '#10B981',
-        backgroundColor: '#F9FAFB',
-        textColor:       '#111827'
+        primaryColor:    '#7a1f24',  // crimson (var --crimson on landing)
+        secondaryColor:  '#a6282f',  // crimson-bright (hover / gradient end)
+        accentColor:     '#c9a14a',  // gold (var --gold on landing — used for labels and accents)
+        backgroundColor: '#0a0706',  // ink
+        textColor:       '#f4ede2'   // parchment
     };
 
     const DEFAULT_ORGANIZATION = {
@@ -82,14 +86,63 @@ const OrganizationService = (() => {
         updatedAt: new Date().toISOString()
     };
 
+    // Branding migration version — bump this when DEFAULT_BRANDING changes and
+    // existing users need their cached branding refreshed.
+    const BRANDING_VERSION = 'banquo-v1';
+    const BRANDING_VERSION_KEY = 'showsuite_branding_version';
+
+    const migrateBrandingToBanquo = (org) => {
+        // Only migrate orgs that are still running the old SceneStave purple defaults.
+        // A user who has explicitly customized their brand is detected by having a
+        // primaryColor that differs from the old DEFAULT — leave them alone.
+        const SCENESTAVE_DEFAULTS = {
+            primaryColor:    '#7C3AED',
+            secondaryColor:  '#4F46E5',
+            accentColor:     '#10B981',
+            backgroundColor: '#F9FAFB',
+            textColor:       '#111827'
+        };
+        const b = org.branding || {};
+        const isOnOldDefaults =
+            (b.primaryColor   || '').toUpperCase() === SCENESTAVE_DEFAULTS.primaryColor &&
+            (b.secondaryColor || '').toUpperCase() === SCENESTAVE_DEFAULTS.secondaryColor;
+
+        if (isOnOldDefaults) {
+            return {
+                ...org,
+                branding: { ...b, ...DEFAULT_BRANDING, logoUrl: b.logoUrl || DEFAULT_BRANDING.logoUrl },
+                updatedAt: new Date().toISOString()
+            };
+        }
+        return org;
+    };
+
     const loadOrganization = () => {
         try {
             const data = localStorage.getItem(STORAGE_KEY);
             if (!data) {
+                // Fresh install — seed with Banquo defaults and mark version current.
                 saveOrganization(DEFAULT_ORGANIZATION);
+                try { localStorage.setItem(BRANDING_VERSION_KEY, BRANDING_VERSION); } catch (e) {}
                 return { ...DEFAULT_ORGANIZATION };
             }
-            return JSON.parse(data);
+
+            let org = JSON.parse(data);
+
+            // One-time migration: existing installs running SceneStave purple defaults
+            // get retinted to Banquo crimson on next load.
+            const currentVersion = localStorage.getItem(BRANDING_VERSION_KEY);
+            if (currentVersion !== BRANDING_VERSION) {
+                const migrated = migrateBrandingToBanquo(org);
+                if (migrated !== org) {
+                    saveOrganization(migrated);
+                    console.log('OrganizationService: Migrated branding to Banquo palette.');
+                    org = migrated;
+                }
+                try { localStorage.setItem(BRANDING_VERSION_KEY, BRANDING_VERSION); } catch (e) {}
+            }
+
+            return org;
         } catch (error) {
             console.error('OrganizationService: Error loading organization:', error);
             return { ...DEFAULT_ORGANIZATION };
