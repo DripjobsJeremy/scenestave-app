@@ -87,6 +87,15 @@
   --btn-success-active-bg:  #065F46;
   --btn-success-text:       #FFFFFF;
   --btn-success-hover-text: #FFFFFF;
+
+  /* ── Legacy purple aliases — used to retint hardcoded component styles
+        (prod-card-btn, mention-pill, dept-tab, etc.) to the Banquo palette
+        without editing 50 component classes individually ── */
+  --legacy-purple:         var(--color-primary);            /* was #7c3aed */
+  --legacy-purple-dark:    var(--color-primary-dark);       /* was #6d28d9 */
+  --legacy-purple-surface: var(--color-primary-surface);    /* was #ede9fe */
+  --legacy-purple-border:  rgba(201, 161, 74, 0.3);         /* was #c4b5fd / #a78bfa */
+  --legacy-purple-text:    #c9a14a;                         /* was #5b21b6 — now gold on surface */
 }
 
 /* ── Light mode overrides ── */
@@ -275,9 +284,37 @@
 .text-brand-text       { color: var(--brand-text)       !important; }
 .border-brand-primary  { border-color: var(--brand-primary) !important; }
 
-/* ── Sidebar gradient — driven by brand colors ──────────────────────────── */
+/* Sidebar — ink surface with a subtle gold right-border, matching landing page portal */
 .sidebar-gradient {
-  background: linear-gradient(to bottom, var(--brand-primary), var(--brand-secondary)) !important;
+  background: #0a0706 !important;
+  border-right: 1px solid rgba(201, 161, 74, 0.15);
+}
+
+/* Sidebar nav link — default (inactive) state */
+.sidebar-gradient a,
+.sidebar-gradient button {
+  color: #cfc6b3;                 /* parchment-dim */
+  border-left: 2px solid transparent;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Sidebar nav link — hover: subtle gold wash, parchment text */
+.sidebar-gradient a:hover,
+.sidebar-gradient button:hover {
+  color: #f4ede2;                 /* parchment */
+  background-color: rgba(201, 161, 74, 0.04);
+}
+
+/* Sidebar nav link — active: ghost-glow text, gold left-border, faint gold wash.
+   The existing active state uses background-color: var(--color-primary) inline;
+   this override wins because !important is stronger than an element inline style
+   only when the inline style has !important too. We target the inline var() style
+   via attribute selector below. */
+.sidebar-gradient a[style*="--color-primary"],
+.sidebar-gradient button[style*="--color-primary"] {
+  background-color: rgba(201, 161, 74, 0.06) !important;
+  color: #f5d97c !important;      /* ghost-glow */
+  border-left: 2px solid #c9a14a !important;  /* gold */
 }
 
 /* ── Purple → Brand color overrides ────────────────────────────────────────
@@ -1203,7 +1240,7 @@ select:focus {
   white-space: nowrap; transition: color 0.15s, border-color 0.15s;
   flex-shrink: 0; margin-bottom: -1px;
 }
-.dept-tab-btn--active { border-bottom-color: #7c3aed; color: #7c3aed; }
+.dept-tab-btn--active { border-bottom-color: var(--legacy-purple); color: var(--legacy-purple); }
 .dept-tab-btn--idle { color: #6b7280; }
 .dept-tab-btn--idle:hover { color: #374151; border-bottom-color: #d1d5db; }
 .dept-tab-bar-fade {
@@ -1215,7 +1252,7 @@ select:focus {
 /* ── Production card mode toggle ─────────────────────────────── */
 .prod-card-mode-toggle { display: flex; gap: 2px; background: #f3f4f6; border-radius: 8px; padding: 3px; }
 .prod-card-mode-btn { padding: 5px 10px; border-radius: 6px; border: none; background: transparent; cursor: pointer; font-size: 14px; color: #6b7280; transition: background 0.15s, color 0.15s; }
-.prod-card-mode-btn--active { background: #fff; color: #7c3aed; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+.prod-card-mode-btn--active { background: #fff; color: var(--legacy-purple); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
 .prod-card-mode-btn:hover:not(.prod-card-mode-btn--active) { background: #e5e7eb; color: #374151; }
 
 /* ── Shared card action buttons ───────────────────────────────── */
@@ -1228,8 +1265,10 @@ select:focus {
 }
 .prod-card-btn--ghost { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
 .prod-card-btn--ghost:hover { background: #e5e7eb; }
-.prod-card-btn--primary { background: #7c3aed; color: #fff; }
-.prod-card-btn--primary:hover { background: #6d28d9; }
+/* Scenes / Budget on production cards — secondary buttons in the Banquo system.
+   Transparent with gold-dim border and parchment text; hover reveals gold + ghost-glow. */
+.prod-card-btn--primary { background: transparent; color: var(--color-text-primary); border: 1px solid var(--legacy-purple-border); }
+.prod-card-btn--primary:hover { background: rgba(201, 161, 74, 0.08); border-color: #c9a14a; color: #f5d97c; }
 
 /* ── Poster card mode ─────────────────────────────────────────── */
 .prod-poster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
@@ -1238,8 +1277,8 @@ select:focus {
   border: 2px solid #e5e7eb; transition: box-shadow 0.2s, border-color 0.2s;
   background: #fff; display: flex; flex-direction: column; overflow: visible;
 }
-.prod-poster-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.18); border-color: #a78bfa; }
-.prod-poster-card--active { border-color: #7c3aed; box-shadow: 0 4px 16px rgba(124,58,237,0.3); }
+.prod-poster-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.18); border-color: var(--legacy-purple-border); }
+.prod-poster-card--active { border-color: var(--legacy-purple); box-shadow: 0 4px 16px rgba(201, 161, 74, 0.2); }
 .prod-poster-image-wrap { position: relative; overflow: hidden; border-radius: 10px 10px 0 0; background: #1a1a2e; }
 .prod-poster-img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
 .prod-poster-placeholder { width: 100%; aspect-ratio: 2/3; display: flex; align-items: center; justify-content: center; font-size: 64px; background: linear-gradient(135deg, #2d1b69 0%, #1a1a2e 100%); }
@@ -1249,7 +1288,7 @@ select:focus {
   padding: 32px 14px 12px; display: flex; flex-direction: column; gap: 4px;
 }
 .prod-poster-title { font-size: 16px; font-weight: 700; color: #fff; line-height: 1.2; }
-.prod-poster-active-badge { font-size: 10px; font-weight: 700; color: #c4b5fd; letter-spacing: 0.05em; }
+.prod-poster-active-badge { font-size: 10px; font-weight: 700; color: var(--legacy-purple-border); letter-spacing: 0.05em; }
 .prod-poster-card .prod-card-actions { border-top: 1px solid #f3f4f6; }
 
 /* ── Thumbnail card image strip ──────────────────────────────── */
@@ -1264,14 +1303,14 @@ select:focus {
   background: #fff; border: 2px solid #e5e7eb; border-radius: 10px;
   cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s;
 }
-.prod-list-row:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-color: #a78bfa; }
-.prod-list-row--active { border-color: #7c3aed; }
+.prod-list-row:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-color: var(--legacy-purple-border); }
+.prod-list-row--active { border-color: var(--legacy-purple); }
 .prod-list-thumb { width: 48px; height: 60px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
-.prod-list-thumb-placeholder { width: 48px; height: 60px; border-radius: 6px; flex-shrink: 0; background: #ede9fe; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.prod-list-thumb-placeholder { width: 48px; height: 60px; border-radius: 6px; flex-shrink: 0; background: var(--legacy-purple-surface); display: flex; align-items: center; justify-content: center; font-size: 22px; }
 .prod-list-info { flex: 1; min-width: 0; }
 .prod-list-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
 .prod-list-title { font-size: 15px; font-weight: 700; color: #111827; }
-.prod-list-active-badge { font-size: 10px; font-weight: 700; color: #7c3aed; background: #ede9fe; padding: 1px 6px; border-radius: 4px; }
+.prod-list-active-badge { font-size: 10px; font-weight: 700; color: var(--legacy-purple); background: var(--legacy-purple-surface); padding: 1px 6px; border-radius: 4px; }
 .prod-list-meta { font-size: 12px; color: #6b7280; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .prod-list-updated { margin-left: auto; font-size: 11px; color: #9ca3af; }
 .prod-list-actions { flex-shrink: 0; min-width: 210px; }
@@ -1293,7 +1332,7 @@ select:focus {
 .mention-item:hover { background: #f5f3ff; }
 .mention-avatar {
   width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
-  background: #ede9fe; color: #7c3aed;
+  background: var(--legacy-purple-surface); color: var(--legacy-purple);
   display: flex; align-items: center; justify-content: center;
   font-size: 11px; font-weight: 700;
 }
@@ -1303,7 +1342,7 @@ select:focus {
 .actor-note-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mention-dropdown-footer { font-size: 10px; color: #9ca3af; padding: 4px 8px; border-top: 1px solid #f3f4f6; margin-top: 2px; }
 .mention-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-.mention-pill { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: #ede9fe; color: #7c3aed; border: 1px solid #c4b5fd; }
+.mention-pill { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--legacy-purple-surface); color: var(--legacy-purple); border: 1px solid var(--legacy-purple-border); }
 .mention-notify-hint { font-size: 11px; color: #16a34a; margin-top: 4px; }
 
 /* ── Production Images Manager ───────────────────────────────── */
@@ -1317,18 +1356,18 @@ select:focus {
 .prod-images-url-input { flex: 1 1 260px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; min-width: 0; }
 .prod-images-cat-select { padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #fff; }
 .prod-images-label-input { flex: 0 1 160px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; }
-.prod-images-add-btn { padding: 8px 16px; background: #7c3aed; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-.prod-images-add-btn:hover { background: #6d28d9; }
+.prod-images-add-btn { padding: 8px 16px; background: var(--legacy-purple); color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.prod-images-add-btn:hover { background: var(--legacy-purple-dark); }
 .prod-images-add-error { margin-top: 8px; font-size: 12px; color: #ef4444; }
 .prod-images-url-hint { margin-top: 6px; font-size: 11px; color: #6b7280; }
 .prod-images-url-hint--ok { color: #16a34a; }
 
 .prod-images-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .prod-images-chip { padding: 4px 12px; border: 1px solid #d1d5db; border-radius: 20px; background: #fff; font-size: 12px; color: #374151; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.12s, border-color 0.12s; }
-.prod-images-chip:hover { border-color: #7c3aed; color: #7c3aed; }
-.prod-images-chip--active { background: #ede9fe; border-color: #7c3aed; color: #7c3aed; font-weight: 600; }
+.prod-images-chip:hover { border-color: var(--legacy-purple); color: var(--legacy-purple); }
+.prod-images-chip--active { background: var(--legacy-purple-surface); border-color: var(--legacy-purple); color: var(--legacy-purple); font-weight: 600; }
 .prod-images-chip-count { font-size: 11px; background: #e5e7eb; border-radius: 10px; padding: 0 6px; color: #6b7280; }
-.prod-images-chip--active .prod-images-chip-count { background: #c4b5fd; color: #5b21b6; }
+.prod-images-chip--active .prod-images-chip-count { background: var(--legacy-purple-border); color: var(--legacy-purple-text); }
 
 .prod-images-empty { text-align: center; padding: 48px 24px; background: #f9fafb; border: 2px dashed #d1d5db; border-radius: 10px; }
 .prod-images-empty-msg { font-size: 15px; color: #6b7280; margin-bottom: 6px; }
@@ -1337,18 +1376,18 @@ select:focus {
 .prod-images-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
 .prod-images-card { border: 2px solid #e5e7eb; border-radius: 10px; overflow: hidden; background: #fff; display: flex; flex-direction: column; transition: box-shadow 0.15s; }
 .prod-images-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.prod-images-card--primary { border-color: #7c3aed; }
+.prod-images-card--primary { border-color: var(--legacy-purple); }
 .prod-images-thumb-wrap { background: #f3f4f6; aspect-ratio: 4/3; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .prod-images-thumb { width: 100%; height: 100%; object-fit: cover; display: block; }
 .prod-images-card-body { padding: 10px; flex: 1; }
 .prod-images-card-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
 .prod-images-cat-badge { font-size: 11px; background: #f3f4f6; color: #374151; padding: 1px 8px; border-radius: 12px; font-weight: 500; }
-.prod-images-primary-badge { font-size: 11px; background: #ede9fe; color: #7c3aed; padding: 1px 8px; border-radius: 12px; font-weight: 600; }
+.prod-images-primary-badge { font-size: 11px; background: var(--legacy-purple-surface); color: var(--legacy-purple); padding: 1px 8px; border-radius: 12px; font-weight: 600; }
 .prod-images-card-label { font-size: 12px; font-weight: 600; color: #111827; margin-bottom: 2px; }
 .prod-images-card-url { font-size: 11px; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prod-images-card-actions { display: flex; gap: 6px; padding: 8px 10px; border-top: 1px solid #f3f4f6; background: #fafafa; }
 .prod-images-action-btn { flex: 1; padding: 5px 0; font-size: 12px; font-weight: 500; border: 1px solid; border-radius: 5px; cursor: pointer; transition: background 0.12s; }
-.prod-images-action-btn--star { background: #ede9fe; border-color: #c4b5fd; color: #7c3aed; }
+.prod-images-action-btn--star { background: var(--legacy-purple-surface); border-color: var(--legacy-purple-border); color: var(--legacy-purple); }
 .prod-images-action-btn--star:hover { background: #ddd6fe; }
 .prod-images-action-btn--remove { background: #fff; border-color: #fca5a5; color: #ef4444; }
 .prod-images-action-btn--remove:hover { background: #fef2f2; }
@@ -1408,8 +1447,8 @@ select:focus {
 /* ── Actor Portal: Sidebar nav ─────────────────────────────────────────────── */
 .ap-shell { display: flex; height: 100%; min-height: 100vh; overflow: hidden; }
 .ap-shell--with-banner { padding-top: 36px; }
-.ap-sidebar { width: 220px; flex-shrink: 0; background: linear-gradient(180deg, #7c3aed 0%, #4338ca 100%); color: #fff; display: flex; flex-direction: column; overflow: hidden; }
-.ap-admin-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 8px 16px; background: #7c3aed; color: #fff; font-size: 13px; }
+.ap-sidebar { width: 220px; flex-shrink: 0; background: linear-gradient(180deg, var(--legacy-purple) 0%, #4338ca 100%); color: #fff; display: flex; flex-direction: column; overflow: hidden; }
+.ap-admin-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 8px 16px; background: var(--legacy-purple); color: #fff; font-size: 13px; }
 .ap-admin-banner-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: #fff; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.12s; }
 .ap-admin-banner-btn:hover { background: rgba(255,255,255,0.35); }
 .ap-exit-btn { display: flex; align-items: center; gap: 6px; padding: 10px 16px; width: 100%; border: none; border-bottom: 1px solid rgba(255,255,255,0.15); cursor: pointer; background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.75); font-size: 12px; text-align: left; transition: background 0.12s; }
