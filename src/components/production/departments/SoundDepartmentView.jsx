@@ -399,16 +399,16 @@ function SoundDepartmentView({ production, onUpdateScene, userRole }) {
     React.createElement('img', { src: 'assets/ghostlight/ghostlight-brand.png', alt: '', style: { position: 'absolute', right: '24px', bottom: '24px', height: '40px', objectFit: 'contain', opacity: 0.25, pointerEvents: 'none' } }),
     React.createElement('div', { style: { marginBottom: '32px' } },
       React.createElement('img', { src: 'assets/ghostlight/ghostlight-brand.png', alt: 'GhostLight', style: { height: '56px', objectFit: 'contain', marginBottom: '8px' } }),
-      React.createElement('p', { style: { color: '#9b8fa8', fontSize: '14px', margin: '0' } }, 'AI-powered tools for theatre professionals — coming soon')
+      React.createElement('p', { style: { color: 'var(--color-text-muted)', fontSize: '14px', margin: '0' } }, 'AI-powered tools for theatre professionals — coming soon')
     ),
     React.createElement(
       'div',
       { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' } },
       ghostLightFeatures.map((feature, i) =>
         React.createElement('div', { key: i, style: { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '24px', position: 'relative' } },
-          React.createElement('h3', { style: { fontSize: '15px', fontWeight: '600', color: '#f5f0e8', marginBottom: '8px', marginTop: '0', paddingRight: '32px' } }, feature.title),
-          React.createElement('p', { style: { fontSize: '13px', color: '#9b8fa8', lineHeight: '1.5', marginBottom: '16px', marginTop: '0' } }, feature.desc),
-          React.createElement('span', { style: { display: 'inline-block', padding: '3px 10px', background: 'rgba(147,97,255,0.15)', border: '1px solid rgba(147,97,255,0.35)', borderRadius: '20px', fontSize: '11px', fontWeight: '500', color: '#b78aff', letterSpacing: '0.5px' } }, 'Coming Soon'),
+          React.createElement('h3', { style: { fontSize: '15px', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '8px', marginTop: '0', paddingRight: '32px' } }, feature.title),
+          React.createElement('p', { style: { fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: '1.5', marginBottom: '16px', marginTop: '0' } }, feature.desc),
+          React.createElement('span', { style: { display: 'inline-block', padding: '3px 10px', background: 'rgba(201,161,74,0.12)', border: '1px solid rgba(201,161,74,0.35)', borderRadius: '20px', fontSize: '11px', fontWeight: '500', color: 'var(--color-accent-gold)', letterSpacing: '0.5px' } }, 'Coming Soon'),
           React.createElement('img', { src: 'assets/ghostlight/ghostlight-brand.png', alt: '', style: { position: 'absolute', bottom: '10px', right: '10px', height: '28px', objectFit: 'contain', opacity: 0.25 } })
         )
       )
@@ -439,7 +439,7 @@ function SoundDepartmentView({ production, onUpdateScene, userRole }) {
             onClick: () => setGhostLightMode(false),
             style: !ghostLightMode
               ? { background: '#1a1a2e', color: 'white', border: '1px solid rgba(147,97,255,0.4)' }
-              : { background: 'transparent', color: '#6b7280', border: '1px solid #e5e7eb' },
+              : { background: 'transparent', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' },
             className: 'px-4 py-2 text-sm font-medium rounded transition-colors'
           },
           '🎵 Scene View'
@@ -450,7 +450,7 @@ function SoundDepartmentView({ production, onUpdateScene, userRole }) {
             onClick: () => setGhostLightMode(true),
             className: 'ghostlight-btn px-4 py-2 text-sm font-medium rounded transition-colors',
             style: ghostLightMode
-              ? { background: '#1a1a2e', color: '#b78aff', border: '1px solid rgba(147,97,255,0.4)' }
+              ? { background: 'var(--color-bg-elevated)', color: 'var(--color-accent-gold)', border: '1px solid rgba(201,161,74,0.4)' }
               : {}
           },
           React.createElement('span', {

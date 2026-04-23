@@ -57,8 +57,8 @@
           datasets: [{
             label: 'Donation Amount',
             data: chartData.values,
-            borderColor: 'rgb(59, 130, 246)',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderColor: '#c9a14a',
+            backgroundColor: 'rgba(201, 161, 74, 0.15)',
             tension: 0.4,
             fill: true
           }]
@@ -69,6 +69,11 @@
           plugins: {
             legend: { display: false },
             tooltip: {
+              backgroundColor: '#1c1413',
+              borderColor: 'rgba(201, 161, 74, 0.3)',
+              borderWidth: 1,
+              titleColor: '#f4ede2',
+              bodyColor: '#cfc6b3',
               callbacks: {
                 label: function(context) {
                   return formatCurrency(context.parsed.y);
@@ -79,7 +84,9 @@
           scales: {
             y: {
               beginAtZero: true,
+              grid: { color: 'rgba(255, 255, 255, 0.06)' },
               ticks: {
+                color: '#8e8778',
                 callback: function(value) {
                   return formatCurrency(value);
                 }
@@ -182,7 +189,7 @@
       });
       const labels = [];
       const data = [];
-      const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
+      const colors = ['#c9a14a', '#8B1A2B', 'rgba(201, 161, 74, 0.7)', 'rgba(139, 26, 43, 0.7)', 'rgba(201, 161, 74, 0.45)', '#8a6b1f', '#5c1120'];
       Object.entries(levelCounts).forEach(([levelId, count], index) => {
         const level = (donorLevels || []).find(l => l.id === levelId);
         if (level) {
@@ -207,6 +214,11 @@
           plugins: {
             legend: { position: 'right' },
             tooltip: {
+              backgroundColor: '#1c1413',
+              borderColor: 'rgba(201, 161, 74, 0.3)',
+              borderWidth: 1,
+              titleColor: '#f4ede2',
+              bodyColor: '#cfc6b3',
               callbacks: {
                 label: function(context) {
                   const total = context.dataset.data.reduce((a, b) => a + b, 0);
@@ -281,15 +293,15 @@
             {
               label: 'Raised',
               data: campaignData.map(c => c.raised),
-              backgroundColor: 'rgba(59, 130, 246, 0.8)',
-              borderColor: 'rgb(59, 130, 246)',
+              backgroundColor: 'rgba(201, 161, 74, 0.7)',
+              borderColor: '#c9a14a',
               borderWidth: 1
             },
             {
               label: 'Goal',
               data: campaignData.map(c => c.goal),
-              backgroundColor: 'rgba(209, 213, 219, 0.5)',
-              borderColor: 'rgb(209, 213, 219)',
+              backgroundColor: 'rgba(139, 26, 43, 0.7)',
+              borderColor: '#8B1A2B',
               borderWidth: 1
             }
           ]
@@ -300,6 +312,11 @@
           plugins: {
             legend: { display: true, position: 'top' },
             tooltip: {
+              backgroundColor: '#1c1413',
+              borderColor: 'rgba(201, 161, 74, 0.3)',
+              borderWidth: 1,
+              titleColor: '#f4ede2',
+              bodyColor: '#cfc6b3',
               callbacks: {
                 label: function(context) {
                   return `${context.dataset.label}: ${formatCurrency(context.parsed.y)}`;
@@ -310,7 +327,9 @@
           scales: {
             y: {
               beginAtZero: true,
+              grid: { color: 'rgba(255, 255, 255, 0.06)' },
               ticks: {
+                color: '#8e8778',
                 callback: function(value) {
                   return formatCurrency(value);
                 }
@@ -363,10 +382,10 @@
           datasets: [{
             data: Object.values(byType),
             backgroundColor: [
-              'rgba(59, 130, 246, 0.8)',
-              'rgba(139, 92, 246, 0.8)',
-              'rgba(16, 185, 129, 0.8)',
-              'rgba(245, 158, 11, 0.8)'
+              '#c9a14a',
+              '#8B1A2B',
+              'rgba(201, 161, 74, 0.7)',
+              'rgba(139, 26, 43, 0.7)'
             ],
             borderColor: '#ffffff',
             borderWidth: 2
@@ -378,6 +397,11 @@
           plugins: {
             legend: { position: 'right' },
             tooltip: {
+              backgroundColor: '#1c1413',
+              borderColor: 'rgba(201, 161, 74, 0.3)',
+              borderWidth: 1,
+              titleColor: '#f4ede2',
+              bodyColor: '#cfc6b3',
               callbacks: {
                 label: function(context) {
                   const total = context.dataset.data.reduce((a, b) => a + b, 0);
@@ -443,8 +467,8 @@
           datasets: [{
             label: 'Retention Rate',
             data: retentionRates,
-            borderColor: 'rgb(16, 185, 129)',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderColor: '#c9a14a',
+            backgroundColor: 'rgba(201, 161, 74, 0.15)',
             tension: 0.4,
             fill: true
           }]
@@ -455,6 +479,11 @@
           plugins: {
             legend: { display: false },
             tooltip: {
+              backgroundColor: '#1c1413',
+              borderColor: 'rgba(201, 161, 74, 0.3)',
+              borderWidth: 1,
+              titleColor: '#f4ede2',
+              bodyColor: '#cfc6b3',
               callbacks: {
                 label: function(context) {
                   return `${context.parsed.y.toFixed(1)}%`;
@@ -466,7 +495,9 @@
             y: {
               beginAtZero: true,
               max: 100,
+              grid: { color: 'rgba(255, 255, 255, 0.06)' },
               ticks: {
+                color: '#8e8778',
                 callback: function(value) {
                   return value + '%';
                 }

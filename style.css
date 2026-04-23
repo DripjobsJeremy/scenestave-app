@@ -123,6 +123,7 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.15);
+  --legacy-purple-text:    #8a6b1f;
 }
 
 /* ── Semantic utility classes ─────────────────────────────────────────────
@@ -507,7 +508,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Text colors ──────────────────────────────────────────────────────────── */
-.text-white  { color: var(--color-text-primary)   !important; }
+.text-white  { color: #ffffff !important; }
 .text-black  { color: var(--color-text-primary)   !important; }
 .text-gray-100 { color: var(--color-text-primary)   !important; }
 .text-gray-200 { color: var(--color-text-secondary) !important; }
@@ -1254,6 +1255,11 @@ select:focus {
 .prod-card-mode-btn { padding: 5px 10px; border-radius: 6px; border: none; background: transparent; cursor: pointer; font-size: 14px; color: #6b7280; transition: background 0.15s, color 0.15s; }
 .prod-card-mode-btn--active { background: #fff; color: var(--legacy-purple); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
 .prod-card-mode-btn:hover:not(.prod-card-mode-btn--active) { background: #e5e7eb; color: #374151; }
+html[data-theme="light"] .prod-card-mode-btn--active {
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+}
 
 /* ── Shared card action buttons ───────────────────────────────── */
 .prod-card-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; padding: 10px 12px 12px; }
@@ -1269,6 +1275,11 @@ select:focus {
    Transparent with gold-dim border and parchment text; hover reveals gold + ghost-glow. */
 .prod-card-btn--primary { background: transparent; color: var(--color-text-primary); border: 1px solid var(--legacy-purple-border); }
 .prod-card-btn--primary:hover { background: rgba(201, 161, 74, 0.08); border-color: #c9a14a; color: #f5d97c; }
+html[data-theme="light"] .prod-card-btn--primary:hover {
+  background: rgba(107, 80, 21, 0.08);
+  border-color: #8a6b1f;
+  color: #6b5015;
+}
 
 /* ── Poster card mode ─────────────────────────────────────────── */
 .prod-poster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
@@ -1309,7 +1320,7 @@ select:focus {
 .prod-list-thumb-placeholder { width: 48px; height: 60px; border-radius: 6px; flex-shrink: 0; background: var(--legacy-purple-surface); display: flex; align-items: center; justify-content: center; font-size: 22px; }
 .prod-list-info { flex: 1; min-width: 0; }
 .prod-list-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
-.prod-list-title { font-size: 15px; font-weight: 700; color: #111827; }
+.prod-list-title { font-size: 15px; font-weight: 700; color: var(--color-text-primary); }
 .prod-list-active-badge { font-size: 10px; font-weight: 700; color: var(--legacy-purple); background: var(--legacy-purple-surface); padding: 1px 6px; border-radius: 4px; }
 .prod-list-meta { font-size: 12px; color: #6b7280; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .prod-list-updated { margin-left: auto; font-size: 11px; color: #9ca3af; }
@@ -1336,7 +1347,7 @@ select:focus {
   display: flex; align-items: center; justify-content: center;
   font-size: 11px; font-weight: 700;
 }
-.mention-item-name { font-size: 13px; font-weight: 500; color: #111827; }
+.mention-item-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
 .mention-item-role { font-size: 11px; color: #9ca3af; }
 .mention-item-uncast { font-size: 11px; color: #f59e0b; }
 .actor-note-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1348,7 +1359,7 @@ select:focus {
 /* ── Production Images Manager ───────────────────────────────── */
 .prod-images-wrap { padding: 0; }
 .prod-images-header { margin-bottom: 20px; }
-.prod-images-title { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+.prod-images-title { font-size: 20px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
 .prod-images-subtitle { font-size: 13px; color: #6b7280; }
 
 .prod-images-add-form { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
@@ -1383,7 +1394,7 @@ select:focus {
 .prod-images-card-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
 .prod-images-cat-badge { font-size: 11px; background: #f3f4f6; color: #374151; padding: 1px 8px; border-radius: 12px; font-weight: 500; }
 .prod-images-primary-badge { font-size: 11px; background: var(--legacy-purple-surface); color: var(--legacy-purple); padding: 1px 8px; border-radius: 12px; font-weight: 600; }
-.prod-images-card-label { font-size: 12px; font-weight: 600; color: #111827; margin-bottom: 2px; }
+.prod-images-card-label { font-size: 12px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 2px; }
 .prod-images-card-url { font-size: 11px; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prod-images-card-actions { display: flex; gap: 6px; padding: 8px 10px; border-top: 1px solid #f3f4f6; background: #fafafa; }
 .prod-images-action-btn { flex: 1; padding: 5px 0; font-size: 12px; font-weight: 500; border: 1px solid; border-radius: 5px; cursor: pointer; transition: background 0.12s; }
@@ -1447,7 +1458,7 @@ select:focus {
 /* ── Actor Portal: Sidebar nav ─────────────────────────────────────────────── */
 .ap-shell { display: flex; height: 100%; min-height: 100vh; overflow: hidden; }
 .ap-shell--with-banner { padding-top: 36px; }
-.ap-sidebar { width: 220px; flex-shrink: 0; background: linear-gradient(180deg, var(--legacy-purple) 0%, #4338ca 100%); color: #fff; display: flex; flex-direction: column; overflow: hidden; }
+.ap-sidebar { width: 220px; flex-shrink: 0; background: var(--color-sidebar-bg); color: #fff; display: flex; flex-direction: column; overflow: hidden; }
 .ap-admin-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 8px 16px; background: var(--legacy-purple); color: #fff; font-size: 13px; }
 .ap-admin-banner-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: #fff; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.12s; }
 .ap-admin-banner-btn:hover { background: rgba(255,255,255,0.35); }
