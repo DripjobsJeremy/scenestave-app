@@ -633,7 +633,7 @@ function VolunteerDirectory({ contacts }) {
         </div>
         <button
           type="button"
-          onClick={() => { window.location.hash = '/volunteers'; }}
+          onClick={() => { window.location.hash = '/volunteer-portal'; }}
           className="px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors hover:opacity-90"
           style={{ background: '#8B1A2B' }}
         >
