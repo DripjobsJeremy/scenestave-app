@@ -93,10 +93,10 @@ function DonationAllocationManager({ productionId, productionTitle, onClose }) {
             <div className="bg-white rounded-lg max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
 
                 {/* Header */}
-                <div className="bg-gradient-to-r from-violet-600 to-purple-600 text-white p-5 flex items-center justify-between">
+                <div className="text-white p-5 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #7a1f24 0%, #1c1413 100%)' }}>
                     <div>
                         <h2 className="text-xl font-bold">Donation Allocations</h2>
-                        <p className="text-violet-100 text-sm mt-0.5">{productionTitle}</p>
+                        <p className="text-sm mt-0.5" style={{ color: 'rgba(244,237,226,0.75)' }}>{productionTitle}</p>
                     </div>
                     <button
                         type="button"
@@ -108,8 +108,8 @@ function DonationAllocationManager({ productionId, productionTitle, onClose }) {
                 </div>
 
                 {/* Summary Bar */}
-                <div className="bg-violet-50 border-b border-violet-100 px-5 py-3 flex items-center justify-between">
-                    <div className="text-sm text-violet-700">
+                <div className="border-b px-5 py-3 flex items-center justify-between" style={{ background: 'rgba(201,161,74,0.06)', borderColor: 'rgba(201,161,74,0.2)' }}>
+                    <div className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
                         <span className="font-semibold">{allocations.length}</span> allocation{allocations.length !== 1 ? 's' : ''} totalling{' '}
                         <span className="font-semibold">${totalAllocated.toLocaleString()}</span>
                     </div>
@@ -121,7 +121,8 @@ function DonationAllocationManager({ productionId, productionTitle, onClose }) {
                             setAllocateAmount('');
                             setShowAllocateModal(true);
                         }}
-                        className="px-3 py-1.5 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-700 transition-colors"
+                        className="px-3 py-1.5 text-white text-sm rounded-lg hover:opacity-90 transition-colors"
+                        style={{ background: '#8B1A2B' }}
                     >
                         + Allocate Donation
                     </button>
@@ -202,7 +203,7 @@ function DonationAllocationManager({ productionId, productionTitle, onClose }) {
                                                     </div>
                                                 </div>
                                                 <div className="ml-3 text-right">
-                                                    <div className="text-sm font-semibold text-violet-700">${available.toLocaleString()}</div>
+                                                    <div className="text-sm font-semibold" style={{ color: 'var(--color-accent-gold)' }}>${available.toLocaleString()}</div>
                                                     <div className="text-xs text-gray-400">available</div>
                                                 </div>
                                             </div>
@@ -245,7 +246,8 @@ function DonationAllocationManager({ productionId, productionTitle, onClose }) {
                                         setAllocateAmount('');
                                         setAllocateError('');
                                     }}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+                                    className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm"
+                                    style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
                                 >
                                     <option value="">— Choose a donation —</option>
                                     {availableDonations.map(d => {
@@ -260,7 +262,7 @@ function DonationAllocationManager({ productionId, productionTitle, onClose }) {
                             </div>
 
                             {selectedDonationId && (
-                                <div className="p-3 bg-violet-50 border border-violet-200 rounded-lg text-sm text-violet-700">
+                                <div className="p-3 rounded-lg text-sm" style={{ background: 'rgba(201,161,74,0.08)', border: '1px solid rgba(201,161,74,0.25)', color: 'var(--color-accent-gold)' }}>
                                     Available balance: <strong>${getAvailableForSelected().toLocaleString()}</strong>
                                 </div>
                             )}
@@ -282,7 +284,8 @@ function DonationAllocationManager({ productionId, productionTitle, onClose }) {
                                             setAllocateAmount(e.target.value);
                                             setAllocateError('');
                                         }}
-                                        className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+                                        className="w-full pl-7 pr-3 py-2 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm"
+                                        style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
                                         placeholder="0.00"
                                     />
                                 </div>
@@ -290,7 +293,8 @@ function DonationAllocationManager({ productionId, productionTitle, onClose }) {
                                     <button
                                         type="button"
                                         onClick={() => setAllocateAmount(String(getAvailableForSelected()))}
-                                        className="mt-1 text-xs text-violet-600 hover:underline"
+                                        className="mt-1 text-xs hover:underline"
+                                        style={{ color: 'var(--color-accent-gold)' }}
                                     >
                                         Use full available amount
                                     </button>
@@ -316,7 +320,8 @@ function DonationAllocationManager({ productionId, productionTitle, onClose }) {
                                 type="button"
                                 onClick={handleAllocate}
                                 disabled={isSubmitting}
-                                className="flex-1 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-colors text-sm disabled:opacity-50"
+                                className="flex-1 px-4 py-2 text-white rounded-lg transition-colors text-sm disabled:opacity-50 hover:opacity-90"
+                                style={{ background: '#8B1A2B' }}
                             >
                                 {isSubmitting ? 'Allocating...' : 'Allocate'}
                             </button>
