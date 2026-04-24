@@ -105,39 +105,21 @@ function RevenueBudget({ budget, summary, productionId, productionTitle, onUpdat
                 </div>
             )}
 
-            {/* Revenue Breakdown Chart */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h4 className="font-semibold text-gray-900 mb-4">Revenue Breakdown</h4>
-                <div className="space-y-3">
-                    {REVENUE_SOURCES.map(source => {
-                        const amount = revenueData[source.id] || 0;
-                        const percentage = summary.totalRevenue > 0 ? (amount / summary.totalRevenue) * 100 : 0;
-
-                        return (
-                            <div key={source.id}>
-                                <div className="flex justify-between text-sm mb-1">
-                                    <span className="text-gray-700">{source.icon} {source.label}</span>
-                                    <span className="font-semibold">${amount.toLocaleString()} ({percentage.toFixed(1)}%)</span>
-                                </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                    <div
-                                        className={`h-full rounded-full ${
-                                            source.color === 'green' ? 'bg-green-500' :
-                                            source.color === 'blue' ? 'bg-blue-500' :
-                                            source.color === 'purple' || source.color === 'indigo' ? '' :
-                                            'bg-gray-500'
-                                        }`}
-                                        style={{
-                                            width: `${percentage}%`,
-                                            ...(source.color === 'purple' ? { background: 'var(--color-accent-gold)' } :
-                                                source.color === 'indigo' ? { background: 'var(--color-accent-crimson)' } : {})
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+            {/* Revenue Breakdown */}
+            <div
+                className="rounded-xl p-5"
+                style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}
+            >
+                <h3
+                    className="text-base font-semibold mb-4"
+                    style={{ color: 'var(--color-text-primary)' }}
+                >Revenue Breakdown</h3>
+                {window.RevenueDoughnutChart && (
+                    <window.RevenueDoughnutChart
+                        revenueData={revenueData}
+                        totalRevenue={summary.totalRevenue}
+                    />
+                )}
             </div>
 
             {/* Profit/Loss Statement */}
