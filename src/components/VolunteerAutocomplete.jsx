@@ -129,7 +129,7 @@ const VolunteerAutocomplete = ({
     return (
       <>
         {text.substring(0, index)}
-        <mark className="bg-yellow-200 text-gray-900">{text.substring(index, index + query.length)}</mark>
+        <mark className="" style={{ background: 'rgba(201,161,74,0.35)', color: 'var(--color-text-primary)', borderRadius: '2px' }}>{text.substring(index, index + query.length)}</mark>
         {text.substring(index + query.length)}
       </>
     );
@@ -146,7 +146,8 @@ const VolunteerAutocomplete = ({
           onKeyDown={handleKeyDown}
           onFocus={() => query && setIsOpen(filteredVolunteers.length > 0)}
           placeholder={placeholder}
-          className="w-full border rounded px-3 py-2 pr-10 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border rounded px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          style={{ background: 'var(--color-bg-base)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)' }}
           autoComplete="off"
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
@@ -160,7 +161,8 @@ const VolunteerAutocomplete = ({
       {isOpen && filteredVolunteers.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto"
+          className="absolute z-50 w-full mt-1 rounded-lg shadow-lg max-h-80 overflow-y-auto"
+          style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}
         >
           {filteredVolunteers.map((volunteer, index) => {
             const fullName = `${volunteer.firstName} ${volunteer.lastName}`;
@@ -171,13 +173,14 @@ const VolunteerAutocomplete = ({
               <button
                 key={volunteer.id}
                 onClick={() => selectVolunteer(volunteer)}
-                className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-blue-50 transition-colors ${
-                  isHighlighted ? 'bg-blue-50' : ''
-                }`}
+                className="w-full text-left px-4 py-3 border-b transition-colors"
+                style={{ borderColor: 'var(--color-border)', background: isHighlighted ? 'rgba(201,161,74,0.08)' : 'transparent' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(201,161,74,0.08)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = isHighlighted ? 'rgba(201,161,74,0.08)' : 'transparent'; }}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-sm">
+                    <div className="font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
                       {highlightMatch(fullName, query)}
                     </div>
                     {volunteer.email && (
@@ -190,7 +193,8 @@ const VolunteerAutocomplete = ({
                         {skills.slice(0, 3).map((skill, i) => (
                           <span
                             key={i}
-                            className="inline-block px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs"
+                            className="inline-block px-2 py-0.5 rounded text-xs"
+                            style={{ background: 'rgba(201,161,74,0.12)', color: 'var(--color-accent-gold)', border: '1px solid rgba(201,161,74,0.25)' }}
                           >
                             {highlightMatch(skill, query)}
                           </span>
@@ -217,7 +221,8 @@ const VolunteerAutocomplete = ({
 
       {/* Helper text */}
       {query && filteredVolunteers.length === 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg px-4 py-3">
+        <div className="absolute z-50 w-full mt-1 rounded-lg shadow-lg px-4 py-3"
+          style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}>
           <div className="text-sm text-gray-500 text-center">
             No volunteers found for "{query}"
           </div>
@@ -226,12 +231,13 @@ const VolunteerAutocomplete = ({
 
       {/* Keyboard hints */}
       {isOpen && filteredVolunteers.length > 0 && (
-        <div className="mt-1 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded text-xs text-gray-500">
-          <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded">↑↓</kbd> Navigate
+        <div className="mt-1 px-3 py-1.5 rounded text-xs"
+          style={{ background: 'rgba(255,255,255,0.03)', borderTop: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
+          <kbd className="px-1.5 py-0.5 rounded" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}>↑↓</kbd> Navigate
           <span className="mx-2">•</span>
-          <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded">Enter</kbd> Select
+          <kbd className="px-1.5 py-0.5 rounded" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}>Enter</kbd> Select
           <span className="mx-2">•</span>
-          <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded">Esc</kbd> Close
+          <kbd className="px-1.5 py-0.5 rounded" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}>Esc</kbd> Close
         </div>
       )}
     </div>
