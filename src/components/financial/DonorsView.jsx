@@ -203,7 +203,7 @@
           React.createElement('h2', { className: 'text-2xl font-bold text-gray-900' }, 'Donor Analytics'),
           React.createElement(
             'div',
-            { className: 'flex gap-3' },
+            { className: 'flex gap-3 mt-4' },
             React.createElement('button', {
               onClick: () => { window.location.hash = '/donor-login'; },
               className: 'px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium'
