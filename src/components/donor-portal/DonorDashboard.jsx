@@ -1,15 +1,25 @@
 function SendDonationModal({ donor, onClose, onSuccess }) {
     const [amount, setAmount] = React.useState('');
     const [paymentMethod, setPaymentMethod] = React.useState('Credit Card');
-    const [campaign, setCampaign] = React.useState('');
     const [notes, setNotes] = React.useState('');
-    const [restrictionType, setRestrictionType] = React.useState('unrestricted');
-    const [restrictionPurpose, setRestrictionPurpose] = React.useState('');
-    const [designatedProductionId, setDesignatedProductionId] = React.useState('');
+    const [giftPath, setGiftPath] = React.useState('general');
+    const [selectedProductionId, setSelectedProductionId] = React.useState('');
+    const [selectedCampaignId, setSelectedCampaignId] = React.useState('');
+    const [restrictionNote, setRestrictionNote] = React.useState('');
 
     const campaigns = window.CampaignsService
         ? window.CampaignsService.getActiveCampaigns()
         : (console.warn('CampaignsService unavailable — campaign dropdown disabled'), []);
+
+    const productions = JSON.parse(localStorage.getItem('showsuite_productions') || '[]')
+        .filter(p => p.status === 'active' || !p.status);
+
+    const selectPath = (path) => {
+        setGiftPath(path);
+        setSelectedProductionId('');
+        setSelectedCampaignId('');
+        setRestrictionNote('');
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -18,48 +28,71 @@ function SendDonationModal({ donor, onClose, onSuccess }) {
             if (window.showToast) window.showToast('Please enter a valid donation amount', 'error');
             return;
         }
-
-        // Validate restriction fields
-        if (restrictionType === 'production-specific' && !designatedProductionId) {
-            if (window.showToast) window.showToast('Please select a production for this donation', 'error');
+        if (giftPath === 'production' && !selectedProductionId) {
+            if (window.showToast) window.showToast('Please select a production', 'error');
+            return;
+        }
+        if (giftPath === 'restricted' && !restrictionNote.trim()) {
+            if (window.showToast) window.showToast('Please describe the purpose of this restricted gift', 'error');
             return;
         }
 
-        if (restrictionType === 'restricted' && !restrictionPurpose.trim()) {
-            if (window.showToast) window.showToast('Please specify the purpose for this restricted donation', 'error');
-            return;
-        }
+        const selectedProduction = productions.find(p => p.id === selectedProductionId);
+        const selectedCampaign = campaigns.find(c => c.id === selectedCampaignId);
 
-        const productions = JSON.parse(localStorage.getItem('showsuite_productions') || '[]');
+        let pathFields;
+        if (giftPath === 'production') {
+            pathFields = {
+                donationType: 'monetary',
+                campaignType: 'production',
+                campaignId: selectedCampaignId || selectedProductionId,
+                campaignName: selectedCampaign?.name || selectedProduction?.title || null,
+                restrictionType: 'production-specific',
+                designatedProductionId: selectedProductionId,
+                designatedProductionTitle: selectedProduction?.title || null,
+                restrictionPurpose: null,
+            };
+        } else if (giftPath === 'restricted') {
+            pathFields = {
+                donationType: 'monetary',
+                campaignType: null,
+                campaignId: selectedCampaignId || null,
+                campaignName: selectedCampaign?.name || restrictionNote || null,
+                restrictionType: 'restricted',
+                designatedProductionId: null,
+                designatedProductionTitle: null,
+                restrictionPurpose: restrictionNote,
+            };
+        } else {
+            pathFields = {
+                donationType: 'monetary',
+                campaignType: selectedCampaignId ? 'general' : null,
+                campaignId: selectedCampaignId || null,
+                campaignName: selectedCampaign?.name || null,
+                restrictionType: 'unrestricted',
+                designatedProductionId: null,
+                designatedProductionTitle: null,
+                restrictionPurpose: null,
+            };
+        }
 
         const donation = {
             contactId: donor.id,
             amount: parseFloat(amount),
             date: new Date().toISOString().split('T')[0],
             paymentMethod: paymentMethod,
-            campaignId: campaign || null,
-            campaignName: campaigns.find(c => c.id === campaign)?.name || null,
             notes: notes,
-            restrictionType: restrictionType,
-            restrictionPurpose: restrictionType === 'restricted' ? restrictionPurpose : null,
-            designatedProductionId: restrictionType === 'production-specific' ? designatedProductionId : null,
-            designatedProductionTitle: restrictionType === 'production-specific'
-                ? (productions.find(p => p.id === designatedProductionId)?.title || null)
-                : null,
-            allocations: []
+            allocations: [],
+            ...pathFields,
         };
 
         console.log('💰 Donation object:', donation);
 
         try {
-            console.log('💾 Creating donation:', donation);
             window.donationsService.addDonation(donation);
-            console.log('✅ Donation created');
-
             if (window.showToast) {
                 window.showToast(`✅ Thank you for your $${parseFloat(amount).toLocaleString()} donation!`, 'success');
             }
-
             onSuccess();
         } catch (error) {
             console.error('❌ Error creating donation:', error);
@@ -69,23 +102,40 @@ function SendDonationModal({ donor, onClose, onSuccess }) {
         }
     };
 
+    const pathOptions = [
+        { value: 'general',    label: 'General Support',       desc: 'Used where most needed' },
+        { value: 'production', label: 'Support a Production',  desc: 'Directed to a specific show' },
+        { value: 'restricted', label: 'Restricted Gift',       desc: 'For a specific purpose' },
+    ];
+
+    const inputStyle = {
+        background: 'var(--color-bg-base)',
+        border: '1px solid var(--color-border)',
+        color: 'var(--color-text-primary)',
+    };
+
+    const labelStyle = { color: 'var(--color-text-secondary)' };
+    const hintStyle  = { color: 'var(--color-text-muted)' };
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-            <div className="bg-white rounded-lg max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">Send a Donation</h3>
+            <div className="rounded-lg max-w-md w-full p-6" style={{ background: 'var(--color-bg-elevated)' }} onClick={(e) => e.stopPropagation()}>
+                <h3 className="text-2xl font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>Send a Donation</h3>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Amount */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium mb-1" style={labelStyle}>
                             Donation Amount *
                         </label>
                         <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={hintStyle}>$</span>
                             <input
                                 type="number"
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
-                                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                className="w-full pl-8 pr-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                style={inputStyle}
                                 placeholder="100.00"
                                 step="0.01"
                                 min="0"
@@ -94,15 +144,17 @@ function SendDonationModal({ donor, onClose, onSuccess }) {
                         </div>
                     </div>
 
+                    {/* Payment Method */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium mb-1" style={labelStyle}>
                             Payment Method
                         </label>
                         <select
                             value={paymentMethod}
                             onChange={(e) => setPaymentMethod(e.target.value)}
                             aria-label="Payment Method"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            style={inputStyle}
                         >
                             <option>Credit Card</option>
                             <option>Debit Card</option>
@@ -113,18 +165,127 @@ function SendDonationModal({ donor, onClose, onSuccess }) {
                         </select>
                     </div>
 
-                    {campaigns.length > 0 && (
+                    {/* Gift Direction — three-path pill group */}
+                    <div>
+                        <p className="block text-sm font-medium mb-2" style={labelStyle}>
+                            How would you like your gift directed?
+                        </p>
+                        <div className="flex flex-col gap-2">
+                            {pathOptions.map(opt => {
+                                const active = giftPath === opt.value;
+                                return (
+                                    <button
+                                        key={opt.value}
+                                        type="button"
+                                        onClick={() => selectPath(opt.value)}
+                                        className="w-full text-left px-4 py-3 rounded-lg transition-colors"
+                                        style={{
+                                            background: active ? 'rgba(201,161,74,0.12)' : 'var(--color-bg-base)',
+                                            border: active ? '1px solid var(--color-accent-gold)' : '1px solid var(--color-border)',
+                                            color: 'var(--color-text-primary)',
+                                        }}
+                                    >
+                                        <span className="font-medium text-sm">{opt.label}</span>
+                                        <span className="block text-xs mt-0.5" style={hintStyle}>{opt.desc}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Production sub-fields */}
+                    {giftPath === 'production' && (
+                        <div className="space-y-3 pl-1">
+                            <div>
+                                <label className="block text-sm font-medium mb-1" style={labelStyle}>
+                                    Which Production? <span style={{ color: 'var(--color-error, #ef4444)' }}>*</span>
+                                </label>
+                                <select
+                                    value={selectedProductionId}
+                                    onChange={(e) => setSelectedProductionId(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                    style={inputStyle}
+                                >
+                                    <option value="">— Select Production —</option>
+                                    {productions.map(p => (
+                                        <option key={p.id} value={p.id}>{p.title}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            {campaigns.length > 0 && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-1" style={labelStyle}>
+                                        Campaign Fund (Optional)
+                                    </label>
+                                    <select
+                                        value={selectedCampaignId}
+                                        onChange={(e) => setSelectedCampaignId(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                        style={inputStyle}
+                                    >
+                                        <option value="">— None —</option>
+                                        {campaigns.map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Restricted sub-fields */}
+                    {giftPath === 'restricted' && (
+                        <div className="space-y-3 pl-1">
+                            <div>
+                                <label className="block text-sm font-medium mb-1" style={labelStyle}>
+                                    Purpose / Restriction <span style={{ color: 'var(--color-error, #ef4444)' }}>*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={restrictionNote}
+                                    onChange={(e) => setRestrictionNote(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                    style={inputStyle}
+                                    placeholder="e.g., New Theatre Seating, Scholarship Fund"
+                                />
+                                <p className="text-xs mt-1" style={{ color: 'var(--color-warning, #f59e0b)' }}>
+                                    ⚠️ Restricted donations can only be used for the specified purpose
+                                </p>
+                            </div>
+                            {campaigns.length > 0 && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-1" style={labelStyle}>
+                                        Campaign Fund (Optional)
+                                    </label>
+                                    <select
+                                        value={selectedCampaignId}
+                                        onChange={(e) => setSelectedCampaignId(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                        style={inputStyle}
+                                    >
+                                        <option value="">— None —</option>
+                                        {campaigns.map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* General — optional campaign fund */}
+                    {giftPath === 'general' && campaigns.length > 0 && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Campaign (Optional)
+                            <label className="block text-sm font-medium mb-1" style={labelStyle}>
+                                Campaign Fund (Optional)
                             </label>
                             <select
-                                value={campaign}
-                                onChange={(e) => setCampaign(e.target.value)}
-                                aria-label="Campaign"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                value={selectedCampaignId}
+                                onChange={(e) => setSelectedCampaignId(e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                style={inputStyle}
                             >
-                                <option value="">General Fund</option>
+                                <option value="">— None —</option>
                                 {campaigns.map(c => (
                                     <option key={c.id} value={c.id}>{c.name}</option>
                                 ))}
@@ -132,103 +293,34 @@ function SendDonationModal({ donor, onClose, onSuccess }) {
                         </div>
                     )}
 
+                    {/* Notes */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium mb-1" style={labelStyle}>
                             Notes (Optional)
                         </label>
                         <textarea
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 h-20"
+                            className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 h-20"
+                            style={inputStyle}
                             placeholder="Add a message with your donation..."
                         />
                     </div>
 
-                    {/* Donation Type */}
-                    <div>
-                        <label htmlFor="donor-restriction-type" className="block text-sm font-medium text-gray-700 mb-1">
-                            Donation Type
-                        </label>
-                        <select
-                            id="donor-restriction-type"
-                            value={restrictionType}
-                            onChange={(e) => {
-                                setRestrictionType(e.target.value);
-                                if (e.target.value !== 'restricted') setRestrictionPurpose('');
-                                if (e.target.value !== 'production-specific') setDesignatedProductionId('');
-                            }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                        >
-                            <option value="unrestricted">General Support — Can be used for any purpose</option>
-                            <option value="production-specific">Support a Specific Production</option>
-                            <option value="restricted">Restricted — Specific purpose only</option>
-                        </select>
-                    </div>
-
-                    {/* Production Selection */}
-                    {restrictionType === 'production-specific' && (
-                        <div>
-                            <label htmlFor="donor-designated-production" className="block text-sm font-medium text-gray-700 mb-1">
-                                Which Production? <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                id="donor-designated-production"
-                                value={designatedProductionId}
-                                onChange={(e) => setDesignatedProductionId(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                            >
-                                <option value="">— Select Production —</option>
-                                {(() => {
-                                    const prods = JSON.parse(localStorage.getItem('showsuite_productions') || '[]');
-                                    return prods
-                                        .filter(p => {
-                                            if (!p.calendar) return true;
-                                            return p.calendar.some(e =>
-                                                (e.type === 'show' || e.type === 'performance') &&
-                                                new Date(e.start || e.date) >= new Date()
-                                            );
-                                        })
-                                        .map(prod => (
-                                            <option key={prod.id} value={prod.id}>{prod.title}</option>
-                                        ));
-                                })()}
-                            </select>
-                            <p className="text-xs text-gray-500 mt-1">
-                                Your donation will support this specific production
-                            </p>
-                        </div>
-                    )}
-
-                    {/* Restriction Purpose */}
-                    {restrictionType === 'restricted' && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                What should this donation fund? <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                value={restrictionPurpose}
-                                onChange={(e) => setRestrictionPurpose(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                                placeholder="e.g., New Theatre Seating, Scholarship Fund"
-                            />
-                            <p className="text-xs text-orange-600 mt-1">
-                                ⚠️ Restricted donations can only be used for the specified purpose
-                            </p>
-                        </div>
-                    )}
-
-                    <div className="flex gap-3 pt-4">
+                    {/* Actions */}
+                    <div className="flex gap-3 pt-2">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                            className="flex-1 px-4 py-2 rounded-lg transition-colors"
+                            style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+                            className="flex-1 px-4 py-2 rounded-lg font-semibold transition-colors"
+                            style={{ background: 'var(--color-accent-gold)', color: '#1a1209' }}
                         >
                             Donate ${amount ? parseFloat(amount).toLocaleString() : '0'}
                         </button>
