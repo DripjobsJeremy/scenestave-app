@@ -12,7 +12,7 @@ function SendDonationModal({ donor, onClose, onSuccess }) {
         : (console.warn('CampaignsService unavailable — campaign dropdown disabled'), []);
 
     const productions = JSON.parse(localStorage.getItem('showsuite_productions') || '[]')
-        .filter(p => p.status === 'active' || !p.status);
+        .filter(p => !p.status || !['cancelled', 'closed', 'archived'].includes(p.status.toLowerCase()));
 
     const selectPath = (path) => {
         setGiftPath(path);
