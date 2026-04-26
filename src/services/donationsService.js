@@ -200,6 +200,7 @@
       // Restriction / allocation fields
       restrictionType: null,
       designatedProductionId: null,
+      designatedProductionTitle: null,
       restrictionPurpose: null,
       allocations: [],
     });
@@ -240,9 +241,14 @@
       // restriction / allocation
       restrictionType: input.restrictionType ?? base.restrictionType,
       designatedProductionId: input.designatedProductionId ?? base.designatedProductionId,
+      designatedProductionTitle: input.designatedProductionTitle ?? base.designatedProductionTitle,
       restrictionPurpose: input.restrictionPurpose ?? base.restrictionPurpose,
       allocations: input.allocations ?? base.allocations ?? [],
     });
+
+    if (out.campaignType === 'production' && !out.campaignName && out.designatedProductionTitle) {
+      out.campaignName = out.designatedProductionTitle;
+    }
 
     // Normalize types
     if (out.amount != null) out.amount = Number(out.amount);
