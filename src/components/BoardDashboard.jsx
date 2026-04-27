@@ -48,13 +48,15 @@ const BoardDashboard = () => {
     { label: 'Board Members',       value: boardMembers.length,  icon: '👥' },
   ];
 
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+
   return React.createElement('div', { className: 'bg-base min-h-screen' },
   React.createElement('div', { className: 'max-w-[1400px] mx-auto p-6 space-y-6' },
 
     // Header
     React.createElement('div', { className: 'mb-2' },
-      React.createElement('h1', { className: 'text-3xl font-bold text-white mb-1' }, '🏛️ Board Dashboard'),
-      React.createElement('p', { className: 'text-gray-400' },
+      React.createElement('h1', { className: `text-3xl font-bold mb-1 ${isLight ? 'text-gray-900' : 'text-white'}` }, '🏛️ Board Dashboard'),
+      React.createElement('p', { className: `${isLight ? 'text-gray-600' : 'text-gray-400'}` },
         new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
       )
     ),
@@ -66,8 +68,8 @@ const BoardDashboard = () => {
           key: kpi.label,
           className: 'bg-surface rounded-lg p-5 border border-gray-700'
         },
-          React.createElement('div', { className: `text-3xl font-bold mb-1 ${document.documentElement.getAttribute('data-theme') === 'light' ? 'text-gray-900' : 'text-white'}` }, kpi.value),
-          React.createElement('div', { className: 'text-sm text-gray-400' }, kpi.label)
+          React.createElement('div', { className: `text-3xl font-bold mb-1 ${isLight ? 'text-gray-900' : 'text-white'}` }, kpi.value),
+          React.createElement('div', { className: `text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}` }, kpi.label)
         )
       )
     ),
@@ -77,9 +79,9 @@ const BoardDashboard = () => {
 
       // Active Productions
       React.createElement('div', { className: 'bg-surface rounded-lg p-5 border border-gray-700' },
-        React.createElement('h3', { className: 'text-lg font-semibold text-white mb-4' }, '🎬 Active Productions'),
+        React.createElement('h3', { className: `text-lg font-semibold mb-4 ${isLight ? 'text-gray-900' : 'text-white'}` }, '🎬 Active Productions'),
         activeProds.length === 0
-          ? React.createElement('p', { className: 'text-gray-500 text-sm italic' }, 'No active productions')
+          ? React.createElement('p', { className: `text-sm italic ${isLight ? 'text-gray-600' : 'text-gray-500'}` }, 'No active productions')
           : React.createElement('div', { className: 'space-y-2' },
               ...activeProds.map(prod => {
                 const budget = parseFloat(prod.overallBudget) || 0;
@@ -92,11 +94,11 @@ const BoardDashboard = () => {
                   onClick: () => { window.location.hash = `#/productions/${prod.id}`; }
                 },
                   React.createElement('div', null,
-                    React.createElement('div', { className: 'text-white font-medium' }, prod.title),
-                    React.createElement('div', { className: 'text-gray-400 text-xs' }, prod.status || 'Active')
+                    React.createElement('div', { className: `font-medium ${isLight ? 'text-gray-900' : 'text-white'}` }, prod.title),
+                    React.createElement('div', { className: `text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}` }, prod.status || 'Active')
                   ),
                   budget > 0 && React.createElement('div', { className: 'text-right' },
-                    React.createElement('div', { className: 'text-xs text-gray-400' }, 'Budget'),
+                    React.createElement('div', { className: `text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}` }, 'Budget'),
                     React.createElement('div', {
                       className: `text-xs font-medium ${spent > budget ? 'text-red-400' : 'text-green-400'}`
                     }, `$${budget.toLocaleString()}`)
@@ -108,9 +110,9 @@ const BoardDashboard = () => {
 
       // Upcoming Shows & Auditions
       React.createElement('div', { className: 'bg-surface rounded-lg p-5 border border-gray-700' },
-        React.createElement('h3', { className: 'text-lg font-semibold text-white mb-4' }, '📅 Upcoming Shows & Auditions'),
+        React.createElement('h3', { className: `text-lg font-semibold mb-4 ${isLight ? 'text-gray-900' : 'text-white'}` }, '📅 Upcoming Shows & Auditions'),
         upcomingShows.length === 0
-          ? React.createElement('p', { className: 'text-gray-500 text-sm italic' }, 'No upcoming shows or auditions')
+          ? React.createElement('p', { className: `text-sm italic ${isLight ? 'text-gray-600' : 'text-gray-500'}` }, 'No upcoming shows or auditions')
           : React.createElement('div', { className: 'space-y-2' },
               ...upcomingShows.map((ev, idx) =>
                 React.createElement('div', {
@@ -121,18 +123,18 @@ const BoardDashboard = () => {
                   React.createElement('div', {
                     className: 'text-xs text-center bg-gray-700 rounded px-2 py-1 min-w-[44px] shrink-0'
                   },
-                    React.createElement('div', { className: 'text-gray-400 uppercase' },
+                    React.createElement('div', { className: `uppercase ${isLight ? 'text-gray-600' : 'text-gray-400'}` },
                       ev._date.toLocaleString('default', { month: 'short' })
                     ),
-                    React.createElement('div', { className: 'text-white font-bold text-base' },
+                    React.createElement('div', { className: `font-bold text-base ${isLight ? 'text-gray-900' : 'text-white'}` },
                       ev._date.getDate()
                     )
                   ),
                   React.createElement('div', null,
-                    React.createElement('div', { className: 'text-white text-sm font-medium' },
+                    React.createElement('div', { className: `text-sm font-medium ${isLight ? 'text-gray-900' : 'text-white'}` },
                       ev.title || ev.type
                     ),
-                    React.createElement('div', { className: 'text-gray-400 text-xs' }, ev.productionTitle)
+                    React.createElement('div', { className: `text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}` }, ev.productionTitle)
                   )
                 )
               )
@@ -142,7 +144,7 @@ const BoardDashboard = () => {
       // Financial Summary
       React.createElement('div', { className: 'bg-surface rounded-lg p-5 border border-gray-700' },
         React.createElement('div', { className: 'flex items-center justify-between mb-4' },
-          React.createElement('h3', { className: 'text-lg font-semibold text-white' }, '💰 Financial Summary'),
+          React.createElement('h3', { className: `text-lg font-semibold ${isLight ? 'text-gray-900' : 'text-white'}` }, '💰 Financial Summary'),
           React.createElement('button', {
             type: 'button',
             onClick: () => { window.location.hash = '#/financial'; },
@@ -151,20 +153,20 @@ const BoardDashboard = () => {
         ),
         React.createElement('div', { className: 'space-y-3' },
           React.createElement('div', { className: 'flex justify-between' },
-            React.createElement('span', { className: 'text-gray-400 text-sm' }, `${currentYear} Donations`),
+            React.createElement('span', { className: `text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}` }, `${currentYear} Donations`),
             React.createElement('span', { className: 'text-green-400 font-semibold' }, fmt(ytdTotal))
           ),
           React.createElement('div', { className: 'flex justify-between' },
-            React.createElement('span', { className: 'text-gray-400 text-sm' }, 'Total Gifts'),
-            React.createElement('span', { className: 'text-white font-semibold' }, ytdDonations.length)
+            React.createElement('span', { className: `text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}` }, 'Total Gifts'),
+            React.createElement('span', { className: `font-semibold ${isLight ? 'text-gray-900' : 'text-white'}` }, ytdDonations.length)
           ),
           React.createElement('div', { className: 'flex justify-between' },
-            React.createElement('span', { className: 'text-gray-400 text-sm' }, 'Unique Donors'),
-            React.createElement('span', { className: 'text-white font-semibold' }, uniqueDonors)
+            React.createElement('span', { className: `text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}` }, 'Unique Donors'),
+            React.createElement('span', { className: `font-semibold ${isLight ? 'text-gray-900' : 'text-white'}` }, uniqueDonors)
           ),
           React.createElement('div', { className: 'flex justify-between' },
-            React.createElement('span', { className: 'text-gray-400 text-sm' }, 'All-Time Total'),
-            React.createElement('span', { className: 'text-white font-semibold' },
+            React.createElement('span', { className: `text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}` }, 'All-Time Total'),
+            React.createElement('span', { className: `font-semibold ${isLight ? 'text-gray-900' : 'text-white'}` },
               fmt(donations.reduce((s, d) => s + (parseFloat(d.amount) || 0), 0))
             )
           )
@@ -173,9 +175,9 @@ const BoardDashboard = () => {
 
       // Board Members
       React.createElement('div', { className: 'bg-surface rounded-lg p-5 border border-gray-700' },
-        React.createElement('h3', { className: 'text-lg font-semibold text-white mb-4' }, '👥 Board Members'),
+        React.createElement('h3', { className: `text-lg font-semibold mb-4 ${isLight ? 'text-gray-900' : 'text-white'}` }, '👥 Board Members'),
         boardMembers.length === 0
-          ? React.createElement('p', { className: 'text-gray-500 text-sm italic' }, 'No board members tagged yet. Tag contacts with "board member" in the Contacts hub.')
+          ? React.createElement('p', { className: `text-sm italic ${isLight ? 'text-gray-600' : 'text-gray-500'}` }, 'No board members tagged yet. Tag contacts with "board member" in the Contacts hub.')
           : React.createElement('div', { className: 'space-y-2' },
               ...boardMembers.slice(0, 6).map(m => {
                 const name = m.name || `${m.firstName || ''} ${m.lastName || ''}`.trim() || m.email || '?';
@@ -188,13 +190,13 @@ const BoardDashboard = () => {
                     className: 'w-8 h-8 rounded-full bg-violet-700 flex items-center justify-center text-white text-sm font-bold shrink-0'
                   }, initial),
                   React.createElement('div', null,
-                    React.createElement('div', { className: 'text-white text-sm font-medium' }, name),
-                    m.email && React.createElement('div', { className: 'text-gray-400 text-xs' }, m.email)
+                    React.createElement('div', { className: `text-sm font-medium ${isLight ? 'text-gray-900' : 'text-white'}` }, name),
+                    m.email && React.createElement('div', { className: `text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}` }, m.email)
                   )
                 );
               }),
               boardMembers.length > 6 && React.createElement('p', {
-                className: 'text-xs text-gray-500 pt-1'
+                className: `text-xs pt-1 ${isLight ? 'text-gray-600' : 'text-gray-500'}`
               }, `+${boardMembers.length - 6} more board members`)
             )
       )
