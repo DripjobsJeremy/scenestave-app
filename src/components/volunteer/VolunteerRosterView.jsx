@@ -191,7 +191,7 @@ const VolunteerRosterView = ({ userRole='Admin', onNavigate=()=>{} }) => {
       </div>
 
       {view==='table' ? (
-        <div className="bg-white rounded shadow overflow-auto" aria-label="Roster Table">
+        <div className="banquo-card bg-white rounded shadow overflow-auto" aria-label="Roster Table">
           <table className="min-w-full text-xs text-gray-900">
             <thead className="bg-gray-50 text-gray-900">
               <tr>
@@ -235,7 +235,7 @@ const VolunteerRosterView = ({ userRole='Admin', onNavigate=()=>{} }) => {
             const info = v.volunteerInfo||{};
             const hours = calc.calculateVolunteerHours? calc.calculateVolunteerHours(v.id): (info.totalHours||0);
             return (
-              <div key={v.id} className="bg-white rounded border shadow-sm p-3 text-xs flex flex-col gap-2 text-gray-900">
+              <div key={v.id} className="banquo-card--flat bg-white rounded border shadow-sm p-3 text-xs flex flex-col gap-2 text-gray-900">
                 <div className="flex justify-between items-start">
                   <h3 className="font-semibold text-sm">{v.firstName} {v.lastName}</h3>
                   <input type="checkbox" title={`Select ${v.firstName} ${v.lastName}`} checked={selected.has(v.id)} onChange={()=>toggleSelect(v.id)} />

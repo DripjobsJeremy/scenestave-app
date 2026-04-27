@@ -184,7 +184,7 @@ const VolunteerOpportunitiesManager = ({
           </header>
 
           {/* Filters Stub */}
-          <div className="bg-white p-3 rounded shadow flex flex-wrap gap-2 items-center text-sm text-gray-900" aria-label="Opportunity Filters">
+          <div className="banquo-card bg-white p-3 rounded shadow flex flex-wrap gap-2 items-center text-sm text-gray-900" aria-label="Opportunity Filters">
         <label className="flex items-center gap-1 text-xs text-gray-600" aria-label="Filter by Category">
           <span>Category:</span>
           <select title="Filter by Category" value={filters.category} onChange={e=>setFilters(f=>({...f,category:e.target.value}))} className="border rounded px-2 py-1 bg-white text-gray-900">
@@ -220,7 +220,7 @@ const VolunteerOpportunitiesManager = ({
       </div>
 
       {/* List/Table Stub */}
-      <div className="bg-white rounded shadow overflow-hidden" aria-label="Opportunities List">
+      <div className="banquo-card bg-white rounded shadow overflow-hidden" aria-label="Opportunities List">
         {loading ? (
           <div className="p-6 animate-pulse text-sm text-gray-500">Loading opportunities...</div>
         ) : filtered.length === 0 ? (

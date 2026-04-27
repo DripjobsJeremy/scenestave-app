@@ -77,7 +77,7 @@
       // Filters
       React.createElement(
         'div',
-        { className: 'mb-4 border border-gray-200 rounded-lg p-4 bg-gray-50' },
+        { className: 'banquo-card mb-4 border border-gray-200 rounded-lg p-4 bg-gray-50' },
         React.createElement(
           'div',
           { className: 'flex gap-2' },
@@ -151,7 +151,7 @@
     };
     return React.createElement(
       'div',
-      { className: `stat-card border rounded-lg p-4 ${colorClasses[color]}` },
+      { className: `banquo-card stat-card border rounded-lg p-4 ${colorClasses[color]}` },
       React.createElement('div', { className: 'text-3xl mb-2' }, icon),
       React.createElement('div', { className: `text-2xl font-bold mb-1 ${textColors[color]}` }, value),
       React.createElement('div', { className: 'text-sm text-gray-600' }, label)
@@ -164,7 +164,7 @@
 
     return React.createElement(
       'div',
-      { className: 'campaign-card border border-gray-200 rounded-lg p-6 cursor-pointer hover:shadow-lg transition bg-white', onClick: onClick },
+      { className: 'banquo-card campaign-card border border-gray-200 rounded-lg p-6 cursor-pointer hover:shadow-lg transition bg-white', onClick: onClick },
       React.createElement(
         'div',
         { className: 'flex items-start justify-between mb-4' },
@@ -305,7 +305,7 @@
         const contact = contacts.find((c) => c.id === donor.contactId);
         return React.createElement(
           'div',
-          { key: donor.contactId, className: 'flex justify-between items-center p-3 border border-gray-200 rounded bg-gray-50' },
+          { key: donor.contactId, className: 'banquo-card--flat flex justify-between items-center p-3 border border-gray-200 rounded bg-gray-50' },
           React.createElement(
             'div',
             null,
@@ -327,7 +327,7 @@
         const contact = contacts.find((c) => c.id === donation.contactId);
         return React.createElement(
           'div',
-          { key: donation.id, className: 'flex justify-between items-center p-3 border border-gray-200 rounded bg-gray-50' },
+          { key: donation.id, className: 'banquo-card--flat flex justify-between items-center p-3 border border-gray-200 rounded bg-gray-50' },
           React.createElement(
             'div',
             null,
@@ -378,7 +378,7 @@
   const MetricBox = ({ label, value }) => (
     React.createElement(
       'div',
-      { className: 'p-4 border border-gray-200 rounded bg-gray-50' },
+      { className: 'banquo-card p-4 border border-gray-200 rounded bg-gray-50' },
       React.createElement('div', { className: 'text-sm text-gray-600 mb-1' }, label),
       React.createElement('div', { className: 'text-lg font-semibold text-gray-900' }, value)
     )

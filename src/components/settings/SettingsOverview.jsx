@@ -103,7 +103,7 @@ const SettingsOverview = ({ onNavigate }) => {
   const StatusCard = ({ icon, label, value, action, actionLabel }) => (
     React.createElement(
       'div',
-      { className: 'status-card border border-gray-200 rounded-lg p-4 hover:shadow-lg transition bg-white' },
+      { className: 'banquo-card status-card border border-gray-200 rounded-lg p-4 hover:shadow-lg transition bg-white' },
       React.createElement('div', { className: 'text-3xl mb-2' }, icon),
       React.createElement('div', { className: 'text-2xl font-bold mb-1 text-gray-900' }, value),
       React.createElement('div', { className: 'text-sm text-gray-600 mb-3' }, label),
@@ -238,7 +238,7 @@ const SettingsOverview = ({ onNavigate }) => {
       // Donor Management
       React.createElement(
         'div',
-        { className: 'settings-group border border-gray-200 rounded-lg p-4 bg-white' },
+        { className: 'banquo-card settings-group border border-gray-200 rounded-lg p-4 bg-white' },
         React.createElement(
           'h3',
           { className: 'font-semibold mb-3 flex items-center gap-2 text-gray-900' },
@@ -266,7 +266,7 @@ const SettingsOverview = ({ onNavigate }) => {
       // Data & Import
       React.createElement(
         'div',
-        { className: 'settings-group border border-gray-200 rounded-lg p-4 bg-white' },
+        { className: 'banquo-card settings-group border border-gray-200 rounded-lg p-4 bg-white' },
         React.createElement(
           'h3',
           { className: 'font-semibold mb-3 flex items-center gap-2 text-gray-900' },
@@ -294,7 +294,7 @@ const SettingsOverview = ({ onNavigate }) => {
       // System Configuration
       React.createElement(
         'div',
-        { className: 'settings-group border border-gray-200 rounded-lg p-4 bg-white' },
+        { className: 'banquo-card settings-group border border-gray-200 rounded-lg p-4 bg-white' },
         React.createElement(
           'h3',
           { className: 'font-semibold mb-3 flex items-center gap-2 text-gray-900' },
@@ -322,7 +322,7 @@ const SettingsOverview = ({ onNavigate }) => {
       // Tips & Recommendations
       React.createElement(
         'div',
-        { className: 'settings-group border border-violet-200 rounded-lg p-4 bg-violet-50' },
+        { className: 'banquo-card settings-group border border-violet-200 rounded-lg p-4 bg-violet-50' },
         React.createElement(
           'h3',
           { className: 'font-semibold mb-3 flex items-center gap-2 text-gray-900' },
@@ -358,13 +358,13 @@ const SettingsOverview = ({ onNavigate }) => {
       React.createElement('h3', { className: 'text-lg font-semibold mb-3 text-gray-900' }, '📋 Recent Activity'),
       React.createElement(
         'div',
-        { className: 'activity-list border border-gray-200 rounded-lg overflow-hidden bg-white' },
+        { className: 'banquo-card activity-list border border-gray-200 rounded-lg overflow-hidden bg-white' },
         recentActivity.map((activity, index) =>
           React.createElement(
             'div',
             {
               key: index,
-              className: 'activity-item p-4 border-b border-gray-200 last:border-b-0 hover:bg-gray-50'
+              className: 'banquo-card--flat activity-item p-4 border-b border-gray-200 last:border-b-0 hover:bg-gray-50'
             },
             React.createElement(
               'div',
@@ -393,7 +393,7 @@ const SettingsOverview = ({ onNavigate }) => {
     // System Health
     React.createElement(
       'div',
-      { className: 'system-health border border-gray-200 rounded-lg p-4 bg-white' },
+      { className: 'banquo-card system-health border border-gray-200 rounded-lg p-4 bg-white' },
       React.createElement('h3', { className: 'font-semibold mb-3 text-gray-900' }, '🔍 System Health'),
       React.createElement(
         'div',

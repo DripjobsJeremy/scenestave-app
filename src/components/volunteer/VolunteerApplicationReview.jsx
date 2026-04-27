@@ -290,7 +290,7 @@ const VolunteerApplicationReview = ({ userRole='Admin' }) => {
             return days.length? days.join(', '): '—';
           };
           return (
-            <div key={app.id} className="bg-white rounded border shadow-sm p-3 text-xs flex flex-col gap-2 text-gray-900">
+            <div key={app.id} className="banquo-card--flat bg-white rounded border shadow-sm p-3 text-xs flex flex-col gap-2 text-gray-900">
               <div className="flex justify-between items-start">
                 <div className="space-y-0.5">
                   <button className="font-semibold text-sm text-violet-700 hover:underline text-left"

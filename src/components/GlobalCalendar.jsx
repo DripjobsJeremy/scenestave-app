@@ -186,7 +186,7 @@ function GlobalCalendar() {
       </div>
 
       {/* Filters bar */}
-      <div className="flex flex-wrap gap-4 mb-6 p-4 bg-surface rounded-lg border border-gray-700">
+      <div className="banquo-card flex flex-wrap gap-4 mb-6 p-4 bg-surface rounded-lg border border-gray-700">
         <div>
           <label className="block text-xs text-gray-400 mb-1">Production</label>
           <select
@@ -252,7 +252,7 @@ function GlobalCalendar() {
 
       {/* Empty state */}
       {productions.length === 0 && (
-        <div className="bg-surface rounded-lg border border-gray-700 p-16 text-center">
+        <div className="banquo-card bg-surface rounded-lg border border-gray-700 p-16 text-center">
           <div className="text-5xl mb-4">🎬</div>
           <h3 className="text-xl font-semibold text-white mb-2">No Productions Yet</h3>
           <p className="text-gray-400 text-sm">Create productions and add calendar events to see them here.</p>
@@ -261,7 +261,7 @@ function GlobalCalendar() {
 
       {/* ── Month view ── */}
       {productions.length > 0 && viewMode === 'month' && (
-        <div className="bg-surface rounded-lg border border-gray-700 overflow-hidden">
+        <div className="banquo-card bg-surface rounded-lg border border-gray-700 overflow-hidden">
           {/* Month nav */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
             <button
@@ -352,7 +352,7 @@ function GlobalCalendar() {
       {productions.length > 0 && viewMode === 'list' && (
         <div className="space-y-6">
           {filteredEvents.length === 0 ? (
-            <div className="bg-surface rounded-lg border border-gray-700 p-12 text-center">
+            <div className="banquo-card bg-surface rounded-lg border border-gray-700 p-12 text-center">
               <div className="text-4xl mb-3">🔍</div>
               <p className="text-gray-400">No events match the current filters.</p>
             </div>
@@ -366,7 +366,7 @@ function GlobalCalendar() {
                   {events.map((ev, i) => (
                     <div
                       key={i}
-                      className="flex items-start gap-3 p-3 bg-surface rounded-lg border border-gray-700 hover:border-gray-600 transition-colors"
+                      className="banquo-card--flat flex items-start gap-3 p-3 bg-surface rounded-lg border border-gray-700 hover:border-gray-600 transition-colors"
                     >
                       {/* Color dot */}
                       <div

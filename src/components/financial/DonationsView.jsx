@@ -141,7 +141,7 @@
       // Filters & Search
       React.createElement(
         'div',
-        { className: 'mb-4 border border-gray-200 rounded-lg p-4 bg-gray-50' },
+        { className: 'banquo-card mb-4 border border-gray-200 rounded-lg p-4 bg-gray-50' },
         React.createElement(
           'div',
           { className: 'flex flex-wrap gap-4 items-center' },
@@ -169,7 +169,7 @@
       // Donations Table
       React.createElement(
         'div',
-        { className: 'overflow-x-auto border border-gray-200 rounded-lg bg-white' },
+        { className: 'banquo-card overflow-x-auto border border-gray-200 rounded-lg bg-white' },
         React.createElement(
           'table',
           { className: 'w-full' },
@@ -288,7 +288,7 @@
     };
     return React.createElement(
       'div',
-      { className: `stat-card border rounded-lg p-4 ${colorClasses[color]}` },
+      { className: `banquo-card stat-card border rounded-lg p-4 ${colorClasses[color]}` },
       React.createElement('div', { className: 'text-3xl mb-2' }, icon),
       React.createElement('div', { className: `text-2xl font-bold mb-1 ${textColors[color]}` }, value),
       React.createElement('div', { className: 'text-sm text-gray-600' }, label)

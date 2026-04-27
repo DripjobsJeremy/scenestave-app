@@ -233,7 +233,7 @@
       // Segmentation Controls
       React.createElement(
         'div',
-        { className: 'mb-6 border border-gray-300 rounded-lg p-4 bg-gray-50' },
+        { className: 'banquo-card mb-6 border border-gray-300 rounded-lg p-4 bg-gray-50' },
         React.createElement(
           'div',
           { className: 'flex flex-wrap items-center justify-between gap-4 mb-4' },
@@ -364,7 +364,7 @@
     };
     return React.createElement(
       'div',
-      { className: `stat-card border rounded-lg p-4 ${colorClasses[color]}` },
+      { className: `banquo-card stat-card border rounded-lg p-4 ${colorClasses[color]}` },
       React.createElement('div', { className: 'text-3xl mb-2' }, icon),
       React.createElement('div', { className: `text-2xl font-bold mb-1 ${textColors[color]}` }, value),
       React.createElement('div', { className: 'text-sm text-gray-700' }, label),
@@ -388,7 +388,7 @@
   const DonorCard = ({ donor, rfm, rfmTooltip }) => {
     return React.createElement(
       'div',
-      { className: 'donor-card border border-gray-300 rounded-lg p-4 hover:shadow-lg transition cursor-pointer bg-white' },
+      { className: 'banquo-card donor-card border border-gray-300 rounded-lg p-4 hover:shadow-lg transition cursor-pointer bg-white' },
       React.createElement(
         'div',
         { className: 'flex items-start justify-between mb-3' },

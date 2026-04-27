@@ -356,7 +356,7 @@ const VolunteerDashboard = ({ userRole = 'Admin', onNavigate = () => {} }) => {
       {/* Analytics Charts */}
       <section aria-label="Volunteer Analytics" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Coverage Trend */}
-        <div className="bg-white rounded-lg shadow p-4 flex flex-col">
+        <div className="banquo-card bg-white rounded-lg shadow p-4 flex flex-col">
           <h2 className="text-lg font-semibold mb-3 text-gray-900">Coverage Trend (30 Days)</h2>
           {!coverageTrend.labels.length && (
             <div className="text-sm text-gray-500">No upcoming shift coverage data</div>
@@ -366,7 +366,7 @@ const VolunteerDashboard = ({ userRole = 'Admin', onNavigate = () => {} }) => {
           )}
         </div>
         {/* Hours Distribution */}
-        <div className="bg-white rounded-lg shadow p-4 flex flex-col">
+        <div className="banquo-card bg-white rounded-lg shadow p-4 flex flex-col">
           <h2 className="text-lg font-semibold mb-3 text-gray-900">Top Volunteer Hours</h2>
           {!hoursDistribution.labels.length && (
             <div className="text-sm text-gray-500">No volunteer hour data</div>
@@ -387,7 +387,7 @@ const VolunteerDashboard = ({ userRole = 'Admin', onNavigate = () => {} }) => {
 
       {/* Volunteer Portal Preview Card */}
       <section aria-label="Volunteer Portal Access" className="mt-6">
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200 p-6 shadow-sm">
+        <div className="banquo-card bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200 p-6 shadow-sm">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
@@ -613,7 +613,7 @@ const VolunteerDashboard = ({ userRole = 'Admin', onNavigate = () => {} }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" aria-label="Activity and Alerts">
         {/* Recent Activity */}
         <section className="lg:col-span-2" aria-label="Recent Activity">
-          <div className="bg-white rounded-lg shadow p-4 h-full flex flex-col text-gray-900">
+          <div className="banquo-card bg-white rounded-lg shadow p-4 h-full flex flex-col text-gray-900">
             <h2 className="text-lg font-semibold mb-3 text-gray-900">Recent Activity</h2>
             {recentActivity.length === 0 && !loading && (
               <div className="text-sm text-gray-500">No recent activity</div>
@@ -787,7 +787,7 @@ const AlertCard = ({ title, children, onDismiss, accent = 'yellow' }) => {
     blue: 'border-blue-300 bg-blue-50'
   };
   return (
-    <div className={`rounded-lg border p-4 shadow relative ${accentClasses[accent]} text-gray-900`} role="alert" aria-label={title}>
+    <div className={`banquo-card rounded-lg border p-4 shadow relative ${accentClasses[accent]} text-gray-900`} role="alert" aria-label={title}>
       <div className="flex justify-between items-start mb-2">
         <h3 className="text-sm font-semibold">{title}</h3>
         <button onClick={onDismiss} aria-label="Dismiss alert" className="text-xs text-gray-500 hover:text-gray-700">✕</button>

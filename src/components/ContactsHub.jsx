@@ -242,7 +242,7 @@ function AllContactsList({ contacts, donations }) {
       </div>
 
       {showAddForm && (
-        <div className="mb-5 p-4 bg-violet-50 border border-violet-200 rounded-xl">
+        <div className="banquo-card mb-5 p-4 bg-violet-50 border border-violet-200 rounded-xl">
           <h3 className="text-sm font-semibold text-violet-900 mb-3">New Contact</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <div>
@@ -526,7 +526,7 @@ function BoardMembersView({ contacts }) {
             const initial = name[0]?.toUpperCase() || '?';
             const boardTag = (member.tags || []).find(t => BOARD_TAGS.includes(String(t).toLowerCase()));
             return (
-              <div key={member.id} className="hub-card hover:border-violet-300 hover:shadow-sm transition-all">
+              <div key={member.id} className="banquo-card hub-card hover:border-violet-300 hover:shadow-sm transition-all">
                 <div className="flex items-start gap-3">
                   {member.donorProfile?.photoUrl ? (
                     <img src={member.donorProfile.photoUrl} alt={name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
