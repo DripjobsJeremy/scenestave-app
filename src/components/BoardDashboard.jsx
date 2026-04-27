@@ -66,7 +66,7 @@ const BoardDashboard = () => {
           key: kpi.label,
           className: 'bg-surface rounded-lg p-5 border border-gray-700'
         },
-          React.createElement('div', { className: 'text-3xl font-bold text-white mb-1' }, kpi.value),
+          React.createElement('div', { className: `text-3xl font-bold mb-1 ${document.documentElement.getAttribute('data-theme') === 'light' ? 'text-gray-900' : 'text-white'}` }, kpi.value),
           React.createElement('div', { className: 'text-sm text-gray-400' }, kpi.label)
         )
       )
