@@ -66,7 +66,7 @@ const BoardDashboard = () => {
       ...kpis.map(kpi =>
         React.createElement('div', {
           key: kpi.label,
-          className: 'bg-surface rounded-lg p-5 border border-gray-700'
+          className: 'bg-surface rounded-lg p-5 border border-gray-700 banquo-card'
         },
           React.createElement('div', { className: `text-3xl font-bold mb-1 ${isLight ? 'text-gray-900' : 'text-white'}` }, kpi.value),
           React.createElement('div', { className: `text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}` }, kpi.label)
@@ -78,7 +78,7 @@ const BoardDashboard = () => {
     React.createElement('div', { className: 'grid grid-cols-1 lg:grid-cols-2 gap-6' },
 
       // Active Productions
-      React.createElement('div', { className: 'bg-surface rounded-lg p-5 border border-gray-700' },
+      React.createElement('div', { className: 'bg-surface rounded-lg p-5 border border-gray-700 banquo-card' },
         React.createElement('h3', { className: `text-lg font-semibold mb-4 ${isLight ? 'text-gray-900' : 'text-white'}` }, '🎬 Active Productions'),
         activeProds.length === 0
           ? React.createElement('p', { className: `text-sm italic ${isLight ? 'text-gray-600' : 'text-gray-500'}` }, 'No active productions')
@@ -90,7 +90,7 @@ const BoardDashboard = () => {
                   .reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
                 return React.createElement('div', {
                   key: prod.id,
-                  className: 'flex items-center justify-between p-3 bg-gray-750 rounded border border-gray-600 cursor-pointer hover:border-violet-600 transition-colors',
+                  className: 'flex items-center justify-between p-3 bg-gray-750 rounded border border-gray-600 cursor-pointer hover:border-violet-600 transition-colors banquo-card--flat',
                   onClick: () => { window.location.hash = `#/productions/${prod.id}`; }
                 },
                   React.createElement('div', null,
@@ -109,7 +109,7 @@ const BoardDashboard = () => {
       ),
 
       // Upcoming Shows & Auditions
-      React.createElement('div', { className: 'bg-surface rounded-lg p-5 border border-gray-700' },
+      React.createElement('div', { className: 'bg-surface rounded-lg p-5 border border-gray-700 banquo-card' },
         React.createElement('h3', { className: `text-lg font-semibold mb-4 ${isLight ? 'text-gray-900' : 'text-white'}` }, '📅 Upcoming Shows & Auditions'),
         upcomingShows.length === 0
           ? React.createElement('p', { className: `text-sm italic ${isLight ? 'text-gray-600' : 'text-gray-500'}` }, 'No upcoming shows or auditions')
@@ -142,7 +142,7 @@ const BoardDashboard = () => {
       ),
 
       // Financial Summary
-      React.createElement('div', { className: 'bg-surface rounded-lg p-5 border border-gray-700' },
+      React.createElement('div', { className: 'bg-surface rounded-lg p-5 border border-gray-700 banquo-card' },
         React.createElement('div', { className: 'flex items-center justify-between mb-4' },
           React.createElement('h3', { className: `text-lg font-semibold ${isLight ? 'text-gray-900' : 'text-white'}` }, '💰 Financial Summary'),
           React.createElement('button', {
@@ -174,7 +174,7 @@ const BoardDashboard = () => {
       ),
 
       // Board Members
-      React.createElement('div', { className: 'bg-surface rounded-lg p-5 border border-gray-700' },
+      React.createElement('div', { className: 'bg-surface rounded-lg p-5 border border-gray-700 banquo-card' },
         React.createElement('h3', { className: `text-lg font-semibold mb-4 ${isLight ? 'text-gray-900' : 'text-white'}` }, '👥 Board Members'),
         boardMembers.length === 0
           ? React.createElement('p', { className: `text-sm italic ${isLight ? 'text-gray-600' : 'text-gray-500'}` }, 'No board members tagged yet. Tag contacts with "board member" in the Contacts hub.')
@@ -184,7 +184,7 @@ const BoardDashboard = () => {
                 const initial = name[0].toUpperCase();
                 return React.createElement('div', {
                   key: m.id,
-                  className: 'flex items-center gap-3'
+                  className: 'flex items-center gap-3 banquo-card--flat'
                 },
                   React.createElement('div', {
                     className: 'w-8 h-8 rounded-full bg-violet-700 flex items-center justify-center text-white text-sm font-bold shrink-0'
