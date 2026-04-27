@@ -49,22 +49,22 @@ function BudgetDashboardWidget({ userRole }) {
             {/* Total Stats */}
             <div className="grid grid-cols-4 gap-3 mb-6">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3">
-                    <div className="text-xs text-blue-700 mb-1">Total Budget</div>
-                    <div className="text-lg font-bold text-blue-900">
+                    <div className="text-xs text-gray-600 mb-1">Total Budget</div>
+                    <div className="text-lg font-bold text-gray-900">
                         ${totalStats.totalBudget.toLocaleString()}
                     </div>
                 </div>
 
                 <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-3">
-                    <div className="text-xs text-red-700 mb-1">Total Spent</div>
-                    <div className="text-lg font-bold text-red-900">
+                    <div className="text-xs text-gray-600 mb-1">Total Spent</div>
+                    <div className="text-lg font-bold text-gray-900">
                         ${totalStats.totalSpent.toLocaleString()}
                     </div>
                 </div>
 
                 <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3">
-                    <div className="text-xs text-green-700 mb-1">Total Revenue</div>
-                    <div className="text-lg font-bold text-green-900">
+                    <div className="text-xs text-gray-600 mb-1">Total Revenue</div>
+                    <div className="text-lg font-bold text-gray-900">
                         ${totalStats.totalRevenue.toLocaleString()}
                     </div>
                 </div>
@@ -74,14 +74,8 @@ function BudgetDashboardWidget({ userRole }) {
                         ? 'from-emerald-50 to-emerald-100'
                         : 'from-orange-50 to-orange-100'
                 }`}>
-                    <div className={`text-xs mb-1 ${
-                        totalStats.netIncome >= 0 ? 'text-emerald-700' : 'text-orange-700'
-                    }`}>
-                        Net Income
-                    </div>
-                    <div className={`text-lg font-bold ${
-                        totalStats.netIncome >= 0 ? 'text-emerald-900' : 'text-orange-900'
-                    }`}>
+                    <div className="text-xs text-gray-600 mb-1">Net Income</div>
+                    <div className="text-lg font-bold text-gray-900">
                         ${totalStats.netIncome.toLocaleString()}
                     </div>
                 </div>

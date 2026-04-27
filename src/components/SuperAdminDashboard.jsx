@@ -131,7 +131,8 @@ function SuperAdminDashboard({ userRole = 'admin' }) {
       {/* Key Metrics */}
       <div key={`metrics-${refreshKey}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div
-          className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:ring-2 hover:ring-violet-400 hover:shadow-xl transition-all duration-150"
+          className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:ring-2 hover:ring-yellow-500 hover:ring-offset-1 hover:shadow-xl transition-all duration-150"
+          title="Go to Productions"
           onClick={() => { window.location.hash = '#/productions'; }}
         >
           <div className="flex items-center justify-between mb-4">
@@ -143,7 +144,8 @@ function SuperAdminDashboard({ userRole = 'admin' }) {
         </div>
 
         <div
-          className="bg-gradient-to-br from-green-500 to-green-700 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:ring-2 hover:ring-green-300 hover:shadow-xl transition-all duration-150"
+          className="bg-gradient-to-br from-green-500 to-green-700 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:ring-2 hover:ring-yellow-500 hover:ring-offset-1 hover:shadow-xl transition-all duration-150"
+          title="Go to Financial Dashboard"
           onClick={() => { window.location.hash = '#/financial?view=donations'; }}
         >
           <div className="flex items-center justify-between mb-4">
@@ -155,7 +157,8 @@ function SuperAdminDashboard({ userRole = 'admin' }) {
         </div>
 
         <div
-          className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:ring-2 hover:ring-blue-300 hover:shadow-xl transition-all duration-150"
+          className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:ring-2 hover:ring-yellow-500 hover:ring-offset-1 hover:shadow-xl transition-all duration-150"
+          title="Go to Donors"
           onClick={() => { window.location.hash = '#/financial?view=donors'; }}
         >
           <div className="flex items-center justify-between mb-4">
@@ -167,7 +170,8 @@ function SuperAdminDashboard({ userRole = 'admin' }) {
         </div>
 
         <div
-          className="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:ring-2 hover:ring-indigo-300 hover:shadow-xl transition-all duration-150"
+          className="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-lg shadow-lg p-6 text-white cursor-pointer hover:ring-2 hover:ring-yellow-500 hover:ring-offset-1 hover:shadow-xl transition-all duration-150"
+          title="Go to Actor Roster"
           onClick={() => { window.location.hash = '#/actors'; }}
         >
           <div className="flex items-center justify-between mb-4">
@@ -356,7 +360,7 @@ function SuperAdminDashboard({ userRole = 'admin' }) {
             className="flex flex-col items-center gap-2 p-5 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200 cursor-pointer"
           >
             <span className="text-3xl">🎭</span>
-            <span className="text-sm font-medium text-purple-900">Productions</span>
+            <span className="text-sm font-medium text-gray-900">Productions</span>
           </button>
           <button
             type="button"
@@ -364,7 +368,7 @@ function SuperAdminDashboard({ userRole = 'admin' }) {
             className="flex flex-col items-center gap-2 p-5 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200 cursor-pointer"
           >
             <span className="text-3xl">💰</span>
-            <span className="text-sm font-medium text-green-900">Log Donation</span>
+            <span className="text-sm font-medium text-gray-900">Log Donation</span>
           </button>
           <button
             type="button"
@@ -372,7 +376,7 @@ function SuperAdminDashboard({ userRole = 'admin' }) {
             className="flex flex-col items-center gap-2 p-5 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200 cursor-pointer"
           >
             <span className="text-3xl">🎬</span>
-            <span className="text-sm font-medium text-blue-900">Actors</span>
+            <span className="text-sm font-medium text-gray-900">Actors</span>
           </button>
           <button
             type="button"
@@ -380,7 +384,7 @@ function SuperAdminDashboard({ userRole = 'admin' }) {
             className="flex flex-col items-center gap-2 p-5 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200 cursor-pointer"
           >
             <span className="text-3xl">👥</span>
-            <span className="text-sm font-medium text-indigo-900">Donors</span>
+            <span className="text-sm font-medium text-gray-900">Donors</span>
           </button>
         </div>
       </div>
