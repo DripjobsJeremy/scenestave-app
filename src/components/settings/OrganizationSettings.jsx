@@ -703,7 +703,7 @@ function OrganizationSettings(props) {
                   b.accentColor    === '#10B981';
                 return isDefault ? (
                   <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
-                    ✓ SceneStave Default Theme
+                    ✓ Banquo Default Theme
                   </span>
                 ) : (
                   <span className="badge-brand-custom px-3 py-1 text-xs rounded-full font-medium">
@@ -794,7 +794,7 @@ function OrganizationSettings(props) {
               </div>
 
               <p className="text-brand-text mt-4 text-sm">
-                Sample text using your selected text color. This is how content will appear throughout SceneStave.
+                Sample text using your selected text color. This is how content will appear throughout Banquo.
               </p>
             </div>
           </div>
@@ -806,13 +806,13 @@ function OrganizationSettings(props) {
               <div className="flex flex-col p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="mb-3">
                   <h4 className="font-medium text-blue-900 mb-1">Apply Custom Theme</h4>
-                  <p className="text-sm text-blue-700">Apply your custom colors to SceneStave</p>
+                  <p className="text-sm text-blue-700">Apply your custom colors to Banquo</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
                     window.organizationService?.applyBrandingToDOM(organization.branding);
-                    if (window.showToast) window.showToast('✅ Theme applied to SceneStave', 'success');
+                    if (window.showToast) window.showToast('✅ Theme applied to Banquo', 'success');
                   }}
                   className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium text-sm mt-auto"
                 >
@@ -824,7 +824,7 @@ function OrganizationSettings(props) {
               <div className="flex flex-col p-4 bg-gray-50 border border-gray-300 rounded-lg">
                 <div className="mb-3">
                   <h4 className="font-medium text-gray-900 mb-1">Reset to Default</h4>
-                  <p className="text-sm text-gray-600">Restore SceneStave's original purple theme</p>
+                  <p className="text-sm text-gray-600">Restore Banquo's original purple theme</p>
                 </div>
                 <button
                   type="button"
@@ -884,7 +884,7 @@ function OrganizationSettings(props) {
               </button>
             </div>
             <p className="text-sm text-gray-600">
-              Customize the colors for each button type used throughout SceneStave.
+              Customize the colors for each button type used throughout Banquo.
             </p>
 
             {/* Live preview */}

@@ -91,7 +91,7 @@ const DataManagementSettings = () => {
       
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `SceneStave_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `Banquo_Backup_${new Date().toISOString().split('T')[0]}.json`;
       link.click();
       
       // Save last backup timestamp
@@ -224,7 +224,7 @@ const DataManagementSettings = () => {
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `SceneStave_Donors_${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `Banquo_Donors_${new Date().toISOString().split('T')[0]}.csv`;
       link.click();
       
       alert(`✓ Exported ${donors.length} donors to CSV`);
@@ -274,7 +274,7 @@ const DataManagementSettings = () => {
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `SceneStave_Donations_${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `Banquo_Donations_${new Date().toISOString().split('T')[0]}.csv`;
       link.click();
       
       alert(`✓ Exported ${donations.length} donations to CSV`);
@@ -321,7 +321,7 @@ const DataManagementSettings = () => {
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `SceneStave_Contacts_${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `Banquo_Contacts_${new Date().toISOString().split('T')[0]}.csv`;
       link.click();
       
       alert(`✓ Exported ${contacts.length} contacts to CSV`);
@@ -590,7 +590,7 @@ const DataManagementSettings = () => {
       { className: 'section-header mb-6' },
       React.createElement('h2', { className: 'text-2xl font-bold mb-2 text-gray-900' }, 'Data Management'),
       React.createElement('p', { className: 'text-sm text-gray-600' },
-        'Backup, export, import, and manage your SceneStave data'
+        'Backup, export, import, and manage your Banquo data'
       )
     ),
     
@@ -671,7 +671,7 @@ const DataManagementSettings = () => {
           { className: 'action-card bg-white border border-gray-200 rounded-lg p-4' },
           React.createElement('h4', { className: 'font-semibold mb-2 text-gray-900' }, 'Full Data Backup'),
           React.createElement('p', { className: 'text-sm text-gray-600 mb-3' },
-            'Download a complete backup of all SceneStave data (JSON format)'
+            'Download a complete backup of all Banquo data (JSON format)'
           ),
           React.createElement(
             'button',
@@ -921,7 +921,7 @@ const DataManagementSettings = () => {
           { className: 'mb-6' },
           React.createElement('h4', { className: 'font-semibold text-red-400 mb-2' }, 'Reset All Data'),
           React.createElement('p', { className: 'text-sm text-red-300 mb-3' },
-            'This will permanently delete ALL SceneStave data including contacts, donations, ' +
+            'This will permanently delete ALL Banquo data including contacts, donations, ' +
             'productions, and settings. This action cannot be undone!'
           ),
           React.createElement(

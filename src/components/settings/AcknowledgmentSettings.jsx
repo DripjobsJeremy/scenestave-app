@@ -292,7 +292,7 @@
               value: orgInfo.name,
               onChange: (e) => handleOrgInfoChange('name', e.target.value),
               className: 'w-full border border-gray-300 bg-white text-gray-900 rounded px-3 py-2',
-              placeholder: 'SceneStave Theatre Company'
+              placeholder: 'Banquo Theatre Company'
             })
           ),
 

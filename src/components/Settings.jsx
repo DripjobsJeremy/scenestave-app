@@ -59,7 +59,7 @@
         items: [
           { id: 'users', label: 'User Management', icon: '👥' },
           { id: 'preferences', label: 'User Preferences', icon: '👤' },
-          { id: 'about', label: 'About SceneStave', icon: 'ℹ️' }
+          { id: 'about', label: 'About Banquo', icon: 'ℹ️' }
         ]
       }
     ];
@@ -91,7 +91,7 @@
         'div',
         { className: 'sidebar-header mb-6' },
         React.createElement('h1', { className: 'text-2xl font-bold text-gray-900 mb-1' }, '⚙️ Settings'),
-        React.createElement('p', { className: 'text-sm text-gray-600' }, 'Configure SceneStave')
+        React.createElement('p', { className: 'text-sm text-gray-600' }, 'Configure Banquo')
       ),
       
       // Navigation Groups
@@ -206,11 +206,11 @@
         { sectionId: 'data-management', section: 'Data & Import', icon: '🗄️', title: 'Backup Data', description: 'Download full data backup', keywords: ['backup', 'export', 'download', 'save'] },
         { sectionId: 'data-management', section: 'Data & Import', icon: '🗄️', title: 'Import Donors', description: 'Upload CSV file of donors', keywords: ['import', 'csv', 'upload', 'bulk'] },
         { sectionId: 'data-management', section: 'Data & Import', icon: '🗄️', title: 'Export Data', description: 'Export contacts and donations', keywords: ['export', 'csv', 'download'] },
-        { sectionId: 'data-management', section: 'Data & Import', icon: '🗄️', title: 'Reset Data', description: 'Delete all SceneStave data', keywords: ['reset', 'delete', 'clear', 'remove'] },
+        { sectionId: 'data-management', section: 'Data & Import', icon: '🗄️', title: 'Reset Data', description: 'Delete all Banquo data', keywords: ['reset', 'delete', 'clear', 'remove'] },
         { sectionId: 'preferences', section: 'System', icon: '👤', title: 'User Preferences', description: 'Customize display and defaults', keywords: ['preferences', 'settings', 'display', 'theme', 'format'] },
         { sectionId: 'preferences', section: 'System', icon: '👤', title: 'Date Format', description: 'Change date display format', keywords: ['date', 'format', 'time'] },
         { sectionId: 'preferences', section: 'System', icon: '👤', title: 'Currency Format', description: 'Change currency display', keywords: ['currency', 'money', 'dollar'] },
-        { sectionId: 'about', section: 'System', icon: 'ℹ️', title: 'About SceneStave', description: 'Version and system information', keywords: ['about', 'version', 'info', 'help'] }
+        { sectionId: 'about', section: 'System', icon: 'ℹ️', title: 'About Banquo', description: 'Version and system information', keywords: ['about', 'version', 'info', 'help'] }
       ];
 
       const lowerQuery = (query || '').toLowerCase();

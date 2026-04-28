@@ -36,7 +36,7 @@ function UsersSettings() {
 
     const handleDelete = (userId) => {
         try {
-            if (!confirm('Remove this user? They will lose access to SceneStave.')) return;
+            if (!confirm('Remove this user? They will lose access to Banquo.')) return;
 
             window.usersService.deleteUser(userId);
             loadUsers();

@@ -1,0 +1,3312 @@
+<!DOCTYPE html>
+<!-- saved from url=(0012)about:srcdoc -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.13/html-to-image.min.js" integrity="sha512-iZ2ORl595Wx6miw+GuadDet4WQbdSWS3JLMoNfY8cRGoEFy6oT3G9IbcrBeL6AfkgpA51ETt/faX6yLV+/gFJg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+      (function() {
+        const originalConsole = window.console;
+        window.console = {
+          log: (...args) => {
+            originalConsole.log(...args);
+            window.parent.postMessage({ type: 'console', message: args.join(' ') }, '*');
+          },
+          error: (...args) => {
+            originalConsole.error(...args);
+            window.parent.postMessage({ type: 'console', message: 'Error: ' + args.join(' ') }, '*');
+          },
+          warn: (...args) => {
+            originalConsole.warn(...args);
+            window.parent.postMessage({ type: 'console', message: 'Warning: ' + args.join(' ') }, '*');
+          }
+        };
+
+        let requestId = 0;
+        let callbacksMap = new Map();
+        let streamControllers = new Map();
+        
+        window.claude = {
+          complete: (prompt) => {
+            return new Promise((resolve, reject) => {
+              const id = requestId++;
+              callbacksMap.set(id, { resolve, reject });
+              window.parent.postMessage({ type: 'claudeComplete', id, prompt }, '*');
+            });
+          }
+        };
+
+        window.storage = {
+          get: (key, shared = false) => {
+            return new Promise((resolve, reject) => {
+              const id = requestId++;
+              callbacksMap.set(id, { resolve, reject });
+              window.parent.postMessage({ type: 'storageGet', id, key, shared }, '*');
+            });
+          },
+          set: (key, value, shared = false) => {
+            return new Promise((resolve, reject) => {
+              const id = requestId++;
+              callbacksMap.set(id, { resolve, reject });
+              window.parent.postMessage({ type: 'storageSet', id, key, value, shared }, '*');
+            });
+          },
+          delete: (key, shared = false) => {
+            return new Promise((resolve, reject) => {
+              const id = requestId++;
+              callbacksMap.set(id, { resolve, reject });
+              window.parent.postMessage({ type: 'storageDelete', id, key, shared }, '*');
+            });
+          },
+          list: (prefix, shared = false) => {
+            return new Promise((resolve, reject) => {
+              const id = requestId++;
+              callbacksMap.set(id, { resolve, reject });
+              window.parent.postMessage({ type: 'storageList', id, prefix, shared }, '*');
+            });
+          }
+        };
+
+        let pendingBlobs = new Map();
+        URL.createObjectURL = (blob) => {
+          // Store the blob and create an ID and URL for it
+          const blobId = `blob-${Date.now()}-${Math.random()}`;
+          pendingBlobs.set(blobId, blob);
+          return `blob-request://${blobId}`;
+        };
+
+        URL.revokeObjectURL = (url) => {
+          // Remove the blob from our store
+          const blobId = url.replace("blob-request://", "");
+          pendingBlobs.delete(blobId);
+        };
+
+        const getBlobFromURL = (url) => {
+          const blobId = url.replace("blob-request://", "");
+          return pendingBlobs.get(blobId);
+        };
+
+        // Override global fetch with streaming support
+        window.fetch = (url, init = {}) => {
+          return new Promise((resolve, reject) => {
+            const id = requestId++;
+            const channelId = `fetch-${id}-${Date.now()}`;
+            
+            callbacksMap.set(id, { 
+              resolve: (response) => {
+                // Create a ReadableStream for the response body
+                const stream = new ReadableStream({
+                  start(controller) {
+                    streamControllers.set(channelId, controller);
+                  },
+                  cancel() {
+                    streamControllers.delete(channelId);
+                  }
+                });
+                
+                // Create and return the Response with the stream
+                resolve(new Response(stream, {
+                  status: response.status,
+                  statusText: response.statusText,
+                  headers: response.headers
+                }));
+              },
+              reject,
+              channelId
+            });
+            
+            window.parent.postMessage({
+              type: 'proxyFetch',
+              id,
+              url,
+              init,
+              channelId
+            }, '*');
+          });
+        };
+
+        window.addEventListener('message', async (event) => {
+          if (event.data.type === 'takeScreenshot') {
+            const rootElement = document.getElementById('artifacts-component-root-html');
+            if (!rootElement) {
+              window.parent.postMessage({
+                type: 'screenshotError',
+                error: new Error('Root element not found'),
+              }, '*');
+            }
+            const screenshot = await htmlToImage.toPng(rootElement, {
+              imagePlaceholder:
+                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdjePDgwX8ACOQDoNsk0PMAAAAASUVORK5CYII=",
+            });
+            window.parent.postMessage({
+              type: 'screenshotData',
+              data: screenshot,
+            }, '*');
+          } else if (event.data.type === 'claudeComplete') {
+            const callback = callbacksMap.get(event.data.id);
+            if (event.data.error) {
+              callback.reject(new Error(event.data.error));
+            } else {
+              callback.resolve(event.data.completion);
+            }
+            callbacksMap.delete(event.data.id);
+          } else if (event.data.type === 'proxyFetchResponse') {
+            const callback = callbacksMap.get(event.data.id);
+            if (event.data.error) {
+              callback.reject(new Error(event.data.error));
+              callbacksMap.delete(event.data.id);
+            } else {
+              // Initial response with headers, status, etc.
+              callback.resolve({
+                status: event.data.status,
+                statusText: event.data.statusText,
+                headers: event.data.headers
+              });
+              // Don't delete the callback yet if streaming
+              if (!event.data.body) {
+                callbacksMap.delete(event.data.id);
+              }
+            }
+          } else if (event.data.type === 'proxyFetchStream') {
+            // Handle streaming data chunks
+            const controller = streamControllers.get(event.data.channelId);
+            if (controller) {
+              if (event.data.error) {
+                controller.error(new Error(event.data.error));
+                streamControllers.delete(event.data.channelId);
+              } else if (event.data.done) {
+                controller.close();
+                streamControllers.delete(event.data.channelId);
+                // Clean up the callback
+                const callback = Array.from(callbacksMap.entries()).find(
+                  ([_, value]) => value.channelId === event.data.channelId
+                );
+                if (callback) {
+                  callbacksMap.delete(callback[0]);
+                }
+              } else if (event.data.chunk) {
+                controller.enqueue(new Uint8Array(event.data.chunk));
+              }
+            }
+          } else if (event.data.type === 'storageGet') {
+            const callback = callbacksMap.get(event.data.id);
+            if (event.data.error) {
+              callback.reject(new Error(event.data.error));
+            } else {
+              callback.resolve(event.data.result);
+            }
+            callbacksMap.delete(event.data.id);
+          } else if (event.data.type === 'storageSet') {
+            const callback = callbacksMap.get(event.data.id);
+            if (event.data.error) {
+              callback.reject(new Error(event.data.error));
+            } else {
+              callback.resolve(event.data.result);
+            }
+            callbacksMap.delete(event.data.id);
+          } else if (event.data.type === 'storageDelete') {
+            const callback = callbacksMap.get(event.data.id);
+            if (event.data.error) {
+              callback.reject(new Error(event.data.error));
+            } else {
+              callback.resolve(event.data.result);
+            }
+            callbacksMap.delete(event.data.id);
+          } else if (event.data.type === 'storageList') {
+            const callback = callbacksMap.get(event.data.id);
+            if (event.data.error) {
+              callback.reject(new Error(event.data.error));
+            } else {
+              callback.resolve(event.data.result);
+            }
+            callbacksMap.delete(event.data.id);
+          }
+        });
+
+        window.addEventListener('click', (event) => {
+          const isEl = event.target instanceof HTMLElement;
+          if (!isEl) return;
+    
+          // find ancestor links
+          const linkEl = event.target.closest("a");
+          if (!linkEl || !linkEl.href) return;
+    
+          event.preventDefault();
+          event.stopImmediatePropagation();
+    
+          if (linkEl.href.startsWith("blob-request:")) {
+            const blob = getBlobFromURL(linkEl.href);
+            if (!blob) return;
+            void blob.arrayBuffer().then((data) => {
+              window.parent.postMessage({
+                type: "downloadFile",
+                filename: linkEl.download,
+                data,
+                mimeType: blob.type || "application/octet-stream",
+              });
+            });
+          } else if (linkEl.href.startsWith("data:")) {
+            const [header, base64Data] = linkEl.href.split(",");
+            const mimeMatch = header.match(/data:([^;]+)/);
+            const mimeType = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+            const binaryString = atob(base64Data);
+            const data = Uint8Array.from(binaryString, (c) =>
+              c.charCodeAt(0),
+            ).buffer;
+            window.parent.postMessage({
+              type: "downloadFile",
+              filename: linkEl.download,
+              data,
+              mimeType,
+            });
+          } else {
+            let linkUrl;
+            try {
+              linkUrl = new URL(linkEl.href);
+            } catch (error) {
+              return;
+            }
+    
+            if (linkUrl.hostname === window.location.hostname) return;
+      
+            window.parent.postMessage({
+              type: 'openExternal',
+              href: linkEl.href,
+            }, '*');
+          }
+      });
+
+        const originalOpen = window.open;
+        window.open = function (url) {
+          window.parent.postMessage({
+            type: "openExternal",
+            href: url,
+          }, "*");
+        };
+
+        window.addEventListener('error', (event) => {
+          window.parent.postMessage({ type: 'console', message: 'Uncaught Error: ' + event.message }, '*');
+        });
+      })();
+    </script>
+  
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banquo · A quiet revolution is loading in.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&amp;family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,400&amp;family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0706;
+    --stage: #120d0c;
+    --velvet: #1c1413;
+    --parchment: #f4ede2;
+    --parchment-dim: #cfc6b3;
+    --parchment-mute: #8e8778;
+    --crimson: #7a1f24;
+    --crimson-bright: #a6282f;
+    --ghost-glow: #f5d97c;
+    --gold: #c9a14a;
+    --gold-dim: #8a6f3a;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--ink);
+    color: var(--parchment);
+    font-weight: 400;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.05;
+    z-index: 1000;
+    mix-blend-mode: overlay;
+  }
+
+  /* =========== Chrome/Safari autofill override ===========
+     Browsers paint autofilled inputs with a pale yellow/blue background
+     that breaks the dark theme. Force it back to the Banquo palette. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px var(--ink) inset !important;
+    -webkit-text-fill-color: var(--parchment) !important;
+    caret-color: var(--parchment);
+    transition: background-color 9999s ease-in-out 0s;
+  }
+  /* For the portal fields that sit on a slightly lighter surface */
+  .portal-field input:-webkit-autofill,
+  .portal-field textarea:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px rgba(10, 7, 6, 0.95) inset !important;
+  }
+
+  /* =========== Global chrome =========== */
+
+  /* Banquo wordmark top-left (primary brand anchor) */
+  .wordmark {
+    position: fixed;
+    top: 24px;
+    left: 32px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 1.1rem;
+    color: var(--parchment);
+    letter-spacing: 0.01em;
+  }
+  .wordmark-flame {
+    width: 16px;
+    height: 20px;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+  }
+  .wordmark-flame:hover {
+    transform: scale(1.25);
+    filter: drop-shadow(0 0 8px rgba(245, 217, 124, 0.8));
+  }
+
+  /* Whisper tooltip — the discoverable hint */
+  .flame-whisper {
+    position: absolute;
+    top: 28px;
+    left: -2px;
+    white-space: nowrap;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.78rem;
+    color: var(--ghost-glow);
+    letter-spacing: 0.04em;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    text-shadow: 0 0 12px rgba(245, 217, 124, 0.6);
+  }
+  .flame-whisper::before {
+    content: '✦ ';
+    font-style: normal;
+    font-size: 0.55rem;
+    vertical-align: middle;
+    opacity: 0.7;
+  }
+  .flame-whisper.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Gentle persistent ambient glow on the flame while whisper is showing */
+  .wordmark-flame.inviting::before {
+    animation: flickerInvite 1.8s ease-in-out infinite !important;
+  }
+  @keyframes flickerInvite {
+    0%, 100% { opacity: 1;    transform: translateX(-50%) scaleY(1.1);   filter: blur(0.3px) drop-shadow(0 0 4px rgba(245,217,124,0.7)); }
+    33%      { opacity: 0.85; transform: translateX(-50%) scaleY(1.18) translateY(-2px); filter: blur(0.5px) drop-shadow(0 0 8px rgba(245,217,124,0.9)); }
+    66%      { opacity: 0.9;  transform: translateX(-50%) scaleY(0.96); filter: blur(0.3px) drop-shadow(0 0 5px rgba(245,217,124,0.6)); }
+  }
+
+  /* =========== Traversal candle (Banquo carries the light) =========== */
+  #traversal-candle {
+    position: fixed;
+    z-index: 500;
+    pointer-events: none;
+    display: none;
+    width: 20px;
+    height: 26px;
+  }
+  #traversal-candle .tc-flame {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 7px;
+    height: 10px;
+    background: radial-gradient(ellipse at 50% 70%, #fff9d6 0%, var(--ghost-glow) 40%, var(--crimson-bright) 80%, transparent 95%);
+    border-radius: 50% 50% 45% 45% / 70% 70% 30% 30%;
+    filter: blur(0.4px);
+    box-shadow: 0 0 18px 6px rgba(245,217,124,0.55), 0 0 40px 14px rgba(245,217,124,0.2);
+    animation: tcFlicker 1.6s ease-in-out infinite;
+  }
+  #traversal-candle .tc-wick {
+    position: absolute;
+    top: 9px; left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 13px;
+    background: linear-gradient(to bottom, #e4d8c0, #5a4a38);
+  }
+  #traversal-candle .tc-base {
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 4px;
+    background: radial-gradient(ellipse, #3a2d2a 0%, #1a1110 90%);
+    border-radius: 50%;
+  }
+  @keyframes tcFlicker {
+    0%, 100% { transform: translateX(-50%) scaleY(1);    opacity: 1; }
+    25%      { transform: translateX(-50%) scaleY(1.1) translateY(-1px); opacity: 0.9; }
+    50%      { transform: translateX(-50%) scaleY(0.92); opacity: 0.95; }
+    75%      { transform: translateX(-50%) scaleY(1.05); opacity: 0.85; }
+  }
+
+  /* Traversal path animations */
+  @keyframes traverseAcross {
+    0%   { transform: translate(0, 0)    rotate(0deg); }
+    15%  { transform: translate(80px, -30px) rotate(-3deg); }
+    35%  { transform: translate(280px, 40px)  rotate(2deg); }
+    50%  { transform: translate(50vw, -20px)  rotate(-2deg); }
+    65%  { transform: translate(calc(100vw - 200px), 50px) rotate(3deg); }
+    80%  { transform: translate(calc(100vw - 100px), -10px) rotate(-1deg); }
+    100% { transform: translate(calc(100vw - 60px), 0) rotate(0deg); }
+  }
+  @keyframes traverseReturn {
+    0%   { transform: translate(calc(100vw - 60px), 0) rotate(0deg); }
+    20%  { transform: translate(calc(100vw - 150px), -20px) rotate(-2deg); }
+    40%  { transform: translate(50vw, 40px) rotate(3deg); }
+    60%  { transform: translate(200px, -10px) rotate(-3deg); }
+    80%  { transform: translate(60px, 20px) rotate(2deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+  }
+
+  /* =========== GhostLight AI overlay =========== */
+  .ghostlight-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    background: radial-gradient(ellipse 40% 40% at 50% 40%, rgba(10, 7, 6, 0.7) 0%, rgba(10, 7, 6, 0.99) 80%);
+    overflow-y: auto;
+    padding: 80px 32px 80px;
+    animation: ghostFade 0.8s ease-out both;
+  }
+  .ghostlight-overlay.active { display: block; }
+
+  @keyframes ghostFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .ghostlight-inner {
+    max-width: 820px;
+    margin: 0 auto;
+    position: relative;
+    text-align: center;
+  }
+
+  /* Giant candle centered */
+  .gl-candle {
+    width: 120px;
+    height: 180px;
+    margin: 0 auto 32px;
+    position: relative;
+    animation: glLift 1.2s ease-out 0.2s both;
+  }
+  @keyframes glLift {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .gl-bulb {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 42px;
+    height: 42px;
+    background: radial-gradient(circle at 35% 30%,
+      #fff9d6 0%,
+      var(--ghost-glow) 30%,
+      #d49a2a 70%,
+      #6a4818 100%);
+    border-radius: 50%;
+    box-shadow:
+      0 0 60px 16px rgba(245, 217, 124, 0.6),
+      0 0 160px 60px rgba(245, 217, 124, 0.3),
+      0 0 300px 120px rgba(245, 217, 124, 0.12),
+      inset -3px -3px 8px rgba(90, 55, 15, 0.5);
+    animation: glGlow 3.5s ease-in-out infinite;
+  }
+  .gl-bulb::after {
+    content: '';
+    position: absolute;
+    top: 22%; left: 30%;
+    width: 12px; height: 7px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    filter: blur(2px);
+  }
+  @keyframes glGlow {
+    0%, 100% {
+      box-shadow:
+        0 0 60px 16px rgba(245, 217, 124, 0.6),
+        0 0 160px 60px rgba(245, 217, 124, 0.3),
+        0 0 300px 120px rgba(245, 217, 124, 0.12),
+        inset -3px -3px 8px rgba(90, 55, 15, 0.5);
+    }
+    50% {
+      box-shadow:
+        0 0 70px 18px rgba(245, 217, 124, 0.7),
+        0 0 180px 70px rgba(245, 217, 124, 0.38),
+        0 0 340px 140px rgba(245, 217, 124, 0.16),
+        inset -3px -3px 8px rgba(90, 55, 15, 0.5);
+    }
+  }
+  .gl-pole {
+    position: absolute;
+    top: 42px; left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 110px;
+    background: linear-gradient(to bottom, #5a4a42, #2a1f1d);
+  }
+  .gl-base {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70px;
+    height: 10px;
+    background: radial-gradient(ellipse at center, #3a2d2a 0%, #1a1110 90%);
+    border-radius: 50%;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+  }
+
+  /* Dossier content */
+  .gl-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    animation: glFadeUp 0.8s ease-out 0.6s both;
+  }
+  .gl-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(2.6rem, 5vw, 4rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--parchment);
+    margin-bottom: 16px;
+    animation: glFadeUp 0.9s ease-out 0.8s both;
+  }
+  .gl-title em {
+    font-style: italic;
+    color: var(--ghost-glow);
+  }
+  .gl-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.25rem;
+    line-height: 1.45;
+    color: var(--parchment-dim);
+    max-width: 560px;
+    margin: 0 auto 56px;
+    letter-spacing: 0.02em;
+    animation: glFadeUp 1s ease-out 1s both;
+  }
+  @keyframes glFadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .gl-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 56px;
+    text-align: left;
+  }
+  .gl-card {
+    padding: 28px 28px 30px;
+    background: rgba(244, 237, 226, 0.03);
+    border: 1px solid rgba(201, 161, 74, 0.2);
+    border-radius: var(--radius-md);
+    position: relative;
+    animation: glFadeUp 0.8s ease-out both;
+  }
+  .gl-card:nth-child(1) { animation-delay: 1.2s; }
+  .gl-card:nth-child(2) { animation-delay: 1.35s; }
+  .gl-card:nth-child(3) { animation-delay: 1.5s; }
+  .gl-card:nth-child(4) { animation-delay: 1.65s; }
+  .gl-card:nth-child(5) { animation-delay: 1.8s; grid-column: span 2; }
+  .gl-card-num {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--crimson);
+    letter-spacing: 0.05em;
+    margin-bottom: 14px;
+  }
+  .gl-card h4 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 1.45rem;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--parchment);
+    margin-bottom: 12px;
+  }
+  .gl-card h4 em {
+    font-style: italic;
+    color: var(--ghost-glow);
+  }
+  .gl-card p {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--parchment-dim);
+  }
+  .gl-card-detail {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(201, 161, 74, 0.12);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--gold);
+    letter-spacing: 0.02em;
+  }
+
+  .gl-footer {
+    padding-top: 32px;
+    border-top: 1px solid rgba(201, 161, 74, 0.15);
+    animation: glFadeUp 0.8s ease-out 2s both;
+  }
+  .gl-footer-line {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--parchment-dim);
+    margin-bottom: 24px;
+    letter-spacing: 0.02em;
+  }
+  .gl-footer-line strong {
+    color: var(--ghost-glow);
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  /* Close button in top-right */
+  .gl-close {
+    position: fixed;
+    top: 28px;
+    right: 32px;
+    z-index: 210;
+    background: transparent;
+    border: 1px solid rgba(201, 161, 74, 0.3);
+    color: var(--parchment);
+    padding: 9px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: var(--radius-sm);
+  }
+  .gl-close:hover {
+    border-color: var(--ghost-glow);
+    color: var(--ghost-glow);
+  }
+
+  @media (max-width: 760px) {
+    .ghostlight-overlay { padding: 70px 22px 70px; }
+    .gl-cards { grid-template-columns: 1fr; }
+    .gl-cards .gl-card:nth-child(5) { grid-column: span 1; }
+    .gl-candle { width: 90px; height: 140px; margin-bottom: 24px; }
+    .gl-bulb { width: 32px; height: 32px; }
+    .gl-pole { top: 32px; height: 85px; }
+    .gl-base { width: 56px; }
+    .gl-close { top: 18px; right: 20px; padding: 8px 14px; font-size: 0.64rem; }
+  }
+  .wordmark-flame::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 6px;
+    height: 10px;
+    background: radial-gradient(ellipse at 50% 70%, var(--ghost-glow) 0%, var(--crimson-bright) 65%, transparent 85%);
+    border-radius: 50% 50% 45% 45% / 70% 70% 30% 30%;
+    transform: translateX(-50%);
+    filter: blur(0.4px);
+    animation: flicker 2.8s ease-in-out infinite;
+  }
+  .wordmark-flame::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 2px;
+    height: 11px;
+    background: linear-gradient(to bottom, #e4e4e4, #6a6a6a);
+    transform: translateX(-50%);
+  }
+  @keyframes flicker {
+    0%, 100% { opacity: 0.95; transform: translateX(-50%) scaleY(1); }
+    25%      { opacity: 0.8;  transform: translateX(-50%) scaleY(1.06) translateY(-1px); }
+    50%      { opacity: 1;    transform: translateX(-50%) scaleY(0.94); }
+    75%      { opacity: 0.85; transform: translateX(-50%) scaleY(1.03); }
+  }
+
+  /* =========== Stage direction Easter Egg hint =========== */
+  .stage-direction-hint {
+    margin-top: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+    cursor: pointer;
+    user-select: none;
+  }
+  .stage-direction-hint.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .stage-direction-hint:hover .sdh-text {
+    color: var(--ghost-glow);
+  }
+  .sdh-arrow {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+  }
+  .stage-direction-hint:hover .sdh-arrow {
+    opacity: 0.85;
+  }
+  .sdh-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--parchment-mute);
+    letter-spacing: 0.025em;
+    line-height: 1.4;
+    transition: color 0.3s ease;
+  }
+  .sdh-bracket {
+    opacity: 0.6;
+  }
+
+  /* Act indicator top-right (secondary: session progress) */
+  .act-marker {
+    position: fixed;
+    top: 28px;
+    right: 32px;
+    z-index: 50;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .act-marker .dot {
+    width: 5px;
+    height: 5px;
+    background: var(--crimson-bright);
+    border-radius: 50%;
+    animation: pulseDot 2.4s ease-in-out infinite;
+  }
+  @keyframes pulseDot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--crimson-bright); }
+    50%      { opacity: 0.5; box-shadow: 0 0 0 var(--crimson-bright); }
+  }
+
+  /* Progress rule across top */
+  .progress-rule {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: 60;
+    display: flex;
+    gap: 2px;
+    background: rgba(10, 7, 6, 0.4);
+  }
+  .progress-seg {
+    flex: 1;
+    background: rgba(201, 161, 74, 0.12);
+    transition: background 0.6s ease;
+  }
+  .progress-seg.filled {
+    background: var(--gold);
+  }
+  .progress-seg.current {
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold) 50%, rgba(201, 161, 74, 0.12) 50%);
+  }
+
+  /* Back chevron top-left (below wordmark) */
+  .back-btn {
+    position: fixed;
+    top: 68px;
+    left: 32px;
+    z-index: 50;
+    background: transparent;
+    border: 1px solid rgba(201, 161, 74, 0.25);
+    color: var(--parchment-dim);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: var(--radius-sm);
+  }
+  .back-btn:hover {
+    border-color: var(--ghost-glow);
+    color: var(--ghost-glow);
+  }
+  .back-btn svg { width: 14px; height: 14px; }
+
+  /* =========== Acts (stages) =========== */
+  .stage-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 32px 80px;
+    position: relative;
+  }
+
+  .act {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    position: relative;
+    display: none;
+    animation: actEnter 0.7s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+  }
+  .act.active { display: block; }
+
+  @keyframes actEnter {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Act-specific backgrounds (subtle lighting shifts) */
+  body[data-act="1"] { background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(245, 217, 124, 0.06) 0%, transparent 60%), var(--ink); }
+  body[data-act="2"] { background: radial-gradient(ellipse 100% 70% at 50% 60%, rgba(122, 31, 36, 0.18) 0%, transparent 70%), var(--stage); }
+  body[data-act="3"] { background: radial-gradient(ellipse 60% 50% at 20% 30%, rgba(201, 161, 74, 0.08) 0%, transparent 60%), var(--ink); }
+  body[data-act="4"] { background: radial-gradient(ellipse 100% 100% at 50% 50%, rgba(245, 217, 124, 0.1) 0%, transparent 80%), var(--stage); }
+  body[data-act="5"] { background: var(--stage); }
+
+  /* =========== Act I: Dictionary entry =========== */
+  .scene-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--crimson);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .scene-label::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--crimson);
+  }
+
+  .dictionary-entry {
+    margin-bottom: 64px;
+  }
+  .headword-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 8px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(201, 161, 74, 0.2);
+  }
+  .headword {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(3rem, 7vw, 5.4rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--parchment);
+  }
+  .pronunciation {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.4rem;
+    color: var(--gold);
+    letter-spacing: 0.02em;
+  }
+  .pos {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--parchment-mute);
+    letter-spacing: 0.04em;
+  }
+
+  .entry-body {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 1.5rem;
+    line-height: 1.5;
+    color: var(--parchment);
+    margin: 28px 0 0;
+    max-width: 620px;
+    letter-spacing: -0.005em;
+  }
+  .entry-body em {
+    color: var(--ghost-glow);
+    font-style: italic;
+  }
+
+  .entry-note {
+    margin-top: 44px;
+    padding: 20px 0 0;
+    border-top: 1px solid rgba(201, 161, 74, 0.15);
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+  }
+  .entry-note-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding-top: 4px;
+    flex-shrink: 0;
+    width: 100px;
+  }
+  .entry-note-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--parchment-dim);
+    max-width: 520px;
+  }
+  .entry-note-text strong {
+    color: var(--parchment);
+    font-weight: 500;
+  }
+
+  /* Advance button */
+  .advance {
+    margin-top: 56px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 28px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid var(--crimson-bright);
+    background: var(--crimson);
+    color: var(--parchment);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+  }
+  .btn:hover {
+    background: var(--crimson-bright);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 32px -10px rgba(166, 40, 47, 0.6);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--parchment);
+    border-color: rgba(201, 161, 74, 0.3);
+  }
+  .btn-ghost:hover {
+    background: transparent;
+    border-color: var(--ghost-glow);
+    color: var(--ghost-glow);
+    box-shadow: none;
+  }
+  .btn-gold {
+    background: transparent;
+    color: var(--gold);
+    border-color: var(--gold-dim);
+  }
+  .btn-gold:hover {
+    background: var(--gold);
+    color: var(--ink);
+    box-shadow: none;
+  }
+  .btn-arrow {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 1.2rem;
+    letter-spacing: 0;
+    transition: transform 0.2s ease;
+  }
+  .btn:hover .btn-arrow { transform: translateX(3px); }
+
+  .advance-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--parchment-mute);
+    letter-spacing: 0.02em;
+  }
+
+  /* =========== Act II: the fork =========== */
+  .act-prompt {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(2rem, 4.2vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: var(--parchment);
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .act-prompt em {
+    font-style: italic;
+    color: var(--ghost-glow);
+  }
+  .act-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--parchment-dim);
+    text-align: center;
+    margin-bottom: 56px;
+    letter-spacing: 0.02em;
+  }
+
+  .fork {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .fork-card {
+    padding: 48px 36px 44px;
+    background: rgba(244, 237, 226, 0.03);
+    border: 1px solid rgba(201, 161, 74, 0.2);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+  }
+  .fork-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.4s ease;
+  }
+  .fork-card:hover {
+    background: rgba(201, 161, 74, 0.05);
+    border-color: var(--ghost-glow);
+    transform: translateY(-4px);
+  }
+  .fork-card:hover::before {
+    transform: scaleX(1);
+  }
+  .fork-num {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 0.95rem;
+    color: var(--crimson);
+    margin-bottom: 20px;
+    letter-spacing: 0.05em;
+  }
+  .fork-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 2rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--parchment);
+    margin-bottom: 14px;
+  }
+  .fork-title em {
+    font-style: italic;
+    color: var(--ghost-glow);
+  }
+  .fork-types {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--parchment-dim);
+    line-height: 1.5;
+    margin-bottom: 28px;
+  }
+  .fork-go {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .fork-go .arrow {
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem;
+    letter-spacing: 0;
+    transition: transform 0.2s ease;
+  }
+  .fork-card:hover .fork-go { color: var(--ghost-glow); }
+  .fork-card:hover .fork-go .arrow { transform: translateX(3px); }
+
+  /* =========== Act III: forms =========== */
+  .form-heading {
+    margin-bottom: 40px;
+  }
+  .form-heading h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--parchment);
+    margin-bottom: 10px;
+  }
+  .form-heading h2 em { font-style: italic; color: var(--ghost-glow); }
+  .form-heading p {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--parchment-dim);
+    letter-spacing: 0.02em;
+    max-width: 560px;
+  }
+
+  .field {
+    margin-bottom: 22px;
+  }
+  .field label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(201, 161, 74, 0.3);
+    padding: 10px 0 12px;
+    color: var(--parchment);
+    font-family: 'Fraunces', serif;
+    font-size: 1.25rem;
+    font-weight: 300;
+    letter-spacing: -0.005em;
+    transition: border-color 0.2s ease;
+  }
+  .field input:focus, .field select:focus {
+    outline: none;
+    border-bottom-color: var(--ghost-glow);
+  }
+  .field input::placeholder {
+    color: rgba(244, 237, 226, 0.3);
+    font-style: italic;
+  }
+  .field select option {
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: 'Inter', sans-serif;
+  }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+  .field-hint {
+    margin-top: 10px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--parchment-mute);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .field-hint svg {
+    flex-shrink: 0;
+    margin-top: 3px;
+    color: var(--gold);
+    width: 13px;
+    height: 13px;
+  }
+  .field-hint strong { color: var(--parchment-dim); font-weight: 500; }
+
+  /* Role chips (artist form) */
+  .role-group-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 28px 0 12px;
+  }
+  .role-group-label span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .role-group-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(201, 161, 74, 0.15);
+  }
+
+  .role-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .role-chip {
+    background: transparent;
+    border: 1px solid rgba(201, 161, 74, 0.25);
+    color: var(--parchment);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.01em;
+    border-radius: var(--radius-sm);
+  }
+  .role-chip:hover {
+    background: rgba(201, 161, 74, 0.08);
+    border-color: var(--gold);
+  }
+  .role-chip.active {
+    background: var(--crimson);
+    border-color: var(--crimson-bright);
+    color: var(--parchment);
+  }
+  .role-chip-count {
+    margin-top: 12px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--parchment-mute);
+  }
+  .role-chip-count strong {
+    color: var(--ghost-glow);
+    font-weight: 500;
+  }
+
+  /* Geo opt-in */
+  .opt-in {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin: 28px 0 0;
+    padding: 18px 20px;
+    background: rgba(10, 7, 6, 0.35);
+    border: 1px solid rgba(201, 161, 74, 0.18);
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    border-radius: var(--radius-md);
+  }
+  .opt-in:hover { border-color: rgba(201, 161, 74, 0.4); }
+  .opt-in input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: var(--crimson-bright);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .opt-in-text {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--parchment-dim);
+  }
+  .opt-in-text strong { color: var(--parchment); font-weight: 500; }
+
+  /* Geo callout */
+  .geo-callout {
+    margin: 28px 0 0;
+    padding: 20px 22px;
+    background: rgba(201, 161, 74, 0.05);
+    border-left: 2px solid var(--gold);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  }
+  .geo-callout-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .geo-callout-body {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 1.05rem;
+    line-height: 1.55;
+    color: var(--parchment);
+  }
+  .geo-callout-body strong {
+    color: var(--ghost-glow);
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  /* Submit row */
+  .form-actions {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(201, 161, 74, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .form-fine {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--parchment-mute);
+  }
+
+  .inline-error {
+    margin-top: 20px;
+    padding: 12px 16px;
+    background: rgba(166, 40, 47, 0.12);
+    border-left: 2px solid var(--crimson-bright);
+    color: var(--parchment);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    display: none;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  }
+  .inline-error.show { display: block; }
+
+  /* =========== Act IV: curtain call =========== */
+  .curtain-call {
+    text-align: center;
+  }
+  .curtain-call .scene-label {
+    justify-content: center;
+    color: var(--gold);
+  }
+  .curtain-call .scene-label::before { background: var(--gold); }
+  .curtain-headline {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: var(--parchment);
+    margin: 32px 0 22px;
+  }
+  .curtain-headline em {
+    font-style: italic;
+    color: var(--ghost-glow);
+  }
+  .curtain-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.25rem;
+    color: var(--parchment-dim);
+    line-height: 1.5;
+    max-width: 540px;
+    margin: 0 auto 56px;
+    letter-spacing: 0.01em;
+  }
+
+  .curtain-divider {
+    width: 48px;
+    height: 1px;
+    background: var(--gold-dim);
+    margin: 0 auto 40px;
+  }
+
+  .pass-along {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+  .pass-along-body {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 1.2rem;
+    line-height: 1.5;
+    color: var(--parchment);
+    max-width: 520px;
+    margin: 0 auto 36px;
+  }
+  .pass-along-body strong { color: var(--ghost-glow); font-style: italic; font-weight: 400; }
+
+  .share-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    background: rgba(244, 237, 226, 0.03);
+    border: 1px solid rgba(201, 161, 74, 0.22);
+    color: var(--parchment);
+    text-decoration: none;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    transition: all 0.25s ease;
+    border-radius: var(--radius-sm);
+  }
+  .share-btn svg { width: 16px; height: 16px; color: var(--gold); transition: color 0.2s ease; }
+  .share-btn:hover {
+    background: rgba(201, 161, 74, 0.08);
+    border-color: var(--ghost-glow);
+    color: var(--ghost-glow);
+    transform: translateY(-2px);
+  }
+  .share-btn:hover svg { color: var(--ghost-glow); }
+
+  .invite-box {
+    max-width: 520px;
+    margin: 32px auto 0;
+    padding: 24px 26px;
+    background: rgba(244, 237, 226, 0.03);
+    border: 1px solid rgba(201, 161, 74, 0.2);
+    text-align: left;
+    border-radius: var(--radius-md);
+  }
+  .invite-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .invite-row { display: flex; gap: 10px; }
+  .invite-row input {
+    flex: 1;
+    background: rgba(10, 7, 6, 0.4);
+    border: 1px solid rgba(201, 161, 74, 0.2);
+    padding: 12px 14px;
+    color: var(--parchment);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    border-radius: var(--radius-sm);
+  }
+  .invite-row input:focus { outline: none; border-color: var(--ghost-glow); }
+  .invite-hint {
+    margin-top: 12px;
+    font-size: 0.82rem;
+    color: var(--parchment-mute);
+    line-height: 1.5;
+  }
+
+  .copy-link-row {
+    max-width: 520px;
+    margin: 16px auto 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(10, 7, 6, 0.4);
+    border: 1px solid rgba(201, 161, 74, 0.15);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--parchment-mute);
+    border-radius: var(--radius-md);
+  }
+  .copy-link-row .link-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .copy-btn {
+    background: transparent;
+    border: 1px solid rgba(201, 161, 74, 0.3);
+    color: var(--gold);
+    padding: 6px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: var(--radius-sm);
+  }
+  .copy-btn:hover {
+    background: var(--gold);
+    color: var(--ink);
+  }
+  .copy-btn.copied {
+    background: var(--crimson);
+    border-color: var(--crimson-bright);
+    color: var(--parchment);
+  }
+
+  /* Running dictionary entry (bottom-right, ghost of Act I) */
+  .running-entry {
+    position: fixed;
+    bottom: 24px;
+    right: 32px;
+    z-index: 40;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--gold-dim);
+    letter-spacing: 0.04em;
+    display: none;
+  }
+  .running-entry strong {
+    font-family: 'Fraunces', serif;
+    font-style: normal;
+    font-weight: 400;
+    color: var(--gold);
+    letter-spacing: -0.01em;
+    margin-right: 10px;
+  }
+  body:not([data-act="1"]) .running-entry { display: block; }
+
+  /* Tiny site foot (bottom-left, brand anchor) */
+  .site-foot {
+    position: fixed;
+    bottom: 24px;
+    left: 32px;
+    z-index: 40;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--parchment-mute);
+  }
+
+  /* =========== Act V: Profile portal preview =========== */
+  .portal-stage {
+    max-width: 1100px !important;
+    padding: 0;
+  }
+
+  .portal-banner {
+    background: linear-gradient(90deg, rgba(201, 161, 74, 0.15) 0%, rgba(166, 40, 47, 0.12) 100%);
+    border: 1px solid rgba(201, 161, 74, 0.3);
+    margin-bottom: 24px;
+    border-radius: var(--radius-md);
+  }
+  .portal-banner-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 14px 22px;
+  }
+  .portal-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--parchment-dim);
+    font-size: 0.88rem;
+    line-height: 1.4;
+  }
+  .portal-banner-left svg { color: var(--gold); flex-shrink: 0; }
+  .portal-banner-left strong { color: var(--ghost-glow); font-weight: 500; }
+  .portal-banner-close {
+    background: transparent;
+    border: 1px solid rgba(201, 161, 74, 0.25);
+    color: var(--parchment-dim);
+    width: 30px;
+    height: 30px;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+  }
+  .portal-banner-close:hover { border-color: var(--ghost-glow); color: var(--ghost-glow); }
+
+  .portal-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .portal-sidebar {
+    background: rgba(244, 237, 226, 0.02);
+    border: 1px solid rgba(201, 161, 74, 0.15);
+    padding: 24px 0;
+    position: sticky;
+    top: 100px;
+    border-radius: var(--radius-md);
+  }
+  .portal-sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 22px 20px;
+    border-bottom: 1px solid rgba(201, 161, 74, 0.12);
+    margin-bottom: 14px;
+  }
+  .portal-avatar {
+    width: 42px;
+    height: 42px;
+    background: rgba(201, 161, 74, 0.1);
+    border: 1px solid rgba(201, 161, 74, 0.25);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+  .portal-sidebar-name {
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    color: var(--parchment);
+    line-height: 1.2;
+  }
+  .portal-sidebar-role {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.8rem;
+    color: var(--parchment-mute);
+    margin-top: 2px;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 160px;
+  }
+  .portal-nav {
+    display: flex;
+    flex-direction: column;
+  }
+  .portal-nav-item {
+    background: transparent;
+    border: none;
+    border-left: 2px solid transparent;
+    color: var(--parchment-dim);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    text-align: left;
+    padding: 11px 22px 11px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+    letter-spacing: 0.01em;
+  }
+  .portal-nav-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(201, 161, 74, 0.3);
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+  }
+  .portal-nav-item:hover {
+    color: var(--parchment);
+    background: rgba(201, 161, 74, 0.04);
+  }
+  .portal-nav-item.active {
+    color: var(--ghost-glow);
+    background: rgba(201, 161, 74, 0.06);
+    border-left-color: var(--gold);
+  }
+  .portal-nav-item.active .portal-nav-dot {
+    background: var(--ghost-glow);
+    box-shadow: 0 0 8px var(--ghost-glow);
+  }
+
+  .portal-completion {
+    margin: 22px 22px 0;
+    padding-top: 18px;
+    border-top: 1px solid rgba(201, 161, 74, 0.12);
+  }
+  .portal-completion-bar {
+    height: 3px;
+    background: rgba(201, 161, 74, 0.15);
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .portal-completion-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--ghost-glow));
+    transition: width 0.4s ease;
+  }
+  .portal-completion-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .portal-content {
+    background: rgba(244, 237, 226, 0.02);
+    border: 1px solid rgba(201, 161, 74, 0.15);
+    padding: 36px 40px 40px;
+    min-height: 520px;
+    border-radius: var(--radius-md);
+  }
+  .portal-panel { display: none; }
+  .portal-panel.active { display: block; animation: actEnter 0.4s ease-out both; }
+
+  .portal-panel-head {
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(201, 161, 74, 0.15);
+  }
+  .portal-panel-head h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 1.7rem;
+    letter-spacing: -0.015em;
+    color: var(--parchment);
+    margin-bottom: 6px;
+  }
+  .portal-panel-head p {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--parchment-dim);
+    letter-spacing: 0.02em;
+  }
+
+  .portal-field {
+    margin-bottom: 22px;
+  }
+  .portal-field label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .portal-field input, .portal-field textarea {
+    width: 100%;
+    background: rgba(10, 7, 6, 0.35);
+    border: 1px solid rgba(201, 161, 74, 0.2);
+    padding: 11px 14px;
+    color: var(--parchment);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 400;
+    transition: border-color 0.2s ease;
+    resize: vertical;
+    border-radius: var(--radius-sm);
+  }
+  .portal-field input:focus, .portal-field textarea:focus {
+    outline: none;
+    border-color: var(--ghost-glow);
+  }
+  .portal-field input::placeholder, .portal-field textarea::placeholder {
+    color: rgba(244, 237, 226, 0.3);
+  }
+  .portal-field input.invalid,
+  .portal-field textarea.invalid {
+    border-color: var(--crimson-bright);
+    box-shadow: 0 0 0 1px rgba(166, 40, 47, 0.4);
+  }
+
+  .portal-fieldrow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .portal-fieldrow > .portal-field:only-child { grid-column: span 2; }
+  .portal-fieldrow:has(> .portal-field:nth-child(3)) { grid-template-columns: 1fr 1fr 1fr; }
+
+  .portal-inline-hint {
+    margin-top: 8px;
+    padding: 12px 14px;
+    background: rgba(201, 161, 74, 0.05);
+    border-left: 2px solid var(--gold-dim);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 0.85rem;
+    color: var(--parchment-dim);
+    line-height: 1.5;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  .portal-inline-hint svg { color: var(--gold); flex-shrink: 0; margin-top: 2px; }
+
+  /* Upload cards (headshot & media) */
+  .portal-upload-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .portal-upload-card {
+    padding: 24px 22px;
+    background: rgba(10, 7, 6, 0.35);
+    border: 1px dashed rgba(201, 161, 74, 0.3);
+    text-align: center;
+    transition: all 0.25s ease;
+    border-radius: var(--radius-md);
+  }
+  .portal-upload-card:hover {
+    border-color: var(--ghost-glow);
+    background: rgba(201, 161, 74, 0.04);
+  }
+  .portal-upload-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(201, 161, 74, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    margin: 0 auto 12px;
+  }
+  .portal-upload-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+    color: var(--parchment);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+  .portal-upload-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--parchment-mute);
+    margin-bottom: 16px;
+  }
+  .portal-upload-btn {
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    padding: 8px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: var(--radius-sm);
+  }
+  .portal-upload-btn:hover {
+    background: var(--gold);
+    color: var(--ink);
+  }
+
+  /* Season chips */
+  .portal-season-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .portal-season-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    background: rgba(10, 7, 6, 0.35);
+    border: 1px solid rgba(201, 161, 74, 0.2);
+    color: var(--parchment);
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: var(--radius-sm);
+  }
+  .portal-season-chip:has(input:checked) {
+    background: rgba(201, 161, 74, 0.1);
+    border-color: var(--gold);
+    color: var(--ghost-glow);
+  }
+  .portal-season-chip input { accent-color: var(--crimson-bright); }
+
+  /* Roles panel */
+  .portal-subhead {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+  .portal-add-more { margin-top: 16px; }
+  .portal-link-btn {
+    background: transparent;
+    border: 1px dashed rgba(201, 161, 74, 0.3);
+    color: var(--gold);
+    padding: 8px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: var(--radius-sm);
+  }
+  .portal-link-btn:hover { border-color: var(--ghost-glow); color: var(--ghost-glow); }
+
+  .portal-divider {
+    height: 1px;
+    background: rgba(201, 161, 74, 0.15);
+    margin: 32px 0 24px;
+  }
+
+  /* Production history empty state */
+  .portal-history-empty {
+    text-align: center;
+    padding: 40px 20px;
+    background: rgba(10, 7, 6, 0.25);
+    border: 1px dashed rgba(201, 161, 74, 0.2);
+    border-radius: var(--radius-md);
+  }
+  .portal-history-empty-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 16px;
+    background: rgba(201, 161, 74, 0.08);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+  }
+  .portal-history-empty-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem;
+    color: var(--parchment);
+    margin-bottom: 6px;
+  }
+  .portal-history-empty-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--parchment-mute);
+    margin-bottom: 20px;
+  }
+
+  /* Toggle rows (visibility) */
+  .portal-toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(201, 161, 74, 0.1);
+  }
+  .portal-toggle-row:last-child { border-bottom: none; }
+  .portal-toggle-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+    color: var(--parchment);
+    margin-bottom: 4px;
+  }
+  .portal-toggle-sub {
+    font-size: 0.85rem;
+    color: var(--parchment-dim);
+    line-height: 1.5;
+    max-width: 480px;
+  }
+  .portal-toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+  .portal-toggle input { opacity: 0; width: 0; height: 0; }
+  .portal-toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: rgba(201, 161, 74, 0.2);
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .portal-toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 3px;
+    background: var(--parchment-dim);
+    transition: 0.2s;
+  }
+  .portal-toggle input:checked + .portal-toggle-slider { background: var(--crimson); }
+  .portal-toggle input:checked + .portal-toggle-slider::before {
+    transform: translateX(20px);
+    background: var(--ghost-glow);
+  }
+
+  /* Save bar at bottom */
+  .portal-save-bar {
+    margin-top: 24px;
+    background: rgba(10, 7, 6, 0.7);
+    border: 1px solid rgba(201, 161, 74, 0.2);
+    backdrop-filter: blur(8px);
+    border-radius: var(--radius-md);
+  }
+  .portal-save-bar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    gap: 20px;
+  }
+  .portal-save-bar-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--parchment-dim);
+  }
+  .portal-save-bar-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  /* =========== Mobile =========== */
+  @media (max-width: 760px) {
+    .act-marker { top: 20px; right: 20px; font-size: 0.64rem; letter-spacing: 0.16em; gap: 10px; }
+    .wordmark { top: 18px; left: 20px; font-size: 1rem; }
+    .back-btn { top: 58px; left: 20px; width: 34px; height: 34px; }
+    .stage-wrap { padding: 92px 22px 80px; }
+    .running-entry { display: none !important; }
+    .site-foot { bottom: 16px; left: 20px; font-size: 0.62rem; }
+
+    .fork { grid-template-columns: 1fr; gap: 14px; }
+    .fork-card { padding: 32px 24px 30px; }
+    .fork-title { font-size: 1.6rem; }
+
+    .headword-row { gap: 10px; }
+    .pronunciation { font-size: 1.1rem; }
+    .entry-body { font-size: 1.2rem; }
+    .entry-note { flex-direction: column; gap: 6px; }
+    .entry-note-label { width: auto; }
+    .advance { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .advance .btn { width: 100%; justify-content: center; }
+
+    .field-row { grid-template-columns: 1fr; gap: 0; }
+    .field input, .field select { font-size: 17px; /* iOS no-zoom */ }
+
+    .form-actions { flex-direction: column-reverse; align-items: stretch; }
+    .form-actions .btn { width: 100%; justify-content: center; }
+    .form-fine { text-align: center; }
+
+    .share-row .share-btn { flex: 1 1 120px; justify-content: center; }
+    .invite-row { flex-direction: column; }
+    .invite-row input { font-size: 16px; }
+    .invite-row .btn { width: 100%; justify-content: center; }
+    .invite-box, .copy-link-row { margin-left: 0; margin-right: 0; }
+
+    /* Portal mobile */
+    .portal-layout { grid-template-columns: 1fr; gap: 16px; }
+    .portal-sidebar { position: static; padding: 18px 0; }
+    .portal-nav {
+      flex-direction: row;
+      overflow-x: auto;
+      padding: 0 16px;
+      gap: 4px;
+      scrollbar-width: thin;
+    }
+    .portal-nav-item {
+      border-left: none;
+      border-bottom: 2px solid transparent;
+      padding: 10px 14px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .portal-nav-item.active {
+      border-left-color: transparent;
+      border-bottom-color: var(--gold);
+    }
+    .portal-sidebar-header { padding: 0 18px 16px; }
+    .portal-completion { display: none; }
+    .portal-content { padding: 24px 22px 28px; }
+    .portal-fieldrow { grid-template-columns: 1fr; gap: 0; }
+    .portal-fieldrow:has(> .portal-field:nth-child(3)) { grid-template-columns: 1fr; }
+    .portal-upload-grid { grid-template-columns: 1fr; }
+    .portal-banner-inner { padding: 12px 16px; }
+    .portal-banner-left { font-size: 0.82rem; }
+    .portal-save-bar-inner { flex-direction: column; gap: 14px; padding: 16px; }
+    .portal-save-bar-actions { width: 100%; }
+    .portal-save-bar-actions .btn { flex: 1; justify-content: center; }
+    .portal-toggle-row { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body data-act="3" id="artifacts-component-root-html">
+
+<!-- Progress rule -->
+<div class="progress-rule">
+  <div class="progress-seg filled" data-seg="1"></div>
+  <div class="progress-seg filled" data-seg="2"></div>
+  <div class="progress-seg filled" data-seg="3"></div>
+  <div class="progress-seg" data-seg="4"></div>
+</div>
+
+<!-- Act marker -->
+<div class="act-marker">
+  <span class="dot"></span>
+  <span id="act-label">Act III · Scene i</span>
+</div>
+
+<!-- Banquo wordmark -->
+<div class="wordmark">
+  <span class="wordmark-flame" id="flame" onclick="openGhostLight()" title="The ghost light never goes out.">
+    <span class="flame-whisper" id="flame-whisper">the ghost light</span>
+  </span>
+  <span>Banquo</span>
+</div>
+
+<!-- Traversal candle — Banquo carries the light across the stage -->
+<div id="traversal-candle">
+  <div class="tc-flame"></div>
+  <div class="tc-wick"></div>
+  <div class="tc-base"></div>
+</div>
+
+<!-- Back chevron (hidden on Act I) -->
+<button class="back-btn" id="back-btn" onclick="goBack()" aria-label="Back" style="display: flex;">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"></path></svg>
+</button>
+
+<!-- Running entry (ghost of Act I dictionary card) -->
+<div class="running-entry">
+  <strong>ghost light</strong> <em>/ɡōst līt/</em>
+</div>
+
+<!-- Tiny footer -->
+<div class="site-foot">banquo.app</div>
+
+<main class="stage-wrap">
+
+<!-- ============ ACT I ============ -->
+<section class="act" id="act-1">
+  <div class="scene-label">First, a word</div>
+
+  <div class="dictionary-entry">
+    <div class="headword-row">
+      <span class="headword">ghost light</span>
+      <span class="pronunciation">/ɡōst līt/</span>
+      <span class="pos">noun</span>
+    </div>
+
+    <p class="entry-body">
+      A single bulb left burning center-stage in an empty theatre, so that the space is <em>never truly dark</em>. A safety measure, and a superstition: theatres are said to be haunted, and the light keeps the ghosts at bay.
+    </p>
+
+    <div class="entry-note">
+      <div class="entry-note-label">Proper&nbsp;noun</div>
+      <div class="entry-note-text">
+        <strong>Banquo.</strong> The first production platform built around the way theatre actually works. Every department pulling from one source of truth. A quiet revolution is loading in. Previews start this season.
+      </div>
+    </div>
+  </div>
+
+  <div class="advance">
+    <button type="button" class="btn" onclick="goToAct(2)">
+      Take your seat <span class="btn-arrow">›</span>
+    </button>
+    <span class="advance-tagline">Two questions. Then we're done.</span>
+  </div>
+
+  <!-- Easter egg stage direction hint — appears after a beat -->
+  <div class="stage-direction-hint revealed" id="stage-dir-hint" onclick="openGhostLight()" title="The ghost light never goes out.">
+    <svg class="sdh-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Arrow pointing up-left toward the flame in the wordmark -->
+      <path d="M18 18 L6 6"></path>
+      <path d="M6 6 L6 13"></path>
+      <path d="M6 6 L13 6"></path>
+    </svg>
+    <span class="sdh-text"><span class="sdh-bracket">[</span>A candle flickers in the upper left. Someone left it burning.<span class="sdh-bracket">]</span></span>
+  </div>
+
+</section>
+
+<!-- ============ ACT II: Fork ============ -->
+<section class="act" id="act-2">
+  <div class="scene-label" style="justify-content: center; text-align: center; display: flex;">The fork in the road</div>
+
+  <h2 class="act-prompt">Who joins us at <em>the table?</em></h2>
+  <p class="act-sub">Pick the one that fits. You can always come back for the other.</p>
+
+  <div class="fork">
+    <button type="button" class="fork-card" onclick="chooseFork(&#39;org&#39;)">
+      <div class="fork-num">i.</div>
+      <div class="fork-title">I run a <em>theatre</em></div>
+      <div class="fork-types">Venue, company, high school, university, board, or professional house</div>
+      <div class="fork-go">Join the house wait list <span class="arrow">›</span></div>
+    </button>
+
+    <button type="button" class="fork-card" onclick="chooseFork(&#39;artist&#39;)">
+      <div class="fork-num">ii.</div>
+      <div class="fork-title">I work in <em>theatre</em></div>
+      <div class="fork-types">Performer, director, designer, stage manager, or crew</div>
+      <div class="fork-go">Set up an artist profile <span class="arrow">›</span></div>
+    </button>
+  </div>
+</section>
+
+<!-- ============ ACT III-a: Organization form ============ -->
+<section class="act" id="act-3-org">
+  <div class="scene-label">Tell us about the house</div>
+
+  <div class="form-heading">
+    <h2>A seat is <em>reserved</em>.</h2>
+    <p>We'll reach out within a week. No credit card, no demo call gauntlet.</p>
+  </div>
+
+  <form id="form-org" onsubmit="event.preventDefault(); submitForm(&#39;org&#39;);">
+    <div class="field-row">
+      <div class="field">
+        <label>First name</label>
+        <input type="text" name="firstName" placeholder="Viola" required="">
+      </div>
+      <div class="field">
+        <label>Last name</label>
+        <input type="text" name="lastName" placeholder="Herbert" required="">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Work email</label>
+      <input type="email" name="email" placeholder="you@theatre.org" required="">
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>You are a…</label>
+        <select name="orgType" required="">
+          <option value="">Choose one</option>
+          <option value="venue">Venue / PAC</option>
+          <option value="highschool">High School Theatre</option>
+          <option value="university">University / Conservatory</option>
+          <option value="board">Board / Trustee</option>
+          <option value="troupe">Theatre Group / Company</option>
+          <option value="professional">Professional / LORT</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Organization</label>
+        <input type="text" name="orgName" placeholder="Elsinore Players" required="">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Location</label>
+      <input type="text" name="orgLocation" placeholder="City, ST · or full address, ZIP, metro area" required="">
+      <div class="field-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.5 8 12 8 12s8-6.5 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        <span>Full address, ZIP, or just your city. We use it to match your organization with <strong>local artists, stage crew, and designers</strong> who have already built Banquo profiles.</span>
+      </div>
+    </div>
+
+    <div class="geo-callout">
+      <div class="geo-callout-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+        A built-in talent database, from the day you log in
+      </div>
+      <div class="geo-callout-body">
+        <strong>You don't start empty.</strong> Artists in your region who have created Banquo profiles and chosen to be discoverable show up in your local talent pool the moment you're onboarded. Once the platform goes live, you can search the full database by role, experience, and availability.
+      </div>
+    </div>
+
+    <div class="field" style="margin-top: 28px;">
+      <label>What are you mounting next season? (optional)</label>
+      <input type="text" name="season" placeholder="Macbeth, Into the Woods, something original…">
+    </div>
+
+    <div class="inline-error" id="error-org"></div>
+
+    <div class="form-actions">
+      <span class="form-fine">We'll only email you about Banquo. Unsubscribe in one click.</span>
+      <button type="submit" class="btn">Save my seat <span class="btn-arrow">›</span></button>
+    </div>
+  </form>
+</section>
+
+<!-- ============ ACT III-b: Artist form ============ -->
+<section class="act active" id="act-3-artist">
+  <div class="scene-label">Tell us about you</div>
+
+  <div class="form-heading">
+    <h2>Your profile, <em>just a moment.</em></h2>
+    <p>Pick as many roles as apply. Theatre people wear more than one hat.</p>
+  </div>
+
+  <form id="form-artist" onsubmit="event.preventDefault(); submitForm(&#39;artist&#39;);">
+    <div class="field-row">
+      <div class="field">
+        <label>First name</label>
+        <input type="text" name="firstName" placeholder="Viola" required="">
+      </div>
+      <div class="field">
+        <label>Last name</label>
+        <input type="text" name="lastName" placeholder="Herbert" required="">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="you@theatre.org" required="">
+    </div>
+
+    <!-- Roles -->
+    <div class="role-group-label"><span>Performers</span></div>
+    <div class="role-chips">
+      <button type="button" class="role-chip" data-role="Actor">Actor</button>
+      <button type="button" class="role-chip" data-role="Dancer">Dancer</button>
+      <button type="button" class="role-chip" data-role="Musician">Musician</button>
+    </div>
+
+    <div class="role-group-label"><span>Leadership</span></div>
+    <div class="role-chips">
+      <button type="button" class="role-chip" data-role="Director">Director</button>
+      <button type="button" class="role-chip" data-role="Musical Director">Musical Director</button>
+      <button type="button" class="role-chip" data-role="Choreographer">Choreographer</button>
+    </div>
+
+    <div class="role-group-label"><span>Design team</span></div>
+    <div class="role-chips">
+      <button type="button" class="role-chip" data-role="Lighting Designer">Lighting Designer</button>
+      <button type="button" class="role-chip" data-role="Sound Designer">Sound Designer</button>
+      <button type="button" class="role-chip" data-role="Wardrobe / Costumer">Wardrobe / Costumer</button>
+      <button type="button" class="role-chip" data-role="Props Master">Props Master</button>
+      <button type="button" class="role-chip" data-role="Set Designer">Set Designer</button>
+      <button type="button" class="role-chip" data-role="Stage Manager">Stage Manager</button>
+    </div>
+
+    <div class="role-group-label"><span>Stage crew</span></div>
+    <div class="role-chips">
+      <button type="button" class="role-chip" data-role="Run Crew">Run Crew</button>
+      <button type="button" class="role-chip" data-role="Deck / Fly">Deck / Fly</button>
+      <button type="button" class="role-chip" data-role="Board Operator">Board Operator</button>
+    </div>
+
+    <div class="role-chip-count" id="role-count">Nothing selected yet. Tap any role above to add it.</div>
+
+    <div class="field" style="margin-top: 32px;">
+      <label>Your location</label>
+      <input type="text" name="artistLocation" placeholder="City, ST · or full address, ZIP, metro area" required="">
+      <div class="field-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.5 8 12 8 12s8-6.5 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        <span>Full address, ZIP, or just your city. We use it to match you with nearby theatres, never shared publicly.</span>
+      </div>
+    </div>
+
+    <label class="opt-in">
+      <input type="checkbox" id="geo-opt-in" checked="">
+      <span class="opt-in-text">
+        <strong>Make me visible to local theatre organizations.</strong>
+        When a theatre in your area joins Banquo, your profile appears in their local talent pool automatically, so you're discoverable on day one. Once the platform is live, you'll also be searchable across the full database. You can change this any time.
+      </span>
+    </label>
+
+    <div class="inline-error" id="error-artist"></div>
+
+    <div class="form-actions">
+      <span class="form-fine">We'll only email you about Banquo. Unsubscribe in one click.</span>
+      <button type="submit" class="btn">Save my seat <span class="btn-arrow">›</span></button>
+    </div>
+  </form>
+</section>
+
+<!-- ============ ACT IV: Curtain call ============ -->
+<section class="act curtain-call" id="act-4">
+  <div class="scene-label">Curtain call</div>
+
+  <h2 class="curtain-headline">
+    You have taken<br>
+    your <em>seat.</em>
+  </h2>
+  <p class="curtain-sub">
+    Banquo will let you know when the show is about to begin.
+  </p>
+
+  <div class="curtain-divider"></div>
+
+  <!-- Artist-only: continue building profile -->
+  <div id="continue-profile-block" style="display:none;">
+    <div class="pass-along">Your profile is waiting</div>
+    <p class="pass-along-body">
+      The basics are saved. Take a few more minutes and build out the rest: <strong>headshot, reel, résumé, size card, availability.</strong> The more complete your profile, the faster theatres find you when Banquo goes live.
+    </p>
+    <div style="display: flex; justify-content: center; margin-bottom: 48px;">
+      <button type="button" class="btn btn-gold" style="padding: 17px 32px; font-size: 0.85rem;" onclick="goToAct(5)">
+        Continue building your profile <span class="btn-arrow">›</span>
+      </button>
+    </div>
+
+    <div style="max-width: 520px; margin: 0 auto 40px; padding-top: 32px; border-top: 1px solid rgba(201, 161, 74, 0.15);"></div>
+  </div>
+
+  <div class="pass-along">Pass the invitation along</div>
+  <p class="pass-along-body">
+    Every director you tell, every stage manager who passes this to their company, every artist who mentions it to their cast mates, makes the talent pool <strong>deeper for everyone.</strong>
+  </p>
+
+  <div class="share-row">
+    <button type="button" class="share-btn" onclick="shareTo(&#39;twitter&#39;)">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 4L10.5 13.5 5 4H2l8 12-8 8h2l7-7 5 7h3l-8-12 7.5-8z"></path></svg>
+      <span>Post on X</span>
+    </button>
+    <button type="button" class="share-btn" onclick="shareTo(&#39;facebook&#39;)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+      <span>Facebook</span>
+    </button>
+    <button type="button" class="share-btn" onclick="shareTo(&#39;linkedin&#39;)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+      <span>LinkedIn</span>
+    </button>
+    <button type="button" class="share-btn" onclick="shareTo(&#39;sms&#39;)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"></path></svg>
+      <span>Text</span>
+    </button>
+  </div>
+
+  <div class="copy-link-row">
+    <span class="link-text" id="share-url">https://banquo.app</span>
+    <button class="copy-btn" id="copy-btn" onclick="copyLink()">Copy link</button>
+  </div>
+
+  <div class="invite-box">
+    <div class="invite-label">Invite a colleague directly</div>
+    <div class="invite-row">
+      <input type="email" id="invite-email" placeholder="colleague@theatre.org">
+      <button type="button" class="btn btn-gold" onclick="sendInvite()">Send invite</button>
+    </div>
+    <div class="invite-hint" id="invite-hint">
+      We'll open your email app with a short note and the link. You can send more than one, separate emails with commas.
+    </div>
+  </div>
+</section>
+
+<!-- ============ ACT V: Profile Portal Preview (artists only) ============ -->
+<section class="act portal-stage" id="act-5">
+  <div class="portal-banner">
+    <div class="portal-banner-inner">
+      <div class="portal-banner-left">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+        <span><strong>Private preview.</strong> These panels will save to your real profile once Banquo goes live. For now, consider this a tour of the artist portal.</span>
+      </div>
+      <button type="button" class="portal-banner-close" onclick="goBack()" aria-label="Back to curtain call">×</button>
+    </div>
+  </div>
+
+  <div class="portal-layout">
+    <aside class="portal-sidebar">
+      <div class="portal-sidebar-header">
+        <div class="portal-avatar">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-7 8-7s8 3 8 7"></path></svg>
+        </div>
+        <div>
+          <div class="portal-sidebar-name" id="portal-name">Your profile</div>
+          <div class="portal-sidebar-role" id="portal-roles">—</div>
+        </div>
+      </div>
+
+      <nav class="portal-nav">
+        <button type="button" class="portal-nav-item active" data-panel="info">
+          <span class="portal-nav-dot"></span>Your information
+        </button>
+        <button type="button" class="portal-nav-item" data-panel="credentials">
+          <span class="portal-nav-dot"></span>Credentials
+        </button>
+        <button type="button" class="portal-nav-item" data-panel="media">
+          <span class="portal-nav-dot"></span>Headshot &amp; media
+        </button>
+        <button type="button" class="portal-nav-item" data-panel="sizecard">
+          <span class="portal-nav-dot"></span>Size card
+        </button>
+        <button type="button" class="portal-nav-item" data-panel="availability">
+          <span class="portal-nav-dot"></span>Availability
+        </button>
+        <button type="button" class="portal-nav-item" data-panel="roles">
+          <span class="portal-nav-dot"></span>Roles &amp; skills
+        </button>
+        <button type="button" class="portal-nav-item" data-panel="history">
+          <span class="portal-nav-dot"></span>Production history
+        </button>
+        <button type="button" class="portal-nav-item" data-panel="visibility">
+          <span class="portal-nav-dot"></span>Visibility &amp; privacy
+        </button>
+      </nav>
+
+      <div class="portal-completion">
+        <div class="portal-completion-bar">
+          <div class="portal-completion-fill" id="portal-completion-fill" style="width: 22%;"></div>
+        </div>
+        <div class="portal-completion-label">
+          <span id="portal-completion-percent">22%</span> complete
+        </div>
+      </div>
+    </aside>
+
+    <div class="portal-content">
+
+      <!-- Panel: Your information -->
+      <div class="portal-panel active" data-panel="info">
+        <div class="portal-panel-head">
+          <h3>Your information</h3>
+          <p>The basics. What a director sees first.</p>
+        </div>
+        <div class="portal-fieldrow">
+          <div class="portal-field">
+            <label>First name</label>
+            <input type="text" id="portal-first">
+          </div>
+          <div class="portal-field">
+            <label>Last name</label>
+            <input type="text" id="portal-last">
+          </div>
+        </div>
+        <div class="portal-fieldrow">
+          <div class="portal-field">
+            <label>Stage name (optional)</label>
+            <input type="text" placeholder="If different from your legal name">
+          </div>
+          <div class="portal-field">
+            <label>Pronouns</label>
+            <input type="text" placeholder="she/her · he/him · they/them">
+          </div>
+        </div>
+        <div class="portal-field">
+          <label>Email</label>
+          <input type="email" id="portal-email">
+        </div>
+        <div class="portal-fieldrow">
+          <div class="portal-field">
+            <label>Phone</label>
+            <input type="tel" id="portal-phone" placeholder="(555) 555-0142" maxlength="14">
+          </div>
+          <div class="portal-field">
+            <label>Agent / representation (optional)</label>
+            <input type="text" placeholder="Agency name">
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Credentials -->
+      <div class="portal-panel" data-panel="credentials">
+        <div class="portal-panel-head">
+          <h3>Credentials</h3>
+          <p>Set a password so you can come back and finish later.</p>
+        </div>
+        <div class="portal-field">
+          <label>Password</label>
+          <input type="password" placeholder="At least 10 characters">
+        </div>
+        <div class="portal-field">
+          <label>Confirm password</label>
+          <input type="password" placeholder="Once more">
+        </div>
+        <div class="portal-inline-hint">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4M12 8h.01"></path></svg>
+          <span>Prefer not to set one now? You can request a magic link at any time from the email we have on file.</span>
+        </div>
+      </div>
+
+      <!-- Panel: Headshot & media -->
+      <div class="portal-panel" data-panel="media">
+        <div class="portal-panel-head">
+          <h3>Headshot &amp; media</h3>
+          <p>What a casting director sees in the first two seconds.</p>
+        </div>
+        <div class="portal-upload-grid">
+          <div class="portal-upload-card">
+            <div class="portal-upload-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-7 8-7s8 3 8 7"></path></svg>
+            </div>
+            <div class="portal-upload-title">Primary headshot</div>
+            <div class="portal-upload-sub">JPG or PNG, up to 10 MB</div>
+            <button type="button" class="portal-upload-btn">Upload</button>
+          </div>
+          <div class="portal-upload-card">
+            <div class="portal-upload-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 16l5-5 4 4 3-3 6 6"></path></svg>
+            </div>
+            <div class="portal-upload-title">Additional photos</div>
+            <div class="portal-upload-sub">Up to 6 more images</div>
+            <button type="button" class="portal-upload-btn">Upload</button>
+          </div>
+          <div class="portal-upload-card">
+            <div class="portal-upload-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M23 7l-7 5 7 5V7zM3 5h13v14H3z"></path></svg>
+            </div>
+            <div class="portal-upload-title">Reel</div>
+            <div class="portal-upload-sub">Vimeo, YouTube, or upload MP4</div>
+            <button type="button" class="portal-upload-btn">Add reel</button>
+          </div>
+          <div class="portal-upload-card">
+            <div class="portal-upload-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"></path></svg>
+            </div>
+            <div class="portal-upload-title">Résumé</div>
+            <div class="portal-upload-sub">PDF or build one here</div>
+            <button type="button" class="portal-upload-btn">Upload PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Size card -->
+      <div class="portal-panel" data-panel="sizecard">
+        <div class="portal-panel-head">
+          <h3>Size card</h3>
+          <p>What Wardrobe needs. Only shared with theatres you're cast in.</p>
+        </div>
+        <div class="portal-fieldrow">
+          <div class="portal-field"><label>Height</label><input type="text" placeholder="5′ 8′′"></div>
+          <div class="portal-field"><label>Weight (optional)</label><input type="text" placeholder="lbs"></div>
+        </div>
+        <div class="portal-fieldrow">
+          <div class="portal-field"><label>Chest / bust</label><input type="text"></div>
+          <div class="portal-field"><label>Waist</label><input type="text"></div>
+          <div class="portal-field"><label>Hips</label><input type="text"></div>
+        </div>
+        <div class="portal-fieldrow">
+          <div class="portal-field"><label>Inseam</label><input type="text"></div>
+          <div class="portal-field"><label>Shoe</label><input type="text"></div>
+          <div class="portal-field"><label>Hat</label><input type="text" placeholder="Optional"></div>
+        </div>
+        <div class="portal-fieldrow">
+          <div class="portal-field"><label>Hair color</label><input type="text"></div>
+          <div class="portal-field"><label>Eye color</label><input type="text"></div>
+          <div class="portal-field"><label>Voice type (if applicable)</label><input type="text" placeholder="Tenor, mezzo, etc."></div>
+        </div>
+      </div>
+
+      <!-- Panel: Availability -->
+      <div class="portal-panel" data-panel="availability">
+        <div class="portal-panel-head">
+          <h3>Availability</h3>
+          <p>When you're open to work, and when you're not. Sync a calendar later.</p>
+        </div>
+        <div class="portal-field">
+          <label>Ongoing conflicts</label>
+          <textarea rows="3" placeholder="Mon &amp; Wed evenings (teaching), Sundays unavailable"></textarea>
+        </div>
+        <div class="portal-field">
+          <label>Upcoming conflicts (specific dates)</label>
+          <textarea rows="3" placeholder="Out of town Aug 12–20. Wedding weekend Oct 4–6."></textarea>
+        </div>
+        <div class="portal-field">
+          <label>Season availability</label>
+          <div class="portal-season-grid">
+            <label class="portal-season-chip"><input type="checkbox" checked=""> Fall</label>
+            <label class="portal-season-chip"><input type="checkbox" checked=""> Winter</label>
+            <label class="portal-season-chip"><input type="checkbox"> Spring</label>
+            <label class="portal-season-chip"><input type="checkbox"> Summer</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Roles & skills -->
+      <div class="portal-panel" data-panel="roles">
+        <div class="portal-panel-head">
+          <h3>Roles &amp; skills</h3>
+          <p>Your selections from setup, plus anything else you bring to the table.</p>
+        </div>
+        <div class="portal-subhead">Your roles</div>
+        <div class="role-chips" id="portal-role-chips"></div>
+        <div class="portal-add-more">
+          <button type="button" class="portal-link-btn">+ Add another role</button>
+        </div>
+
+        <div class="portal-divider"></div>
+
+        <div class="portal-subhead">Special skills</div>
+        <div class="portal-field">
+          <textarea rows="4" placeholder="Stage combat, dialects (RP, Southern US, Cockney), partner acro, equestrian, piano (intermediate)…"></textarea>
+        </div>
+      </div>
+
+      <!-- Panel: Production history -->
+      <div class="portal-panel" data-panel="history">
+        <div class="portal-panel-head">
+          <h3>Production history</h3>
+          <p>Past shows. The longer the list, the warmer the welcome.</p>
+        </div>
+        <div class="portal-history-empty">
+          <div class="portal-history-empty-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 3h18v18H3z"></path><path d="M3 9h18M9 3v18"></path></svg>
+          </div>
+          <div class="portal-history-empty-title">No shows added yet</div>
+          <div class="portal-history-empty-sub">Add your recent work so directors can see where you've been.</div>
+          <button type="button" class="portal-upload-btn">Add a production</button>
+        </div>
+      </div>
+
+      <!-- Panel: Visibility & privacy -->
+      <div class="portal-panel" data-panel="visibility">
+        <div class="portal-panel-head">
+          <h3>Visibility &amp; privacy</h3>
+          <p>Who sees what, and when.</p>
+        </div>
+        <div class="portal-toggle-row">
+          <div>
+            <div class="portal-toggle-title">Visible to local theatres</div>
+            <div class="portal-toggle-sub">When a theatre in your area joins Banquo, your profile appears in their local talent pool.</div>
+          </div>
+          <label class="portal-toggle">
+            <input type="checkbox" id="portal-vis-local" checked="">
+            <span class="portal-toggle-slider"></span>
+          </label>
+        </div>
+        <div class="portal-toggle-row">
+          <div>
+            <div class="portal-toggle-title">Searchable across all of Banquo</div>
+            <div class="portal-toggle-sub">Once the platform goes live, theatres anywhere can find you through search.</div>
+          </div>
+          <label class="portal-toggle">
+            <input type="checkbox" checked="">
+            <span class="portal-toggle-slider"></span>
+          </label>
+        </div>
+        <div class="portal-toggle-row">
+          <div>
+            <div class="portal-toggle-title">Show size card only to cast productions</div>
+            <div class="portal-toggle-sub">Recommended. Your measurements are only shared once you're cast.</div>
+          </div>
+          <label class="portal-toggle">
+            <input type="checkbox" checked="">
+            <span class="portal-toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="portal-save-bar">
+    <div class="portal-save-bar-inner">
+      <span class="portal-save-bar-text">Your changes save automatically.</span>
+      <div class="portal-save-bar-actions">
+        <button type="button" class="btn btn-ghost" onclick="goBack()">Back to curtain call</button>
+        <button type="button" class="btn btn-gold" onclick="finishProfile()">I'm done for now <span class="btn-arrow">›</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- =========== GhostLight AI Easter Egg =========== -->
+<div class="ghostlight-overlay" id="ghostlight-overlay">
+  <button type="button" class="gl-close" onclick="closeGhostLight()">Follow Banquo back ›</button>
+
+  <div class="ghostlight-inner">
+    <div class="gl-candle">
+      <div class="gl-bulb"></div>
+      <div class="gl-pole"></div>
+      <div class="gl-base"></div>
+    </div>
+
+    <div class="gl-label">A Dossier</div>
+    <h2 class="gl-title">GhostLight <em>AI.</em></h2>
+    <p class="gl-sub">
+      The assistant that sits quietly in every Banquo production. It speaks theatre. It keeps the candle burning while you make the art.
+    </p>
+
+    <div class="gl-cards">
+      <div class="gl-card">
+        <div class="gl-card-num">i.</div>
+        <h4>Speaks your <em>scenes.</em></h4>
+        <p>"When does Act II, Scene 3 break?" Ask it like a stage manager would. It answers in the language of the script, not the language of the database.</p>
+        <div class="gl-card-detail">Built on your Scene Builder. Knows every act, cue, and cast member by name.</div>
+      </div>
+
+      <div class="gl-card">
+        <div class="gl-card-num">ii.</div>
+        <h4>Drafts document <em>templates.</em></h4>
+        <p>Donor acknowledgments, tax receipts, volunteer thank-yous, rehearsal reports, all in your voice.</p>
+        <div class="gl-card-detail">Learns your house style. Never sends the same letter twice.</div>
+      </div>
+
+      <div class="gl-card">
+        <div class="gl-card-num">iii.</div>
+        <h4>Watches the <em>budget.</em></h4>
+        <p>Flags variance before it becomes a problem. Tells you Props is 12% over before the designer does. Gently.</p>
+        <div class="gl-card-detail">No surprises at the next board meeting.</div>
+      </div>
+
+      <div class="gl-card">
+        <div class="gl-card-num">iv.</div>
+        <h4>Recommends <em>cues.</em></h4>
+        <p>Learns your show's rhythm across rehearsals. Suggests light, sound, and practical cues where the Scene Builder implies them, so your cue sheet starts half-written.</p>
+        <div class="gl-card-detail">You still call the show. It just stops staring at blank rows.</div>
+      </div>
+
+      <div class="gl-card">
+        <div class="gl-card-num">v.</div>
+        <h4>Speaks <em>theatre.</em></h4>
+        <p>Not "user accounts" and "task lists." Companies, casts, rehearsals, strikes, pickups, load-ins. GhostLight understands what you mean when you say "the Tuesday room," "the strike crew," or "the dry tech." Every prompt, every answer, in the language of the art.</p>
+      </div>
+    </div>
+
+    <div class="gl-footer">
+      <div class="gl-footer-line">
+        GhostLight ships when Banquo does. <strong>Take a seat and we'll let you know.</strong>
+      </div>
+      <button type="button" class="btn" onclick="closeGhostLight()">
+        Follow Banquo back to the stage <span class="btn-arrow">›</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // =========== State ===========
+  const state = {
+    act: 1,          // 1, 2, '3-org', '3-artist', 4
+    forkChoice: null, // 'org' | 'artist'
+    roles: new Set()
+  };
+
+  const history = [1];
+
+  // =========== Transitions ===========
+  function goToAct(targetId) {
+    const currentAct = document.querySelector('.act.active');
+    const nextAct = document.getElementById('act-' + targetId);
+    if (!nextAct) return;
+
+    currentAct.classList.remove('active');
+    nextAct.classList.add('active');
+
+    // Update marker, body data, back button, progress
+    state.act = targetId;
+    updateChrome(targetId);
+
+    history.push(targetId);
+
+    // Scroll to top of viewport smoothly for longer forms
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateChrome(id) {
+    const labels = {
+      1:           { label: 'Act I · Scene i',  dataAct: '1', seg: 1 },
+      2:           { label: 'Act II · Scene i', dataAct: '2', seg: 2 },
+      '3-org':     { label: 'Act III · Scene i', dataAct: '3', seg: 3 },
+      '3-artist':  { label: 'Act III · Scene i', dataAct: '3', seg: 3 },
+      4:           { label: 'Curtain call',      dataAct: '4', seg: 4 },
+      5:           { label: 'Artist portal',     dataAct: '5', seg: 4 }
+    };
+    const info = labels[id];
+    document.getElementById('act-label').textContent = info.label;
+    document.body.setAttribute('data-act', info.dataAct);
+
+    // Progress segments
+    document.querySelectorAll('.progress-seg').forEach(seg => {
+      const n = parseInt(seg.dataset.seg, 10);
+      seg.classList.remove('filled','current');
+      if (n < info.seg) seg.classList.add('filled');
+      else if (n === info.seg) seg.classList.add('filled');
+    });
+
+    // Back button visibility (hidden on Act I; shown elsewhere)
+    document.getElementById('back-btn').style.display = (id === 1) ? 'none' : 'flex';
+  }
+
+  function goBack() {
+    if (history.length < 2) return;
+    history.pop(); // remove current
+    const prev = history[history.length - 1];
+    const currentAct = document.querySelector('.act.active');
+    const prevActEl = document.getElementById('act-' + prev);
+    currentAct.classList.remove('active');
+    prevActEl.classList.add('active');
+    state.act = prev;
+    updateChrome(prev);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function chooseFork(choice) {
+    state.forkChoice = choice;
+    goToAct(choice === 'org' ? '3-org' : '3-artist');
+  }
+
+  // =========== Role chips (multi-select) ===========
+  const roleCountEl = document.getElementById('role-count');
+  document.querySelectorAll('.role-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const role = chip.dataset.role;
+      if (state.roles.has(role)) {
+        state.roles.delete(role);
+        chip.classList.remove('active');
+      } else {
+        state.roles.add(role);
+        chip.classList.add('active');
+      }
+      renderRoleCount();
+    });
+  });
+
+  function renderRoleCount() {
+    if (state.roles.size === 0) {
+      roleCountEl.textContent = 'Nothing selected yet. Tap any role above to add it.';
+    } else {
+      const list = Array.from(state.roles).join(', ');
+      roleCountEl.innerHTML = `You are a <strong>${list}</strong>.`;
+    }
+  }
+
+  // =========== Form submit ===========
+  function submitForm(type) {
+    const errorEl = document.getElementById('error-' + type);
+    errorEl.classList.remove('show');
+
+    if (type === 'artist' && state.roles.size === 0) {
+      errorEl.textContent = 'Please pick at least one role above so theatres know where to find you.';
+      errorEl.classList.add('show');
+      errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    // Capture form data into state for the portal to use later
+    const form = document.getElementById('form-' + type);
+    const fd = new FormData(form);
+    state.firstName = fd.get('firstName') || '';
+    state.lastName  = fd.get('lastName')  || '';
+    state.email     = fd.get('email')     || '';
+
+    // Show/hide the "Continue building your profile" block on Act IV
+    const continueBlock = document.getElementById('continue-profile-block');
+    if (type === 'artist') {
+      continueBlock.style.display = 'block';
+      seedPortal();
+    } else {
+      continueBlock.style.display = 'none';
+    }
+
+    // In production, this would POST to /api/waitlist
+    goToAct(4);
+  }
+
+  // Seed the portal with data captured from the artist form
+  function seedPortal() {
+    document.getElementById('portal-first').value  = state.firstName;
+    document.getElementById('portal-last').value   = state.lastName;
+    document.getElementById('portal-email').value  = state.email;
+
+    const fullName = [state.firstName, state.lastName].filter(Boolean).join(' ');
+    document.getElementById('portal-name').textContent = fullName || 'Your profile';
+
+    const rolesList = Array.from(state.roles);
+    document.getElementById('portal-roles').textContent = rolesList.length
+      ? rolesList.slice(0, 3).join(', ') + (rolesList.length > 3 ? '…' : '')
+      : 'Artist';
+
+    // Roles panel
+    const chipsContainer = document.getElementById('portal-role-chips');
+    chipsContainer.innerHTML = '';
+    rolesList.forEach(role => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'role-chip active';
+      chip.textContent = role;
+      chipsContainer.appendChild(chip);
+    });
+  }
+
+  function finishProfile() {
+    // Treat "I'm done for now" as going back to the curtain call
+    goBack();
+  }
+
+  // =========== Act IV: share / invite ===========
+  const shareUrl = 'https://banquo.app';
+  const shareText = "Banquo is a production platform built around the way theatre actually works. A quiet revolution is loading in.";
+
+  function shareTo(network) {
+    const u = encodeURIComponent(shareUrl);
+    const t = encodeURIComponent(shareText);
+    let target = '';
+    if (network === 'twitter')  target = `https://twitter.com/intent/tweet?text=${t}&url=${u}`;
+    else if (network === 'facebook') target = `https://www.facebook.com/sharer/sharer.php?u=${u}`;
+    else if (network === 'linkedin') target = `https://www.linkedin.com/sharing/share-offsite/?url=${u}`;
+    else if (network === 'sms')      { window.location.href = `sms:?&body=${t}%20${u}`; return; }
+    window.open(target, '_blank', 'noopener,width=640,height=600');
+  }
+
+  function copyLink() {
+    const btn = document.getElementById('copy-btn');
+    const text = document.getElementById('share-url').textContent;
+    const done = () => {
+      btn.classList.add('copied');
+      btn.textContent = 'Copied ✓';
+      setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy link'; }, 2000);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done).catch(() => fallback(text, done));
+    } else {
+      fallback(text, done);
+    }
+    function fallback(t, cb) {
+      const ta = document.createElement('textarea');
+      ta.value = t; ta.style.position = 'fixed'; ta.style.top = '-9999px';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); cb(); } catch(e){}
+      document.body.removeChild(ta);
+    }
+  }
+
+  function sendInvite() {
+    const input = document.getElementById('invite-email');
+    const raw = (input.value || '').trim();
+    const hint = document.getElementById('invite-hint');
+    if (!raw) {
+      input.focus();
+      input.style.borderColor = 'var(--crimson-bright)';
+      setTimeout(() => { input.style.borderColor = ''; }, 1500);
+      return;
+    }
+    const emails = raw.split(',').map(s => s.trim()).filter(Boolean).join(',');
+    const subject = encodeURIComponent("Thought you should see this: Banquo");
+    const body = encodeURIComponent(
+      "Hi,\n\n" +
+      "I just signed up for the wait list for Banquo, a new production platform built for theatre. Thought it might be up your alley.\n\n" +
+      "Take a look: " + shareUrl + "\n\n" +
+      "They're onboarding theatre organizations and artists right now."
+    );
+    window.location.href = `mailto:?bcc=${emails}&subject=${subject}&body=${body}`;
+    const prev = hint.innerHTML;
+    hint.innerHTML = `<strong style="color: var(--ghost-glow);">Invite drafted ✓</strong> Your email app should have opened with a message ready to send.`;
+    input.value = '';
+    setTimeout(() => { hint.innerHTML = prev; }, 6000);
+  }
+
+  // =========== Portal (Act V) ===========
+  document.querySelectorAll('.portal-nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const target = item.dataset.panel;
+      document.querySelectorAll('.portal-nav-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('.portal-panel').forEach(p => p.classList.remove('active'));
+      item.classList.add('active');
+      document.querySelector(`.portal-panel[data-panel="${target}"]`).classList.add('active');
+    });
+  });
+
+  // Phone number auto-formatter: forces (xxx) xxx-xxxx as user types
+  const phoneInput = document.getElementById('portal-phone');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', (e) => {
+      const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+      let out = '';
+      if (digits.length === 0)      out = '';
+      else if (digits.length < 4)   out = '(' + digits;
+      else if (digits.length < 7)   out = '(' + digits.slice(0, 3) + ') ' + digits.slice(3);
+      else                          out = '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6);
+      e.target.value = out;
+    });
+    phoneInput.addEventListener('blur', (e) => {
+      const digits = e.target.value.replace(/\D/g, '');
+      // Flag if they entered something but it's not a complete 10-digit number
+      if (digits.length > 0 && digits.length !== 10) {
+        e.target.classList.add('invalid');
+      } else {
+        e.target.classList.remove('invalid');
+      }
+    });
+    phoneInput.addEventListener('focus', (e) => {
+      e.target.classList.remove('invalid');
+    });
+  }
+
+  // Rough completion meter: counts filled inputs/textareas across all panels
+  function updateCompletion() {
+    const all = document.querySelectorAll('#act-5 input[type="text"], #act-5 input[type="email"], #act-5 input[type="tel"], #act-5 input[type="password"], #act-5 textarea');
+    const total = all.length;
+    let filled = 0;
+    all.forEach(el => { if ((el.value || '').trim()) filled++; });
+    // Also bump for headshot/media uploads (faked, none really upload)
+    // And for roles count (3 points max)
+    const rolesBonus = Math.min(state.roles.size, 3);
+    const pct = Math.round(((filled + rolesBonus) / (total + 3)) * 100);
+    document.getElementById('portal-completion-fill').style.width = pct + '%';
+    document.getElementById('portal-completion-percent').textContent = pct + '%';
+  }
+  document.querySelectorAll('#act-5 input, #act-5 textarea').forEach(el => {
+    el.addEventListener('input', updateCompletion);
+    el.addEventListener('change', updateCompletion);
+  });
+
+  // =========== GhostLight Easter Egg + Traversal ===========
+  const ghostOverlay = document.getElementById('ghostlight-overlay');
+  const flame        = document.getElementById('flame');
+  const whisper      = document.getElementById('flame-whisper');
+  const tCandle      = document.getElementById('traversal-candle');
+  const stageDirHint = document.getElementById('stage-dir-hint');
+  let ghostOpened    = false;
+  let traversalBusy  = false;
+
+  // --- Discoverability: stage direction hint in Act I content ---
+  // Fades in after 2s so user has time to read the entry first
+  setTimeout(() => {
+    if (!ghostOpened) stageDirHint.classList.add('revealed');
+  }, 2000);
+
+  // --- Discoverability: whisper tooltip on the flame itself ---
+  setTimeout(() => {
+    if (!ghostOpened) {
+      flame.classList.add('inviting');
+      whisper.classList.add('visible');
+      setTimeout(() => {
+        whisper.classList.remove('visible');
+        setTimeout(() => flame.classList.remove('inviting'), 600);
+      }, 4000);
+    }
+  }, 3500);
+
+  flame.addEventListener('mouseenter', () => {
+    if (!ghostOpened) {
+      whisper.classList.add('visible');
+      flame.classList.add('inviting');
+    }
+  });
+  flame.addEventListener('mouseleave', () => {
+    whisper.classList.remove('visible');
+    flame.classList.remove('inviting');
+  });
+
+  // --- Traversal: candle floats across the stage ---
+  function getFlameOrigin() {
+    const rect = flame.getBoundingClientRect();
+    return { x: rect.left + rect.width / 2 - 10, y: rect.top + 2 };
+  }
+
+  function runTraversal(direction, onComplete) {
+    const origin = getFlameOrigin();
+    tCandle.style.display = 'block';
+    tCandle.style.left = origin.x + 'px';
+    tCandle.style.top  = origin.y + 'px';
+    tCandle.style.animation = 'none';
+    tCandle.style.opacity = '1';
+
+    // Force reflow before animating
+    void tCandle.offsetWidth;
+
+    const dur = direction === 'across' ? 1600 : 1400;
+    tCandle.style.transition = 'none';
+    tCandle.style.animation = `${direction === 'across' ? 'traverseAcross' : 'traverseReturn'} ${dur}ms cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards`;
+
+    setTimeout(() => {
+      tCandle.style.opacity = '0';
+      tCandle.style.transition = 'opacity 0.3s ease';
+      setTimeout(() => {
+        tCandle.style.display = 'none';
+        tCandle.style.animation = 'none';
+        tCandle.style.transition = '';
+        tCandle.style.opacity   = '';
+        traversalBusy = false;
+        if (onComplete) onComplete();
+      }, 320);
+    }, dur - 100);
+  }
+
+  function openGhostLight() {
+    if (traversalBusy) return;
+    traversalBusy = true;
+
+    // Clear whisper / inviting state
+    whisper.classList.remove('visible');
+    flame.classList.remove('inviting', 'pulse');
+    ghostOpened = true;
+    stageDirHint.classList.remove('revealed');
+
+    // Candle travels across the stage, then overlay opens
+    runTraversal('across', () => {
+      ghostOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+  }
+
+  function closeGhostLight() {
+    if (traversalBusy) return;
+    traversalBusy = true;
+
+    ghostOverlay.classList.remove('active');
+    document.body.style.overflow = '';
+
+    // Brief pause, then candle returns home
+    setTimeout(() => {
+      runTraversal('return', null);
+    }, 200);
+  }
+
+  // Escape key closes
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && ghostOverlay.classList.contains('active')) {
+      closeGhostLight();
+    }
+  });
+
+  // Click on overlay background (not inner content) closes
+  ghostOverlay.addEventListener('click', (e) => {
+    if (e.target === ghostOverlay) closeGhostLight();
+  });
+
+  // Init
+  updateChrome(1);
+</script>
+
+
+
+</body></html>

@@ -228,7 +228,7 @@ const UserPreferencesSettings = () => {
       { className: 'section-header mb-6' },
       React.createElement('h2', { className: 'text-2xl font-bold mb-2 text-gray-900' }, 'User Preferences'),
       React.createElement('p', { className: 'text-sm text-gray-600' },
-        'Customize your SceneStave experience'
+        'Customize your Banquo experience'
       )
     ),
     

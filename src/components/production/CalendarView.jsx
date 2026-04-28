@@ -292,7 +292,7 @@ function CalendarView({ production, onSave, userRole }) {
       'costume-fitting': 'bg-pink-600 hover:bg-pink-700',
       build: 'bg-indigo-600 hover:bg-indigo-700',
       show: 'bg-purple-600 hover:bg-purple-700',
-      technical: 'bg-yellow-600 hover:bg-yellow-700 text-gray-900',
+      technical: 'bg-yellow-600 hover:bg-yellow-700 text-[var(--color-text-primary)]',
       audition: 'bg-pink-600 hover:bg-pink-700',
       board: 'bg-indigo-600 hover:bg-indigo-700',
       other: 'bg-gray-600 hover:bg-gray-700'
@@ -1177,48 +1177,48 @@ function CalendarView({ production, onSave, userRole }) {
           React.createElement('button', {
             onClick: () => setViewMode('month'),
             className: `px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${
-              viewMode === 'month' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+              viewMode === 'month' ? 'bg-blue-600 text-white' : 'bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-overlay)] text-[var(--color-text-secondary)]'
             }`
           }, 'Month'),
           React.createElement('button', {
             onClick: () => setViewMode('week'),
             className: `px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${
-              viewMode === 'week' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+              viewMode === 'week' ? 'bg-blue-600 text-white' : 'bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-overlay)] text-[var(--color-text-secondary)]'
             }`
           }, 'Week'),
           React.createElement('button', {
             onClick: () => setViewMode('day'),
             className: `px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${
-              viewMode === 'day' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+              viewMode === 'day' ? 'bg-blue-600 text-white' : 'bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-overlay)] text-[var(--color-text-secondary)]'
             }`
           }, 'Day')
         ),
         React.createElement(
           'div',
-          { className: 'text-xs text-gray-500 flex items-center gap-4' },
+          { className: 'text-xs text-[var(--color-text-muted)] flex items-center gap-4' },
           React.createElement('span', null, '⌨️ Shortcuts:'),
           React.createElement(
             'span',
             { className: 'hidden sm:inline' },
-            React.createElement('kbd', { className: 'px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px]' }, '←→'),
+            React.createElement('kbd', { className: 'px-1.5 py-0.5 bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded text-[10px]' }, '←→'),
             ' Navigate'
           ),
           React.createElement(
             'span',
             { className: 'hidden sm:inline' },
-            React.createElement('kbd', { className: 'px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px]' }, 'T'),
+            React.createElement('kbd', { className: 'px-1.5 py-0.5 bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded text-[10px]' }, 'T'),
             ' Today'
           ),
           React.createElement(
             'span',
             { className: 'hidden sm:inline' },
-            React.createElement('kbd', { className: 'px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px]' }, 'N'),
+            React.createElement('kbd', { className: 'px-1.5 py-0.5 bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded text-[10px]' }, 'N'),
             ' New Event'
           ),
           React.createElement(
             'span',
             { className: 'hidden sm:inline' },
-            React.createElement('kbd', { className: 'px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px]' }, 'M/W/D'),
+            React.createElement('kbd', { className: 'px-1.5 py-0.5 bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded text-[10px]' }, 'M/W/D'),
             ' Views'
           )
         ),
@@ -1233,11 +1233,11 @@ function CalendarView({ production, onSave, userRole }) {
               else if (viewMode === 'week') navigateWeek(-1);
               else navigateDay(-1);
             },
-            className: 'px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 font-medium'
+            className: 'px-3 py-2 bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-overlay)] rounded-lg text-[var(--color-text-secondary)] font-medium'
           }, '◀'),
           React.createElement('button', {
             onClick: goToToday,
-            className: 'px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium text-sm whitespace-nowrap text-gray-700'
+            className: 'px-4 py-2 bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-overlay)] rounded-lg font-medium text-sm whitespace-nowrap text-[var(--color-text-secondary)]'
           }, 'Today'),
           React.createElement('button', {
             onClick: () => {
@@ -1245,9 +1245,9 @@ function CalendarView({ production, onSave, userRole }) {
               else if (viewMode === 'week') navigateWeek(1);
               else navigateDay(1);
             },
-            className: 'px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 font-medium'
+            className: 'px-3 py-2 bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-overlay)] rounded-lg text-[var(--color-text-secondary)] font-medium'
           }, '▶'),
-          React.createElement('div', { className: 'ml-2 text-base font-semibold text-gray-800 whitespace-nowrap' },
+          React.createElement('div', { className: 'ml-2 text-base font-semibold text-[var(--color-text-primary)] whitespace-nowrap' },
             viewMode === 'month' ? `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}` :
             viewMode === 'week' ? `Week of ${currentDate.toLocaleDateString()}` :
             currentDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
@@ -1270,7 +1270,7 @@ function CalendarView({ production, onSave, userRole }) {
             onClick: () => setShowDashboard(!showDashboard),
             title: showDashboard ? 'Return to calendar view' : 'View dashboard summary',
             className: `px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap flex items-center gap-1 transition-colors ${
-              showDashboard ? 'bg-white text-gray-900 hover:bg-gray-100 border border-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'
+              showDashboard ? 'bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] border border-[var(--color-border)]' : 'bg-blue-600 text-white hover:bg-blue-700'
             }`
           }, showDashboard ? '📅 Calendar' : '📊 Dashboard'),
           React.createElement('button', {
@@ -1284,13 +1284,13 @@ function CalendarView({ production, onSave, userRole }) {
     // Event type legend
     React.createElement(
       'div',
-      { className: 'mb-4 flex flex-wrap gap-3 p-3 bg-gray-50 rounded-lg' },
+      { className: 'mb-4 flex flex-wrap gap-3 p-3 bg-[var(--color-bg-base)] rounded-lg' },
       Object.entries(eventTypes).map(([key, type]) =>
         React.createElement(
           'div',
           { key: key, className: 'flex items-center gap-2' },
           React.createElement('div', { className: `w-4 h-4 rounded ${type.color}` }),
-          React.createElement('span', { className: 'text-sm text-gray-700' }, type.label)
+          React.createElement('span', { className: 'text-sm text-[var(--color-text-secondary)]' }, type.label)
         )
       )
     ),
@@ -1310,25 +1310,25 @@ function CalendarView({ production, onSave, userRole }) {
           React.createElement(
             'div',
             { className: 'p-4 bg-blue-50 border border-blue-200 rounded-lg' },
-            React.createElement('div', { className: 'text-sm text-gray-600 mb-1' }, 'Total Events'),
+            React.createElement('div', { className: 'text-sm text-[var(--color-text-secondary)] mb-1' }, 'Total Events'),
             React.createElement('div', { className: 'text-3xl font-bold text-blue-700' }, events.length),
-            React.createElement('div', { className: 'text-xs text-gray-500 mt-1' },
+            React.createElement('div', { className: 'text-xs text-[var(--color-text-muted)] mt-1' },
               `${events.filter(e => e.type === 'rehearsal').length} rehearsals`
             )
           ),
           React.createElement(
             'div',
             { className: 'p-4 bg-green-50 border border-green-200 rounded-lg' },
-            React.createElement('div', { className: 'text-sm text-gray-600 mb-1' }, 'This Week'),
+            React.createElement('div', { className: 'text-sm text-[var(--color-text-secondary)] mb-1' }, 'This Week'),
             React.createElement('div', { className: 'text-3xl font-bold text-green-700' }, getUpcomingEvents().length),
-            React.createElement('div', { className: 'text-xs text-gray-500 mt-1' },
+            React.createElement('div', { className: 'text-xs text-[var(--color-text-muted)] mt-1' },
               `${getTodaysEvents().length} today`
             )
           ),
           React.createElement(
             'div',
             { className: 'p-4 bg-orange-50 border border-orange-200 rounded-lg' },
-            React.createElement('div', { className: 'text-sm text-gray-600 mb-1' }, 'Conflicts'),
+            React.createElement('div', { className: 'text-sm text-[var(--color-text-secondary)] mb-1' }, 'Conflicts'),
             React.createElement('div', { className: 'text-3xl font-bold text-orange-700' }, conflicts.length),
             conflicts.length > 0 && React.createElement('button', {
               onClick: () => setShowConflicts(true),
@@ -1338,9 +1338,9 @@ function CalendarView({ production, onSave, userRole }) {
           React.createElement(
             'div',
             { className: 'p-4 bg-purple-50 border border-purple-200 rounded-lg' },
-            React.createElement('div', { className: 'text-sm text-gray-600 mb-1' }, 'Milestones'),
+            React.createElement('div', { className: 'text-sm text-[var(--color-text-secondary)] mb-1' }, 'Milestones'),
             React.createElement('div', { className: 'text-3xl font-bold text-purple-700' }, getMilestones().length),
-            React.createElement('div', { className: 'text-xs text-gray-500 mt-1' },
+            React.createElement('div', { className: 'text-xs text-[var(--color-text-muted)] mt-1' },
               `${events.filter(e => e.type === 'performance').length} performances`
             )
           )
@@ -1359,7 +1359,7 @@ function CalendarView({ production, onSave, userRole }) {
             React.createElement(
               'div',
               { className: 'space-y-2 max-h-96 overflow-y-auto' },
-              getUpcomingEvents().length === 0 ? React.createElement('p', { className: 'text-gray-500 text-sm' },
+              getUpcomingEvents().length === 0 ? React.createElement('p', { className: 'text-[var(--color-text-muted)] text-sm' },
                 'No events scheduled this week'
               ) : getUpcomingEvents().map(event => {
                 const type = eventTypes[event.type] || eventTypes.rehearsal;
@@ -1377,10 +1377,10 @@ function CalendarView({ production, onSave, userRole }) {
                       'div',
                       null,
                       React.createElement('div', { className: `text-sm font-semibold ${type.textColor}` }, event.title),
-                      React.createElement('div', { className: 'text-xs text-gray-600 mt-1' },
+                      React.createElement('div', { className: 'text-xs text-[var(--color-text-secondary)] mt-1' },
                         `${eventDate ? eventDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'No date'}${startParsed.time ? ` • ${formatTime(startParsed.time)}` : ''}`
                       ),
-                      event.scenes?.length > 0 && React.createElement('div', { className: 'text-xs text-gray-500 mt-1' },
+                      event.scenes?.length > 0 && React.createElement('div', { className: 'text-xs text-[var(--color-text-muted)] mt-1' },
                         `${event.scenes.length} scene(s)`
                       )
                     ),
@@ -1405,7 +1405,7 @@ function CalendarView({ production, onSave, userRole }) {
               React.createElement(
                 'div',
                 { className: 'p-3 bg-blue-50 border border-blue-200 rounded-lg' },
-                getPropsNeededThisWeek().length === 0 ? React.createElement('p', { className: 'text-sm text-gray-500' },
+                getPropsNeededThisWeek().length === 0 ? React.createElement('p', { className: 'text-sm text-[var(--color-text-muted)]' },
                   'No props needed'
                 ) : React.createElement(
                   'div',
@@ -1413,7 +1413,7 @@ function CalendarView({ production, onSave, userRole }) {
                   getPropsNeededThisWeek().slice(0, 5).map(prop =>
                     React.createElement('div', { key: prop.id, className: 'text-sm' }, `• ${prop.name}`)
                   ),
-                  getPropsNeededThisWeek().length > 5 && React.createElement('div', { className: 'text-xs text-gray-500 mt-1' },
+                  getPropsNeededThisWeek().length > 5 && React.createElement('div', { className: 'text-xs text-[var(--color-text-muted)] mt-1' },
                     `+${getPropsNeededThisWeek().length - 5} more`
                   )
                 )
@@ -1427,7 +1427,7 @@ function CalendarView({ production, onSave, userRole }) {
               React.createElement(
                 'div',
                 { className: 'p-3 bg-pink-50 border border-pink-200 rounded-lg' },
-                getCostumesNeededThisWeek().length === 0 ? React.createElement('p', { className: 'text-sm text-gray-500' },
+                getCostumesNeededThisWeek().length === 0 ? React.createElement('p', { className: 'text-sm text-[var(--color-text-muted)]' },
                   'No costumes needed'
                 ) : React.createElement(
                   'div',
@@ -1435,7 +1435,7 @@ function CalendarView({ production, onSave, userRole }) {
                   getCostumesNeededThisWeek().slice(0, 5).map(costume =>
                     React.createElement('div', { key: costume.id, className: 'text-sm' }, `• ${costume.name}`)
                   ),
-                  getCostumesNeededThisWeek().length > 5 && React.createElement('div', { className: 'text-xs text-gray-500 mt-1' },
+                  getCostumesNeededThisWeek().length > 5 && React.createElement('div', { className: 'text-xs text-[var(--color-text-muted)] mt-1' },
                     `+${getCostumesNeededThisWeek().length - 5} more`
                   )
                 )
@@ -1459,7 +1459,7 @@ function CalendarView({ production, onSave, userRole }) {
                       className: `p-2 border rounded ${type.bgLight} ${type.border} text-sm`
                     },
                     React.createElement('div', { className: 'font-semibold' }, milestone.title),
-                    React.createElement('div', { className: 'text-xs text-gray-600' },
+                    React.createElement('div', { className: 'text-xs text-[var(--color-text-secondary)]' },
                       `${milestoneDate && !isNaN(milestoneDate.getTime()) ? milestoneDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date'}`
                     )
                   );
@@ -1504,16 +1504,16 @@ function CalendarView({ production, onSave, userRole }) {
         
         return React.createElement(
           'div',
-          { className: 'border border-gray-300 rounded-lg overflow-hidden' },
+          { className: 'border border-[var(--color-border)] rounded-lg overflow-hidden' },
           
           // Day headers
           React.createElement(
             'div',
-            { className: 'grid grid-cols-7 bg-gray-100 border-b border-gray-300' },
+            { className: 'grid grid-cols-7 bg-[var(--color-bg-elevated)] border-b border-[var(--color-border)]' },
             dayNames.map(day =>
               React.createElement('div', { 
                 key: day, 
-                className: 'p-2 text-center font-semibold text-sm border-r border-gray-300 last:border-r-0'
+                className: 'p-2 text-center font-semibold text-sm border-r border-[var(--color-border)] last:border-r-0'
               }, day)
             )
           ),
@@ -1522,12 +1522,12 @@ function CalendarView({ production, onSave, userRole }) {
           weeks.map((week, weekIdx) =>
             React.createElement(
               'div',
-              { key: weekIdx, className: 'grid grid-cols-7 border-b border-gray-300 last:border-b-0' },
+              { key: weekIdx, className: 'grid grid-cols-7 border-b border-[var(--color-border)] last:border-b-0' },
               week.map((date, dayIdx) => {
                 if (!date) {
                   return React.createElement('div', { 
                     key: dayIdx, 
-                    className: 'min-h-24 p-2 bg-gray-50 border-r border-gray-300 last:border-r-0'
+                    className: 'min-h-24 p-2 bg-[var(--color-bg-base)] border-r border-[var(--color-border)] last:border-r-0'
                   });
                 }
                 
@@ -1538,8 +1538,8 @@ function CalendarView({ production, onSave, userRole }) {
                   'div',
                   { 
                     key: dayIdx,
-                    className: `p-2 min-h-[120px] border overflow-hidden hover:bg-gray-50 transition-colors cursor-pointer ${
-                      isToday ? 'bg-blue-50 border-blue-400 border-2 shadow-sm' : 'bg-white border-gray-200'
+                    className: `p-2 min-h-[120px] border overflow-hidden hover:bg-[var(--color-bg-base)] transition-colors cursor-pointer ${
+                      isToday ? 'bg-blue-50 border-blue-400 border-2 shadow-sm' : 'bg-[var(--color-bg-surface)] border-[var(--color-border)]'
                     }`,
                     onClick: () => {
                       setEditingEvent({ date: date.toISOString().split('T')[0] });
@@ -1549,7 +1549,7 @@ function CalendarView({ production, onSave, userRole }) {
                   
                   // Day number
                   React.createElement('div', { 
-                    className: `text-sm font-semibold mb-2 ${isToday ? 'text-blue-600' : 'text-gray-700'}`
+                    className: `text-sm font-semibold mb-2 ${isToday ? 'text-blue-600' : 'text-[var(--color-text-secondary)]'}`
                   },
                     date.getDate(),
                     isToday && React.createElement(
@@ -1668,18 +1668,18 @@ function CalendarView({ production, onSave, userRole }) {
 
         return React.createElement(
           'div',
-          { className: 'bg-white rounded-lg shadow-sm border border-gray-200' },
+          { className: 'bg-[var(--color-bg-surface)] rounded-lg shadow-sm border border-[var(--color-border)]' },
 
           React.createElement(
             'div',
-            { className: 'flex items-center justify-between p-4 border-b border-gray-200' },
+            { className: 'flex items-center justify-between p-4 border-b border-[var(--color-border)]' },
             React.createElement('button', {
               onClick: () => {
                 const newDate = new Date(currentDate);
                 newDate.setDate(currentDate.getDate() - 7);
                 setCurrentDate(newDate);
               },
-              className: 'px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50'
+              className: 'px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-md hover:bg-[var(--color-bg-base)]'
             }, '← Previous Week'),
 
             React.createElement(
@@ -1687,7 +1687,7 @@ function CalendarView({ production, onSave, userRole }) {
               { className: 'flex items-center gap-3' },
               React.createElement(
                 'h3',
-                { className: 'text-lg font-semibold text-gray-900' },
+                { className: 'text-lg font-semibold text-[var(--color-text-primary)]' },
                 `${formatDateDisplay(weekStart, 'short')} - ${formatDateDisplay(weekEnd, 'short')}`
               ),
               React.createElement('button', {
@@ -1702,7 +1702,7 @@ function CalendarView({ production, onSave, userRole }) {
                 newDate.setDate(currentDate.getDate() + 7);
                 setCurrentDate(newDate);
               },
-              className: 'px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50'
+              className: 'px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-md hover:bg-[var(--color-bg-base)]'
             }, 'Next Week →')
           ),
 
@@ -1718,19 +1718,19 @@ function CalendarView({ production, onSave, userRole }) {
                 'div',
                 {
                   key: idx,
-                  className: `min-h-[400px] ${isWeekend ? 'bg-gray-50' : 'bg-white'}`
+                  className: `min-h-[400px] ${isWeekend ? 'bg-[var(--color-bg-base)]' : 'bg-[var(--color-bg-surface)]'}`
                 },
                 React.createElement(
                   'div',
-                  { className: `p-3 border-b border-gray-200 ${isToday ? 'bg-blue-600 text-white' : isWeekend ? 'bg-gray-100' : 'bg-white'}` },
+                  { className: `p-3 border-b border-[var(--color-border)] ${isToday ? 'bg-blue-600 text-white' : isWeekend ? 'bg-[var(--color-bg-elevated)]' : 'bg-[var(--color-bg-surface)]'}` },
                   React.createElement(
                     'div',
-                    { className: `text-xs font-medium uppercase ${isToday ? 'text-blue-100' : 'text-gray-500'}` },
+                    { className: `text-xs font-medium uppercase ${isToday ? 'text-blue-100' : 'text-[var(--color-text-muted)]'}` },
                     formatDateDisplay(day, 'weekday')
                   ),
                   React.createElement(
                     'div',
-                    { className: `text-xl font-semibold mt-1 ${isToday ? 'text-white' : 'text-gray-900'}` },
+                    { className: `text-xl font-semibold mt-1 ${isToday ? 'text-white' : 'text-[var(--color-text-primary)]'}` },
                     day.getDate(),
                     isToday && React.createElement(
                       'span',
@@ -1750,7 +1750,7 @@ function CalendarView({ production, onSave, userRole }) {
                         setEditingEvent(buildFormEvent({ date: dayStr }, { date: dayStr }));
                         setShowEventModal(true);
                       },
-                      className: 'w-full py-8 text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded border-2 border-dashed border-gray-200 hover:border-gray-300'
+                      className: 'w-full py-8 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-base)] rounded border-2 border-dashed border-[var(--color-border)] hover:border-[var(--color-border)]'
                     }, '+ Add Event')
                     : React.createElement(
                       React.Fragment,
@@ -1799,7 +1799,7 @@ function CalendarView({ production, onSave, userRole }) {
                             ),
                             event.location && React.createElement(
                               'div',
-                              { className: 'text-xs text-gray-500 mt-1 truncate' },
+                              { className: 'text-xs text-[var(--color-text-muted)] mt-1 truncate' },
                               `📍 ${event.location}`
                             )
                           );
@@ -1810,7 +1810,7 @@ function CalendarView({ production, onSave, userRole }) {
                           setEditingEvent(buildFormEvent({ date: dayStr }, { date: dayStr }));
                           setShowEventModal(true);
                         },
-                        className: 'w-full py-2 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded mt-2'
+                        className: 'w-full py-2 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] rounded mt-2'
                       }, '+ Add Event')
                     )
                 )
@@ -1928,17 +1928,17 @@ function CalendarView({ production, onSave, userRole }) {
 
         return React.createElement(
           'div',
-          { className: 'bg-white rounded-lg shadow-sm border border-gray-200 relative' },
+          { className: 'bg-[var(--color-bg-surface)] rounded-lg shadow-sm border border-[var(--color-border)] relative' },
           React.createElement(
             'div',
-            { className: 'flex items-center justify-between p-4 border-b border-gray-200' },
+            { className: 'flex items-center justify-between p-4 border-b border-[var(--color-border)]' },
             React.createElement('button', {
               onClick: () => {
                 const newDate = new Date(currentDate);
                 newDate.setDate(currentDate.getDate() - 1);
                 setCurrentDate(newDate);
               },
-              className: 'px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50'
+              className: 'px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-md hover:bg-[var(--color-bg-base)]'
             }, '← Previous Day'),
 
             React.createElement(
@@ -1946,7 +1946,7 @@ function CalendarView({ production, onSave, userRole }) {
               { className: 'flex items-center gap-3' },
               React.createElement(
                 'h3',
-                { className: 'text-lg font-semibold text-gray-900' },
+                { className: 'text-lg font-semibold text-[var(--color-text-primary)]' },
                 formatDateDisplay(currentDate, 'long')
               ),
               React.createElement('button', {
@@ -1961,7 +1961,7 @@ function CalendarView({ production, onSave, userRole }) {
                 newDate.setDate(currentDate.getDate() + 1);
                 setCurrentDate(newDate);
               },
-              className: 'px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50'
+              className: 'px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-md hover:bg-[var(--color-bg-base)]'
             }, 'Next Day →')
           ),
 
@@ -1973,13 +1973,13 @@ function CalendarView({ production, onSave, userRole }) {
               { className: 'flex relative' },
               React.createElement(
                 'div',
-                { className: 'w-20 flex-shrink-0 border-r border-gray-200' },
+                { className: 'w-20 flex-shrink-0 border-r border-[var(--color-border)]' },
                 timeSlots.map(slot =>
                   React.createElement(
                     'div',
                     {
                       key: slot.hour,
-                      className: 'h-[60px] border-b border-gray-100 px-2 py-1 text-xs text-gray-500 text-right'
+                      className: 'h-[60px] border-b border-gray-100 px-2 py-1 text-xs text-[var(--color-text-muted)] text-right'
                     },
                     slot.time12
                   )
@@ -1992,7 +1992,7 @@ function CalendarView({ production, onSave, userRole }) {
                 timeSlots.map((slot, idx) =>
                   React.createElement('div', {
                     key: slot.hour,
-                    className: 'h-[60px] border-b border-gray-100 hover:bg-gray-50 cursor-pointer',
+                    className: 'h-[60px] border-b border-gray-100 hover:bg-[var(--color-bg-base)] cursor-pointer',
                     onClick: (e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
                       const y = e.clientY - rect.top;
@@ -2045,12 +2045,12 @@ function CalendarView({ production, onSave, userRole }) {
                       ),
                       event.location && React.createElement(
                         'div',
-                        { className: 'text-xs text-gray-600 mt-1 truncate' },
+                        { className: 'text-xs text-[var(--color-text-secondary)] mt-1 truncate' },
                         `📍 ${event.location}`
                       ),
                       event.description && height > 80 && React.createElement(
                         'div',
-                        { className: 'text-xs text-gray-600 mt-1 line-clamp-2' },
+                        { className: 'text-xs text-[var(--color-text-secondary)] mt-1 line-clamp-2' },
                         event.description
                       )
                     );
@@ -2088,7 +2088,7 @@ function CalendarView({ production, onSave, userRole }) {
       React.createElement(
         'div',
         {
-          className: 'bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto',
+          className: 'bg-[var(--color-bg-surface)] rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto',
           onClick: (e) => e.stopPropagation()
         },
         
@@ -2106,7 +2106,7 @@ function CalendarView({ production, onSave, userRole }) {
               setShowEventModal(false);
               setEditingEvent(null);
             },
-            className: 'text-gray-500 hover:text-gray-700 text-2xl'
+            className: 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] text-2xl'
           }, '×')
         ),
         
@@ -2134,7 +2134,7 @@ function CalendarView({ production, onSave, userRole }) {
               type: 'text',
               value: editingEvent?.title || '',
               onChange: (e) => setEditingEvent({ ...editingEvent, title: e.target.value }),
-              className: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',
+              className: 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-blue-500',
               placeholder: 'e.g., Blocking - Act 1, Scene 1'
             })
           ),
@@ -2147,7 +2147,7 @@ function CalendarView({ production, onSave, userRole }) {
             React.createElement('select', {
               value: editingEvent?.type || 'rehearsal',
               onChange: (e) => setEditingEvent({ ...editingEvent, type: e.target.value }),
-              className: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+              className: 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-blue-500'
             },
               Object.entries(allowedEventTypesForRole()).map(([key, type]) =>
                 React.createElement('option', { key: key, value: key }, type.label)
@@ -2163,7 +2163,7 @@ function CalendarView({ production, onSave, userRole }) {
             React.createElement('select', {
               value: editingEvent?.subtype || '',
               onChange: (e) => setEditingEvent({ ...editingEvent, subtype: e.target.value }),
-              className: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+              className: 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-blue-500'
             },
               React.createElement('option', { value: '' }, '-- Select Type --'),
               Object.entries(rehearsalSubtypes).map(([key, label]) =>
@@ -2179,7 +2179,7 @@ function CalendarView({ production, onSave, userRole }) {
             React.createElement('select', {
               value: editingEvent?.subtype || '',
               onChange: (e) => setEditingEvent({ ...editingEvent, subtype: e.target.value }),
-              className: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+              className: 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-blue-500'
             },
               React.createElement('option', { value: '' }, '-- Select Type --'),
               Object.entries(techSubtypes).map(([key, label]) =>
@@ -2195,7 +2195,7 @@ function CalendarView({ production, onSave, userRole }) {
             React.createElement('select', {
               value: editingEvent?.subtype || '',
               onChange: (e) => setEditingEvent({ ...editingEvent, subtype: e.target.value }),
-              className: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+              className: 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-blue-500'
             },
               React.createElement('option', { value: '' }, '-- Select Type --'),
               Object.entries(milestoneTypes).map(([key, label]) =>
@@ -2236,7 +2236,7 @@ function CalendarView({ production, onSave, userRole }) {
                   className: `px-4 py-3 rounded-lg text-sm font-medium transition-colors border-2 ${
                     rehearsalType === 'full-run'
                       ? 'bg-purple-600 border-purple-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-purple-500'
+                      : 'bg-[var(--color-bg-surface)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-purple-500'
                   }`
                 },
                 React.createElement('div', { className: 'font-bold mb-1' }, '🎭 Full Run'),
@@ -2277,7 +2277,7 @@ function CalendarView({ production, onSave, userRole }) {
                   className: `px-4 py-3 rounded-lg text-sm font-medium transition-colors border-2 ${
                     rehearsalType === 'act-1-run'
                       ? 'bg-blue-600 border-blue-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-blue-500'
+                      : 'bg-[var(--color-bg-surface)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-blue-500'
                   }`
                 },
                 React.createElement('div', { className: 'font-bold mb-1' }, '📖 Act I Run'),
@@ -2318,7 +2318,7 @@ function CalendarView({ production, onSave, userRole }) {
                   className: `px-4 py-3 rounded-lg text-sm font-medium transition-colors border-2 ${
                     rehearsalType === 'act-2-run'
                       ? 'bg-green-600 border-green-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-green-500'
+                      : 'bg-[var(--color-bg-surface)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-green-500'
                   }`
                 },
                 React.createElement('div', { className: 'font-bold mb-1' }, '📖 Act II Run'),
@@ -2344,7 +2344,7 @@ function CalendarView({ production, onSave, userRole }) {
                   className: `px-4 py-3 rounded-lg text-sm font-medium transition-colors border-2 ${
                     rehearsalType === 'custom'
                       ? 'bg-orange-600 border-orange-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-orange-500'
+                      : 'bg-[var(--color-bg-surface)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-orange-500'
                   }`
                 },
                 React.createElement('div', { className: 'font-bold mb-1' }, '🎯 Custom'),
@@ -2370,7 +2370,7 @@ function CalendarView({ production, onSave, userRole }) {
                   className: `col-span-2 px-4 py-3 rounded-lg text-sm font-medium transition-colors border-2 ${
                     rehearsalType === 'table-read'
                       ? 'bg-sky-700 border-sky-700 text-white'
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-sky-600'
+                      : 'bg-[var(--color-bg-surface)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-sky-600'
                   }`
                 },
                 React.createElement('div', { className: 'font-bold mb-1' }, '📖 Table Read'),
@@ -2426,7 +2426,7 @@ function CalendarView({ production, onSave, userRole }) {
                 type: 'date',
                 value: editingEvent?.date || '',
                 onChange: (e) => setEditingEvent({ ...editingEvent, date: e.target.value }),
-                className: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+                className: 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-blue-500'
               })
             ),
             React.createElement(
@@ -2437,7 +2437,7 @@ function CalendarView({ production, onSave, userRole }) {
                 type: 'time',
                 value: editingEvent?.startTime || '',
                 onChange: (e) => setEditingEvent({ ...editingEvent, startTime: e.target.value }),
-                className: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+                className: 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-blue-500'
               })
             ),
             React.createElement(
@@ -2448,7 +2448,7 @@ function CalendarView({ production, onSave, userRole }) {
                 type: 'time',
                 value: editingEvent?.endTime || '',
                 onChange: (e) => setEditingEvent({ ...editingEvent, endTime: e.target.value }),
-                className: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+                className: 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-blue-500'
               })
             )
           ),
@@ -2458,7 +2458,7 @@ function CalendarView({ production, onSave, userRole }) {
             { className: 'mt-3' },
             React.createElement(
               'label',
-              { className: 'flex items-center gap-2 text-sm text-gray-700 mb-1' },
+              { className: 'flex items-center gap-2 text-sm text-[var(--color-text-secondary)] mb-1' },
               React.createElement('input', {
                 type: 'checkbox',
                 checked: !!(editingEvent.endDate && editingEvent.endDate !== editingEvent.date),
@@ -2484,7 +2484,7 @@ function CalendarView({ production, onSave, userRole }) {
             editingEvent.endDate && React.createElement(
               'div',
               { className: 'mt-2' },
-              React.createElement('label', { className: 'block text-sm text-gray-600 mb-1' }, 'End Date'),
+              React.createElement('label', { className: 'block text-sm text-[var(--color-text-secondary)] mb-1' }, 'End Date'),
               React.createElement('input', {
                 type: 'date',
                 value: editingEvent.endDate,
@@ -2493,11 +2493,11 @@ function CalendarView({ production, onSave, userRole }) {
                   const updatedEvent = { ...editingEvent, endDate: e.target.value };
                   setEditingEvent(updatedEvent);
                 },
-                className: 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                className: 'w-full px-3 py-2 border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
               }),
               React.createElement(
                 'p',
-                { className: 'text-xs text-gray-500 mt-1' },
+                { className: 'text-xs text-[var(--color-text-muted)] mt-1' },
                 `Duration: ${(() => {
                   const start = new Date(editingEvent.date || editingEvent.start);
                   const end = new Date(editingEvent.endDate);
@@ -2516,7 +2516,7 @@ function CalendarView({ production, onSave, userRole }) {
           // Time preview
           editingEvent?.startTime && editingEvent?.endTime && React.createElement(
             'div',
-            { className: 'text-sm text-gray-600 mt-1' },
+            { className: 'text-sm text-[var(--color-text-secondary)] mt-1' },
             `📅 ${formatTimeRange(editingEvent.startTime, editingEvent.endTime)}`
           ),
           
@@ -2546,7 +2546,7 @@ function CalendarView({ production, onSave, userRole }) {
                         setEditingEvent({ ...editingEvent, location: e.target.value });
                       }
                     },
-                    className: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+                    className: 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-blue-500'
                   },
                   React.createElement('option', { value: '' }, 'Select location...'),
                   venues.map(v => React.createElement('option', { key: v.id, value: v.name }, v.name)),
@@ -2557,7 +2557,7 @@ function CalendarView({ production, onSave, userRole }) {
                   type: 'text',
                   value: loc === '__custom__' ? '' : loc,
                   onChange: (e) => setEditingEvent({ ...editingEvent, location: e.target.value }),
-                  className: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 mt-2',
+                  className: 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-blue-500 mt-2',
                   placeholder: 'Enter custom location...',
                   autoFocus: loc === '__custom__'
                 })
@@ -2599,13 +2599,13 @@ function CalendarView({ production, onSave, userRole }) {
               ),
               React.createElement(
                 'div',
-                { className: 'max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-2 bg-white' },
-                allScenes.length === 0 ? React.createElement('p', { className: 'text-sm text-gray-500' },
+                { className: 'max-h-40 overflow-y-auto border border-[var(--color-border)] rounded-lg p-2 bg-[var(--color-bg-surface)]' },
+                allScenes.length === 0 ? React.createElement('p', { className: 'text-sm text-[var(--color-text-muted)]' },
                   'No scenes available. Add scenes to your production first.'
                 ) : allScenes.map(scene =>
                   React.createElement(
                     'label',
-                    { key: scene.id, className: 'flex items-center gap-2 p-1 hover:bg-gray-50 cursor-pointer' },
+                    { key: scene.id, className: 'flex items-center gap-2 p-1 hover:bg-[var(--color-bg-base)] cursor-pointer' },
                     React.createElement('input', {
                       type: 'checkbox',
                       checked: (editingEvent?.scenes || []).includes(scene.id),
@@ -2650,13 +2650,13 @@ function CalendarView({ production, onSave, userRole }) {
               ),
               React.createElement(
                 'div',
-                { className: 'max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2 bg-white' },
-                allCharacters.length === 0 ? React.createElement('p', { className: 'text-sm text-gray-500' },
+                { className: 'max-h-32 overflow-y-auto border border-[var(--color-border)] rounded-lg p-2 bg-[var(--color-bg-surface)]' },
+                allCharacters.length === 0 ? React.createElement('p', { className: 'text-sm text-[var(--color-text-muted)]' },
                   'No characters found.'
                 ) : allCharacters.map(character =>
                   React.createElement(
                     'label',
-                    { key: character, className: 'flex items-center gap-2 p-1 hover:bg-gray-50 cursor-pointer' },
+                    { key: character, className: 'flex items-center gap-2 p-1 hover:bg-[var(--color-bg-base)] cursor-pointer' },
                     React.createElement('input', {
                       type: 'checkbox',
                       checked: (editingEvent?.charactersNeeded || []).includes(character),
@@ -2701,13 +2701,13 @@ function CalendarView({ production, onSave, userRole }) {
               ),
               React.createElement(
                 'div',
-                { className: 'max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2 bg-white' },
-                allProps.length === 0 ? React.createElement('p', { className: 'text-sm text-gray-500' },
+                { className: 'max-h-32 overflow-y-auto border border-[var(--color-border)] rounded-lg p-2 bg-[var(--color-bg-surface)]' },
+                allProps.length === 0 ? React.createElement('p', { className: 'text-sm text-[var(--color-text-muted)]' },
                   'No props found. Add props to your production first.'
                 ) : allProps.map(prop =>
                   React.createElement(
                     'label',
-                    { key: prop.id, className: 'flex items-center gap-2 p-1 hover:bg-gray-50 cursor-pointer' },
+                    { key: prop.id, className: 'flex items-center gap-2 p-1 hover:bg-[var(--color-bg-base)] cursor-pointer' },
                     React.createElement('input', {
                       type: 'checkbox',
                       checked: (editingEvent?.propsNeeded || []).includes(prop.id),
@@ -2752,13 +2752,13 @@ function CalendarView({ production, onSave, userRole }) {
               ),
               React.createElement(
                 'div',
-                { className: 'max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2 bg-white' },
-                allCostumes.length === 0 ? React.createElement('p', { className: 'text-sm text-gray-500' },
+                { className: 'max-h-32 overflow-y-auto border border-[var(--color-border)] rounded-lg p-2 bg-[var(--color-bg-surface)]' },
+                allCostumes.length === 0 ? React.createElement('p', { className: 'text-sm text-[var(--color-text-muted)]' },
                   'No costumes found. Add costumes to your production first.'
                 ) : allCostumes.map(costume =>
                   React.createElement(
                     'label',
-                    { key: costume.id, className: 'flex items-center gap-2 p-1 hover:bg-gray-50 cursor-pointer' },
+                    { key: costume.id, className: 'flex items-center gap-2 p-1 hover:bg-[var(--color-bg-base)] cursor-pointer' },
                     React.createElement('input', {
                       type: 'checkbox',
                       checked: (editingEvent?.costumesNeeded || []).includes(costume.id),
@@ -2792,7 +2792,7 @@ function CalendarView({ production, onSave, userRole }) {
                   const attendeesList = e.target.value.split(',').map(a => a.trim()).filter(Boolean);
                   setEditingEvent({ ...editingEvent, attendees: attendeesList });
                 },
-                className: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',
+                className: 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-blue-500',
                 placeholder: 'e.g., Stage Manager, Director, Costume Designer (comma-separated)'
               })
             )
@@ -2806,7 +2806,7 @@ function CalendarView({ production, onSave, userRole }) {
             React.createElement('textarea', {
               value: editingEvent?.notes || '',
               onChange: (e) => setEditingEvent({ ...editingEvent, notes: e.target.value }),
-              className: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',
+              className: 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-blue-500',
               rows: 3,
               placeholder: 'Additional notes...'
             })
@@ -2816,7 +2816,7 @@ function CalendarView({ production, onSave, userRole }) {
         // Event summary (when viewing existing event)
         editingEvent?.id && events.find(e => e.id === editingEvent.id) && React.createElement(
           'div',
-          { className: 'mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg' },
+          { className: 'mt-4 p-4 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg' },
           React.createElement('h4', { className: 'font-semibold mb-2' }, '📋 Event Summary'),
           React.createElement(
             'div',
@@ -2949,7 +2949,7 @@ function CalendarView({ production, onSave, userRole }) {
                 setShowEventModal(false);
                 setEditingEvent(null);
               },
-              className: 'px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300'
+              className: 'px-4 py-2 bg-[var(--color-bg-overlay)] rounded-lg hover:bg-gray-300'
             }, 'Cancel'),
             (canEditEvent(editingEvent) || !editingEvent.id) && React.createElement('button', {
               onClick: handleSaveEvent,
@@ -2970,7 +2970,7 @@ function CalendarView({ production, onSave, userRole }) {
       React.createElement(
         'div',
         {
-          className: 'bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto',
+          className: 'bg-[var(--color-bg-surface)] rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto',
           onClick: (e) => e.stopPropagation()
         },
         React.createElement(
@@ -2979,11 +2979,11 @@ function CalendarView({ production, onSave, userRole }) {
           React.createElement('h3', { className: 'text-xl font-bold' }, `⚠️ Scheduling Conflicts (${conflicts.length})`),
           React.createElement('button', {
             onClick: () => setShowConflicts(false),
-            className: 'text-gray-500 hover:text-gray-700 text-2xl'
+            className: 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] text-2xl'
           }, '×')
         ),
         
-        conflicts.length === 0 ? React.createElement('p', { className: 'text-gray-500' },
+        conflicts.length === 0 ? React.createElement('p', { className: 'text-[var(--color-text-muted)]' },
           'No conflicts detected! 🎉'
         ) : React.createElement(
           'div',
@@ -3001,7 +3001,7 @@ function CalendarView({ production, onSave, userRole }) {
                 }`
               },
               React.createElement('div', { className: 'font-semibold mb-1' }, conflict.message),
-              React.createElement('div', { className: 'text-sm text-gray-700' },
+              React.createElement('div', { className: 'text-sm text-[var(--color-text-secondary)]' },
                 (() => {
                   const startParsed = parseDateTime(conflict.event1.start);
                   const endParsed = parseDateTime(conflict.event1.end);
@@ -3013,7 +3013,7 @@ function CalendarView({ production, onSave, userRole }) {
                   return `${conflict.event1.title} (${timeRange})`;
                 })()
               ),
-              React.createElement('div', { className: 'text-sm text-gray-700' },
+              React.createElement('div', { className: 'text-sm text-[var(--color-text-secondary)]' },
                 (() => {
                   const startParsed = parseDateTime(conflict.event2.start);
                   const endParsed = parseDateTime(conflict.event2.end);
@@ -3025,7 +3025,7 @@ function CalendarView({ production, onSave, userRole }) {
                   return `${conflict.event2.title} (${timeRange})`;
                 })()
               ),
-              conflict.resources && React.createElement('div', { className: 'text-xs text-gray-600 mt-1' },
+              conflict.resources && React.createElement('div', { className: 'text-xs text-[var(--color-text-secondary)] mt-1' },
                 `Conflicting resources: ${Array.isArray(conflict.resources) ? conflict.resources.join(', ') : conflict.resources}`
               )
             )

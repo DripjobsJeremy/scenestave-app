@@ -192,7 +192,7 @@ const SettingsOverview = ({ onNavigate }) => {
       React.createElement(
         'p',
         { className: 'text-gray-600' },
-        'Configure and manage your SceneStave system'
+        'Configure and manage your Banquo system'
       )
     ),
     
@@ -313,7 +313,7 @@ const SettingsOverview = ({ onNavigate }) => {
             onClick: () => handleNavigate('data-management')
           }),
           React.createElement(SettingLink, {
-            label: 'About SceneStave',
+            label: 'About Banquo',
             onClick: () => handleNavigate('about')
           })
         )
